@@ -5273,8 +5273,8 @@ function getStagesPR07() {
           <div style="padding: 12px; background: #fff7ed; border-left: 5px solid #f59e0b; border-radius: 6px; font-size: 13px; line-height: 1.7;">
             <strong>🎯 关键</strong>：<br>
             • 张益唐没证"差 = 2"，但证"差 < 7000 万"——<strong>首次证明"有上界"</strong><br>
-            • 8 个月内 波利马什 8 集体优化到 246<br>
-            • 2014 年 梅纳德 用新方法独立做到 600<br>
+            • 2013 年 11 月 梅纳德 用新方法独立做到 <strong>600</strong>（比 Polymath8 更快）<br>
+            • 2014 年 4 月 波利马什 8 集体优化到 <strong>246</strong>（沿用至今）<br>
             • 距离"差 = 2"还差最后一步——<strong>最难的一步</strong>
           </div>
         </div>
@@ -5408,11 +5408,13 @@ function initStage_PR07_s3() {
   const tl = document.getElementById('pr07s3-timeline');
   if (!tl) return;
   const events = [
-    { year: '2013.5', bound: '∞', who: 'Zhang', color: '#7c3aed' },
-    { year: '2013.6', bound: '7000 万', who: '张益唐证明：差 < 7000 万', color: '#ec4899' },
-    { year: '2013.11', bound: '4680', who: '波利马什 8 集体优化', color: '#a855f7' },
-    { year: '2014.1', bound: '246', who: '波利马什 8 再次优化', color: '#a855f7' },
-    { year: '2014', bound: '600', who: '梅纳德 独立新方法', color: '#10b981' },
+    // 时序：2013.5 张益唐 7000 万 → 2013.11 梅纳德（独立方法）600 与
+    // 波利马什8 的 4680 → 2014.4 波利马什8 降到 246。
+    // 原先把 246（2014.4）排在 600（2013.11）之前，且把梅纳德记成 2014 年，时序颠倒。
+    { year: '2013.5', bound: '7000 万', who: '张益唐证明：间隙有上界 < 7000 万', color: '#ec4899' },
+    { year: '2013.11', bound: '600', who: '梅纳德（独立方法）：< 600', color: '#10b981' },
+    { year: '2013.11', bound: '4680', who: '波利马什 8 集体优化：< 4680', color: '#a855f7' },
+    { year: '2014.4', bound: '246', who: '波利马什 8 再优化：< 246（沿用至今）', color: '#a855f7' },
   ];
   tl.innerHTML = events.map(e =>
     `<div style="display: flex; align-items: center; gap: 12px; padding: 8px 12px; background: white; border-left: 4px solid ${e.color}; border-radius: 4px;">
@@ -18938,7 +18940,7 @@ function getStagesEX_PROVEN_18() {
           ④ N 和 N+h 之间没有 ≥k 的素因子 → 间隙 ≤ 2h<br>
           <strong style="color: #6b21a8;">张益唐用 Bombieri-Friedlander-Iwaniec 替代了 GPY 用的 Elliott-Halberstam，让常数 h 从失败 → <span class="formula">7000 万</span></strong>
         </div>
-        <div class="next-hint">🛠️ <strong>后续优化</strong>：波利马什 8 项目协作把 7000 万降到 <strong>246</strong>（2014 年）；梅纳德 独立方法；庞逸轩 2016、韦东奕（"韦神"）2022 用"3-sieve"继续改进。</div>
+        <div class="next-hint">🛠️ <strong>后续优化</strong>：2013 年 11 月 梅纳德用独立方法做到 <strong>600</strong>；2014 年 4 月 波利马什 8 协作把 7000 万降到 <strong>246</strong>（沿用至今）；庞逸轩 2016、韦东奕（"韦神"）2022 用"3-sieve"继续改进。</div>
       `
     },
     {
