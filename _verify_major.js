@@ -273,5 +273,25 @@ ck('全站已无刊名残缺的「Mathematical Intelligence》（-cer 后缀除�
 ck('完美数「近 5000 万位」经高精度复算确认正确，守卫其不被误改',
    cnt(/近 5000 万位/) === 3);
 
+// ---- v18.18：EX18_s4 PageRank 必须真算 + 出度累加下标自校验 ----
+// v18.15 那次只验了「硬编码值没了」，没验算出来的值，结果放过了
+// edges.forEach(([, j]) => outdeg[j]++) —— edges 是 [from, to]，
+// 按 to 累加会让 outdeg[A]=0，除零后 PR(B)/PR(C) 变成 Infinity。
+// 这里直接把源码里的那一段抽出来在 node 里真跑一遍。
+(function () {
+  const blk = h.match(/const edges = \[\[0,1\],\[0,2\],\[1,2\],\[2,1\],\[3,2\]\];[\s\S]*?pr = nx;\n  \}/);
+  if (!blk) { ck('EX18_s4 PageRank 幂迭代代码块可被提取', false); return; }
+  const expect = [0.0375, 0.4539, 0.4711, 0.0375];
+  const got = eval(blk[0].replace(/const /g, 'var ') + '\npr');
+  const ok = got.every((v, i) => Number.isFinite(v) && Math.abs(v - expect[i]) < 5e-4);
+  ck('EX18_s4 PageRank 实算 = ' + got.map(v => v.toFixed(4)).join(', '), ok);
+  ck('EX18_s4 PageRank 和为 1', Math.abs(got.reduce((a, b) => a + b, 0) - 1) < 1e-6);
+  // 结构性：出度累加必须用 edges 的 **第一个** 分量（from），不能是第二个（to）
+  ck('EX18_s4 outdegree 按 [from,to] 的 from 累加（不是 to）',
+     /edges\.forEach\(\(\[(\w+)\]\) => outdeg\[\1\]\+\+\);/.test(h));
+  ck('全站已无按 to 累加出度的错误写法', !/edges\.forEach\(\(\[, *(\w+)\]\) => outdeg\[\1\]\+\+\);/.test(h));
+  ck('EX18_s4 已删除未使用的 inDeg 死变量', cnt(/const inDeg = new Array\(n\)\.fill\(0\);/) === 0);
+})();
+
 console.log('\n' + (fail === 0 ? `全部通过 ✅  (${pass} 项)` : `${fail} 项失败 ❌  (通过 ${pass})`));
 process.exit(fail === 0 ? 0 : 1);
