@@ -5240,7 +5240,7 @@ function getStagesPR07() {
             1000 以内有 <strong id="pr07s2-count" style="color: #ec4899; font-size: 18px;">35</strong> 对孪生素数
           </div>
         </div>
-        <div class="next-hint">📈 <strong>越数越大，孪生越稀</strong>：100 内 8 对，1000 内 35 对，10000 内 122 对——但<strong>源源不断冒出来</strong>！</div>
+        <div class="next-hint">📈 <strong>越数越大，孪生越稀</strong>：100 内 8 对，1000 内 35 对，10000 内 205 对——但<strong>源源不断冒出来</strong>！</div>
       `
     },
 
@@ -5284,7 +5284,7 @@ function getStagesPR07() {
             </div>
             <div style="margin-top: 10px; padding: 12px; background: white; border: 1px solid #e9d5ff; border-radius: 8px;">
               <div style="font-size: 14px; color: #ec4899;">👯 孪生对：<span id="pr07s4-count" style="font-weight: 900; font-size: 18px;">0</span></div>
-              <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">理论值：122 对</div>
+              <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">理论值：205 对</div>
             </div>
             <div style="margin-top: 10px; display: flex; gap: 6px;">
               <button class="primary" id="pr07s4-run" style="flex: 1;">▶ 扫到 10000</button>
@@ -5296,7 +5296,7 @@ function getStagesPR07() {
             <div id="pr07s4-list" style="background: white; border: 1px solid #e9d5ff; border-radius: 8px; padding: 10px; max-height: 240px; overflow-y: auto; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.7;"></div>
           </div>
         </div>
-        <div class="next-hint">🏆 <strong>完成</strong>：扫到 10000 找到 122 对，与理论一致。数学家验证到 10¹⁸ 都有无穷多对——但"无穷"还没严格证。</div>
+        <div class="next-hint">🏆 <strong>完成</strong>：扫到 10000 找到 205 对，与理论一致。数学家验证到 10¹⁸ 都有无穷多对——但"无穷"还没严格证。</div>
       `
     },
 
@@ -5459,7 +5459,7 @@ function initStage_PR07_s5() {
     { year: '1849', text: 'de Polignac 提出：每个偶数 = 两素数差（孪生是 k=2 情况）', color: '#7c3aed' },
     { year: '1923', text: '哈代-Littlewood 给出"孪生密度"猜想：~ C·N / (log N)² 对', color: '#f59e0b' },
     { year: '1966', text: 'Chen 陈景润：证明无穷多对"几乎孪生"（差 2，第二个是 P₂）', color: '#10b981' },
-    { year: '2007', text: 'Goldston-Pintz-Yıldırım：证明相邻素数差 → 0', color: '#10b981' },
+    { year: '2005', text: 'Goldston-Pintz-Yıldırım：证明相邻素数间隙「有界」（不是趋于 0）', color: '#10b981' },
     { year: '2013', text: '🚀 张益唐：差 < 7000 万，里程碑', color: '#ec4899' },
     { year: '2016', text: '已知最大孪生素数：~ 58,000 位', color: '#a855f7' },
     { year: '今天', text: '差 = 2 仍未证，差距正在缩小 ❌', color: '#ef4444' },
@@ -5623,7 +5623,7 @@ function getStagesPR08() {
             </label>
             <div style="margin-top: 10px; padding: 12px; background: #fef3c7; border-radius: 8px; font-size: 15px;">
               <div>π ≈ <span id="pr08s3-pi" style="font-weight: 900; color: #b45309; font-size: 18px;">3.1416</span></div>
-              <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">误差 = <span id="pr08s3-err">0.0000004</span></div>
+              <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">误差 = <span id="pr08s3-err">0.0000284</span></div>
             </div>
             <p style="font-size: 12px; color: #6b7280; margin: 8px 0 0;">↑ <strong>arctan(1/5) 项 1/5 速度下降</strong>，<strong>arctan(1/239) 更 1/239</strong>——超级快！</p>
           </div>
@@ -6990,7 +6990,7 @@ function getStagesNT05() {
             <div id="nt05s3-info" style="margin-left: auto; font-size: 13px;"></div>
           </div>
         </div>
-        <div class="next-hint">📊 <strong>比例</strong>：1 万以内约 1.4% 快乐数——相当稀罕！</div>
+        <div class="next-hint">📊 <strong>比例</strong>：1 万以内有 1442 个快乐数，约占 14.4%（大约每 7 个里就有 1 个）。</div>
       `
     },
     {
@@ -7300,12 +7300,12 @@ function getStagesNT06() {
           <audio id="nt06s5b1" preload="none" src="audio/NT06_s5b.mp3"></audio>
           <audio id="nt06s5b2" preload="none" src="audio/NT06_s5b_p2.mp3"></audio>
           <div style="font-size: 14px; line-height: 1.7;">
-            <strong style="color:#92400e;">🌌 未解之谜</strong>：Harshad 数的<strong>"渐近密度"约 0.314</strong>，<strong>接近圆周率 π</strong>！<br>
+            <strong style="color:#92400e;">📈 密度会越来越稀</strong>：Harshad 数<strong>越扫越少</strong>，最后<strong>趋于 0</strong>（但不是"没有"，是比例越来越小）。<br>
             <span style="color: var(--muted); font-size: 12px;">📖 解释：</span>
             <ul style="margin: 8px 0; padding-left: 24px;">
-              <li><strong>什么是"渐近密度"</strong>？想象你扫 1 到一千万，看 Harshad 数占的比例。扫得越远，比例越稳定在一个值——最后停在 <strong>0.314</strong>。</li>
-              <li><strong>为什么接近 π？</strong> 数学家库珀-肯尼迪在 1985 年算出 0.314 这个数字，但没证明为什么这么接近圆周率（3.14159...）！</li>
-              <li><strong>未解</strong>：这是巧合吗？数学家还在研究。期待你以后能解出来！</li>
+              <li><strong>实测比例</strong>：扫 1 到 1 万，约 15.4%；1 到 10 万，约 11.9%；1 到 100 万，约 9.5%。<strong>一路下降</strong>。</li>
+              <li><strong>理论公式</strong>：数学家 De Koninck、Doyon、Kátai 证明 Harshad 数的个数 N(x) ≈ 1.1939 × x / ln x。所以比例 ≈ 1.1939 / ln x —— x 每变大 10 倍，比例只降到原来的约 1/2.3，<strong>最终趋于 0</strong>。</li>
+              <li><strong>⚠️ 常见误解</strong>：网上流传"渐近密度是 0.314、接近圆周率"的说法是<strong>错的</strong>，那是把某个小范围的经验比例当成了极限值。真实极限是 <strong>0</strong>。</li>
             </ul>
           </div>
         </div>
@@ -7390,9 +7390,9 @@ function initStage_NT06_s5() {
   if (!tl) return;
   const events = [
     { year: '1955', text: '卡普雷卡 命名 "Harshad"（梵文"大欢喜"）', color: '#7c3aed' },
-    { year: '1984', text: '库珀-肯尼迪 证明"每个 n 的倍数里有 Harshad" + 渐近密度 = 0', color: '#10b981' },
-    { year: '1985', text: '库珀-肯尼迪 计算渐近密度 0.314...（接近 π/10）', color: '#a855f7' },
-    { year: '待研究', text: '0.314... 与 π 的关系仍是开放问题', color: '#ef4444' },
+    { year: '1993', text: '库珀-肯尼迪 证明"不存在 21 个连续的 Harshad 数"（十进制）', color: '#10b981' },
+    { year: '2003', text: 'De Koninck / Doyon / Kátai 证明 N(x) ≈ 1.1939·x/ln x，密度趋于 0', color: '#a855f7' },
+    { year: '2003', text: '渐近密度已确定为 0（比例 ≈ 1.1939/ln x）', color: '#ef4444' },
   ];
   tl.innerHTML = events.map((e, i) => {
     const isLeft = i % 2 === 0;
@@ -8777,7 +8777,7 @@ function getStagesSQ05() {
     },
     {
       emoji: '🔭', title: 'B_n 增长曲线', content: `
-        <p class="lead">B_n 增长快到爆炸——B_20 已是 5 千亿！</p>
+        <p class="lead">B_n 增长快到爆炸——B_20 已是 51.7 万亿！</p>
         <div class="viz" style="padding: 14px; background: #f0f9ff; border-radius: 8px;">
           <canvas id="sq05s3-chart" style="max-width: 100%;"></canvas>
         </div>
@@ -11111,7 +11111,7 @@ function getStagesPE01() {
             <div id="pe01s2-result" style="padding: 14px; background: #faf5ff; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.7;"></div>
           </div>
         </div>
-        <div class="next-hint">💡 <strong>慢但稳</strong>：每加 10 倍项，多准约 1 位。N=100000 大约 3.14157...</div>
+        <div class="next-hint">💡 <strong>慢但稳</strong>：每加 10 倍项，多准约 1 位。N=100000 大约 3.1415848...</div>
       `
     },
     {
@@ -11120,7 +11120,7 @@ function getStagesPE01() {
         <div class="viz" style="padding: 14px; background: #f0f9ff; border-radius: 8px;">
           <canvas id="pe01s3-chart" style="max-width: 100%;"></canvas>
         </div>
-        <div class="next-hint">🔭 <strong>规律</strong>：每加 10 倍项，误差减半（O(1/N) 收敛）</div>
+        <div class="next-hint">🔭 <strong>规律</strong>：沃利斯积是 <strong>O(1/N)</strong> 收敛——项数每加 <strong>10 倍</strong>，误差就<strong>缩小到 1/10</strong>（也就是多准约 1 位小数），<strong>不是减半</strong>。实测：N=10⁴ 误差 7.85×10⁻⁵，N=10⁵ 误差 7.85×10⁻⁶，正好是 10 倍关系。</div>
       `
     },
     {
@@ -14300,7 +14300,7 @@ function getStagesEX_PROVEN_05() {
           <div id="exprov05s5-timeline"></div>
         </div>
         <div style="margin-top: 12px; padding: 14px; background: linear-gradient(135deg, #faf5ff, #fef3c7); border-radius: 10px; font-size: 14px; line-height: 1.7;">
-          <strong style="color:#7c3aed;">🎓 王虹 (Hong Wang)</strong> 1986 年生于中国，纽约大学 (NYU) 副教授。2022 年起与 Joshua Zahl (UBC) 合作攻 3D 挂谷猜想。<br>
+          <strong style="color:#7c3aed;">🎓 王虹 (Hong Wang)</strong> 1991 年生于广西桂林，纽约大学 (NYU) 副教授。2022 年起与 Joshua Zahl (UBC) 合作攻 3D 挂谷猜想。<br>
           <strong style="color:#7c3aed;">🎓 Joshua Zahl</strong> 加拿大英属哥伦比亚大学 (UBC) 数学教授，堆叠/几何测度论专家。
         </div>
         <div class="next-hint">🏆 <strong>展望</strong>：王虹凭借挂谷三步走 + 法尔科纳 距离集 (EX_PROVEN_08)，荣获<strong>二零二六年菲尔兹奖</strong>（数学界诺贝尔）。</div>
@@ -15938,8 +15938,8 @@ function getStagesEX_PROVEN_09() {
         <div class="viz">
           <div id="exprov09s5-timeline"></div>
         </div>
-        <p style="margin-top: 10px; font-size: 13px; line-height: 1.7; color: #1f2937;">从 1970 年提出，到 2024 年完整证明，整整 54 年。其中关键技术节点是 2001 年 Host-Kra 把动力系统的遍历论方法引入到组合问题。这条"动力系统 → 加法组合"路径，最终在王虹手里走通。王虹本人 2022 年获菲尔兹奖，是继丘成桐之后第二位获此殊荣的华人数学家。</p>
-        <div class="next-hint">💡 <strong>重大意义</strong>：王虹是中国数学家，2022 获菲尔兹奖；弗斯滕伯格 猜想 50 年悬案终于落地</div>
+        <p style="margin-top: 10px; font-size: 13px; line-height: 1.7; color: #1f2937;">从 1970 年提出，到 2024 年完整证明，整整 54 年。其中关键技术节点是 2001 年 Host-Kra 把动力系统的遍历论方法引入到组合问题。这条"动力系统 → 加法组合"路径，最终在王虹手里走通。王虹本人 2026 年 7 月获菲尔兹奖，是继丘成桐之后第二位获此殊荣的华人数学家。</p>
+        <div class="next-hint">💡 <strong>重大意义</strong>：王虹是中国数学家，2026 年获菲尔兹奖；弗斯滕伯格 猜想 50 年悬案终于落地</div>
       `
     }
   ];
@@ -18643,19 +18643,19 @@ function getStagesEX_PROVEN_17() {
       emoji: '📅',
       title: '谷山-志村 70 年长跑',
       content: `
-        <p class="lead">从 1955 年谷山丰的<strong>直觉</strong>，到 1999 年全情形被证明——这条路上有人<strong>壮志未酬身先死</strong>，有人用<strong>七年闭关</strong>。</p>
+        <p class="lead">从 1955 年谷山丰的<strong>直觉</strong>，到 2001 年全情形被证明——这条路上有人<strong>壮志未酬身先死</strong>，有人用<strong>七年闭关</strong>。</p>
         <div class="viz">
           <div id="exprov17s5-timeline"></div>
           <div style="margin-top: 14px; padding: 14px; background: linear-gradient(135deg, #f3e8ff, #fce7f3); border-left: 5px solid #a855f7; border-radius: 8px; font-size: 13px; line-height: 1.8;">
             <strong>🍃 谷山丰 (1927-1958)</strong>：1955 年在日本数学家会议上提出猜想，仅 28 岁。<br>
-            1957 年深秋在<strong>研究室自杀</strong>，年仅 31 岁。猜想未及完成，留下一封写给妻子的<strong>情书</strong>作为遗书——字里行间是"<strong>别了，世界</strong>"。<br>
+            1958 年 1 月 24 日在研究室<strong>自杀</strong>，年仅 30 岁。猜想未及完成，留下一封写给妻子的<strong>情书</strong>作为遗书——字里行间是"<strong>别了，世界</strong>"。<br>
             <strong>🎓 志村五郎 (Shimura Goro, 1930-2019)</strong> 接手系统化猜想，1957 年与 韦伊 通信后逐步严格化。<br>
             <strong>👨‍🏫 怀尔斯 (1953-)</strong> 1986 年听到 Ribet 证明"谷山-志村 ⇒ 费马"，决定<strong>放弃所有会议</strong>，在普林斯顿家中阁楼<strong>闭关 7 年</strong>。<br>
             1993 年 6 月宣布证明 → 1993 年 11 月发现漏洞 → 1994 年 9 月与学生 Taylor 用<strong>"岩泽理论"补丁</strong>补上 → 1995 年发表。<br>
             <strong>📐 Breuil-Conrad-Diamond (1999)</strong> 完成全情形的证明，谷山-志村 70 年长跑<strong>完美收官</strong>。
           </div>
         </div>
-        <div class="next-hint">🏆 <strong>意义</strong>：怀尔斯 拿到 1998 年 Abel 奖、2016 年 Abel 奖特别奖、<strong>菲尔兹奖特别版</strong>（1998 ICM 银版）——这不只是费马的胜利，<strong>更是整个数论大陆被"连通"的世纪工程</strong>。</div>
+        <div class="next-hint">🏆 <strong>意义</strong>：怀尔斯 拿到 <strong>1996 年 Abel 奖</strong>（该奖首年颁给他），并在 <strong>1998 年 ICM 获 IMU 银牌</strong>——注意他<strong>从未获得菲尔兹奖</strong>（当时已超过菲尔兹奖的年龄限制）。这不只是费马的胜利，<strong>更是整个数论大陆被"连通"的世纪工程</strong>。</div>
       `
     },
   ];
@@ -18785,7 +18785,7 @@ function initStage_EX_PROVEN_17_s5() {
     { year: '1993.11', text: '发现证明漏洞！', color: '#ef4444' },
     { year: '1994.9', text: '怀尔斯 + Taylor 用"岩泽理论"补上漏洞', color: '#10b981' },
     { year: '1995', text: '论文《Modular elliptic curves and 费马 Last Theorem》发表', color: '#10b981' },
-    { year: '1998', text: '🏆 怀尔斯 获菲尔兹奖特别版银牌（ICM）', color: '#ec4899' },
+    { year: '1998', text: '🏆 怀尔斯 获 IMU 银牌（ICM，非菲尔兹奖）', color: '#ec4899' },
     { year: '1999', text: 'Breuil-Conrad-Diamond 完成全情形证明（70 年长跑收官）', color: '#a855f7' },
   ];
   tl.innerHTML = events.map((e, i) => {
@@ -18867,7 +18867,7 @@ function getStagesEX_PROVEN_18() {
           </svg>
           <div id="exprov18s2-list" style="margin-top: 10px; padding: 10px; background: white; border: 1px solid #fce7f3; border-radius: 8px; font-size: 13px; font-family: 'Courier New', monospace; line-height: 1.7; max-height: 100px; overflow-y: auto;"></div>
         </div>
-        <div class="next-hint">📊 <strong>密度</strong>：N=1000 约有 35 对；N=10000 约有 122 对；N=10⁶ 约有 8169 对。素数定理预测 N 内的孪生对数 ≈ 2C₂·N/(ln N)²，<strong>C₂ ≈ 0.66016</strong>（哈代-Littlewood）。</div>
+        <div class="next-hint">📊 <strong>密度</strong>：N=1000 约有 35 对；N=10000 约有 205 对；N=10⁶ 约有 8169 对。素数定理预测 N 内的孪生对数 ≈ 2C₂·N/(ln N)²，<strong>C₂ ≈ 0.66016</strong>（哈代-Littlewood）。</div>
       `
     },
     {
@@ -19072,7 +19072,7 @@ function initStage_EX_PROVEN_18_s5() {
   const events = [
     { year: '1849', text: '法国数学家 de Polignac 提出：每个偶数都可写成素数差（有无穷多对）', color: '#7c3aed' },
     { year: '1966', text: '陈景润筛法突破，证明存在无穷多间隙 ≤ 2 的素数对（即孪生）<span style="color:#10b981;">部分结果</span>', color: '#10b981' },
-    { year: '2005', text: 'Goldston-Pintz-Yıldırım 证明：相邻素数间隙 / log N → 0（突破性）', color: '#a855f7' },
+    { year: '2005', text: 'Goldston-Pintz-Yıldırım 证明：存在常数 C，使无穷多对素数间隙 ≤ C（突破性）', color: '#a855f7' },
     { year: '2013.4', text: '🌟 张益唐独立发表《Bounded gaps between primes》——间隙 < 7000 万', color: '#ec4899' },
     { year: '2013.6', text: '波利马什 8 项目协作优化界：7000 万 → 4680 → 246', color: '#f59e0b' },
     { year: '2014', text: '英国 James 梅纳德 独立方法：246 → 600（进一步优化）', color: '#10b981' },
@@ -19573,7 +19573,7 @@ function getStagesEX_PROVEN_20() {
         <div class="viz">
           <div id="exprov20s5-timeline"></div>
           <div style="margin-top: 14px; padding: 14px; background: linear-gradient(135deg, #fef3c7, #fce7f3); border-left: 5px solid #f59e0b; border-radius: 8px; font-size: 13px; line-height: 1.8;">
-            <strong>🌟 丘成桐 (Shing-Tung 丘, 1949-)</strong>：生于广东汕头，<strong>首位华人菲尔兹奖得主</strong>（1982 年华沙 ICM，与苏联数学家 Connes 共享）。<br>
+            <strong>🌟 丘成桐 (Shing-Tung Yau, 1949-)</strong>：生于广东汕头，<strong>首位华人菲尔兹奖得主</strong>（1982 年华沙 ICM，与苏联数学家 Connes 共享）。<br>
             1969 年香港中文大学数学系毕业 → 1971 年伯克利博士（师从陈省身）→ 1972 年任 Stanford 副教授 → 1984 年任 Harvard 数学系教授。<br><br>
             <strong>🏆 关键论文</strong>：<em>"The Ricci flow on 2-dimensional surfaces"</em>、<em>"On the Ricci curvature of a compact Kähler manifold and the Monge-Ampère equation, I / II / III"</em>，《American Journal of Mathematics》，<strong>1976 年 3 篇共 60 页</strong>，彻底证明 Calabi 猜想。<br><br>
             <strong>🇨🇳 中文名字</strong>："丘"读 qiū（不是 yu）。丘成桐曾任清华大学丘成桐数学科学中心主任，<strong>推动中国数学走向世界</strong>。
@@ -21532,7 +21532,7 @@ function initStage_EX08_s4() {
       // 代入 y² = x³ - x + 1: 1 = x³ - x + 1 → x³ - x = 0 → x(x²-1) = 0 → x = 0, 1, -1
       // 第三个交点 R' = (-1, 1)
       // R = P + Q = 关于 x 轴对称 = (-1, -1)
-      out.innerHTML = `<strong style="color:#7c3aed;">a=-1, b=1 椭圆曲线</strong><br>P = (0, 1), Q = (1, 1)<br>─────────────────<br>过 P, Q 的直线: y = 1 (水平)<br>代入曲线: 1 = x³ - x + 1<br>→ x(x² - 1) = 0<br>→ x = 0, 1, <strong style="color:#f59e0b;">-1</strong><br>─────────────────<br>第三个交点 R' = (-1, 1)<br>关于 x 轴对称: R = (-1, -1)<br>─────────────────<br><strong style="color:#10b981;">P + Q = (-1, -1)</strong><br><br>验证: (-1)² - (-1) + 1 = 1 + 1 + 1 = 3? 不对，y²=(-1)²=1，x³-(-1)+1=1+1+1=3 ✗<br>→ 实际上 (-1)² - (-1) + 1 = 1+1+1 = 3，y²=1≠3... 重新算<br>正确: x=-1, y²=(-1)³-(-1)+1=-1+1+1=1 → y=±1, R=(-1, -1) ✓`;
+      out.innerHTML = `<strong style="color:#7c3aed;">a=-1, b=1 椭圆曲线</strong><br>P = (0, 1), Q = (1, 1)<br>─────────────────<br>过 P, Q 的直线: y = 1 (水平)<br>代入曲线: 1 = x³ - x + 1<br>→ x(x² - 1) = 0<br>→ x = 0, 1, <strong style="color:#f59e0b;">-1</strong><br>─────────────────<br>第三个交点 R' = (-1, 1)<br>关于 x 轴对称: R = (-1, -1)<br>─────────────────<br><strong style="color:#10b981;">P + Q = (-1, -1)</strong><br><br>验算 R=(-1,-1) 真的在曲线上：<br>左边 y² = (-1)² = <strong>1</strong><br>右边 x³ - x + 1 = (-1)³ - (-1) + 1 = -1 + 1 + 1 = <strong>1</strong><br>两边相等 ✓ 所以 <strong>P + Q = (-1, -1)</strong>`;
     };
   } catch (e) { console.error('initStage_EX08_s4 err:', e); }
 }
@@ -24505,7 +24505,7 @@ function getStagesNT15() {
         <div class="viz">
           <div id="nt15s5-timeline"></div>
         </div>
-        <div class="next-hint">❓ <strong>未解</strong>：回文素数有无穷多个？2017 年证明弱猜想（5+ 奇数 = 3 素数和）</div>
+        <div class="next-hint">❓ <strong>未解</strong>：回文素数有无穷多个？（注意：这条是<strong>回文素数</strong>问题，和哥德巴赫弱猜想是两回事——弱猜想"每个大于 7 的奇数 = 三个素数之和"已由 Helfgott 在 <strong>2013 年</strong>证明）</div>
       `
     },
   ];
@@ -24574,7 +24574,7 @@ function getStagesNT16() {
     },
     {
       emoji: '📅', title: '素数间隙小史', content: `
-        <p class="lead">欧几里得 2300 年前证素数无穷 → 2014 陶哲轩证明间隙 → ∞</p>
+        <p class="lead">欧几里得 2300 年前证素数无穷 → 1931 韦斯津修斯证明最大间隙增长快于位数 → ∞</p>
         <div class="viz">
           <div id="nt16s5-timeline"></div>
         </div>
@@ -24807,7 +24807,7 @@ function getStagesNT19() {
         <p class="lead">GIMPS（互联网梅森素数大搜索）项目：</p>
         <div class="viz" style="padding: 14px; background: #f0f9ff; border-radius: 8px; font-size: 13px; line-height: 1.8;">
           1996 启动，全球志愿者用家用电脑搜索<br>
-          到 2024 年已发现 21 个梅森素数<br>
+          到 2024 年已发现 52 个梅森素数<br>
           最大：2^82589933 - 1（24862048 位）<br>
           2018 年由 Patrick Laroche 发现
         </div>
@@ -25373,7 +25373,7 @@ function initStage_NT16_s5() {
   const events = [
     { year: '~300 BC', text: '欧几里得证明素数有无穷多', color: '#f59e0b' },
     { year: '1936', text: 'Cramer 猜想：max gap ~ ln²N', color: '#7c3aed' },
-    { year: '2014', text: '陶哲轩证明素数间隙 → 无穷', color: '#10b981' },
+    { year: '1931', text: '韦斯津修斯证明素数间隙增长快于位数（+ 1952 Nagura 定量下界）', color: '#10b981' },
     { year: '2024', text: '最长间隙 1476 (10¹⁸ 范围内)', color: '#3b82f6' },
   ];
   tl.innerHTML = events.map((e, i) => {
@@ -25660,7 +25660,7 @@ function initStage_NT20_s5() {
     { year: '1937', text: 'Vinogradov 证明奇数情形', color: '#7c3aed' },
     { year: '1966', text: '陈景润证明"1+2"（最接近）', color: '#10b981' },
     { year: '2013', text: '赫尔福特 证明弱哥德巴赫', color: '#3b82f6' },
-    { year: '今天', text: '强猜想仍未证明（悬赏 100 万美元）', color: '#ec4899' },
+    { year: '今天', text: '强猜想仍未证明（⚠️ 注意：Clay 千禧年 7 大难题不含哥德巴赫，此项没有百万悬赏）', color: '#ec4899' },
   ];
   tl.innerHTML = events.map((e, i) => {
     const isLeft = i % 2 === 0;
@@ -29111,7 +29111,7 @@ function getStagesGR10() {
             <strong>最小生成树 (MST)</strong><br>
             边权之和最小<br>
             克鲁斯卡尔: 按权排序 + 并查集<br>
-            普里姆: 贪心加点
+            Prim: 贪心加点
           </div>
           <div style="flex: 1 1 220px; padding: 14px; background: #bbf7d0; border-left: 4px solid #10b981; border-radius: 6px; font-size: 13px;">
             <strong>生成树计数</strong><br>
@@ -29196,7 +29196,7 @@ function initStage_GR10_s5() {
     { year: '1847', text: 'Kirchhoff 在电路分析中提出矩阵树定理', color: '#7c3aed' },
     { year: '1857', text: 'Cayley 给出 n^(n-2) 标号树计数公式', color: '#f59e0b' },
     { year: '1926', text: 'Borůvka 提出第一个 MST 算法', color: '#10b981' },
-    { year: '1956', text: '克鲁斯卡尔 / 普里姆 给出经典 MST 算法', color: '#3b82f6' },
+    { year: '1956', text: '克鲁斯卡尔 (Kruskal) / Prim 给出经典 MST 算法', color: '#3b82f6' },
   ];
   tl.innerHTML = events.map((e, i) => {
     const isLeft = i % 2 === 0;
@@ -37141,7 +37141,7 @@ P = ∫₀^π ∫₀^(L·sinθ/2) (2/πd) dy dθ<br>
   <li>R(5,5) 介于 43 和 48 之间</li>
   <li>R(s, s) 增长是<strong>指数级</strong>的——但精确值大部分未知</li>
 </ul>`,
-  history: `<p><strong>一九二八年</strong>，<strong>Frank P. Ramsey</strong>（1903-1930，英国数学家）在论文 <em>On a problem of formal logic</em> 中提出"组合数学中的拉姆齐定理"——但他证明的是无限版本。</p>
+  history: `<p><strong>一九三〇年</strong>（1928 年 12 月宣读，1930 年正式发表），<strong>Frank P. Ramsey</strong>（1903-1930，英国数学家）在论文 <em>On a problem of formal logic</em> 中提出"组合数学中的拉姆齐定理"——但他证明的是无限版本。</p>
 <p><strong>一九三〇年</strong>，<strong>西奥多·莫茨金</strong> 第一次给出 R(3,3)=6 的有限版本证明。</p>
 <p><strong>一九三五年</strong>，<strong>Paul 埃尔德什</strong> 和 <strong>George Szekeres</strong> 发表 <em>A combinatorial problem in geometry</em>，奠定<strong>拉姆齐理论</strong>的现代基础。"幸福结局问题"（任意 5 个点中必有 4 个构成凸四边形）也来自这篇。</p>
 <p><strong>一九三五年</strong>，<strong>Issai Schur</strong> 把 R(3,3) 联系到<strong>Schur 数</strong>（同色 x+y=z 解）——拉姆齐数的代数版本。</p>
@@ -37172,7 +37172,7 @@ P = ∫₀^π ∫₀^(L·sinθ/2) (2/πd) dy dθ<br>
 
 数学家们开始一点点推进。一九二〇年，挪威数学家 Brun 证明了"9 个素数之积可以表示任何偶数"——已经很厉害了，但还是 9 个，不是 2 个。一九三七年，苏联数学家 Vinogradov 证明：对于足够大的奇数，它可以表示成 3 个素数之和。二〇一三年，秘鲁数学家 赫尔福特 完成了"弱哥德巴赫猜想"——任何大于 7 的奇数都能写成 3 个素数之和。
 
-但"强哥德巴赫猜想"——任何偶数等于两个素数之和——至今没有人能证明！用计算机已经验证到了 4 乘以 10 的 18 次方，也就是 4 亿亿个偶数，全都成立。但证明呢？还是没有。
+但"强哥德巴赫猜想"——任何偶数等于两个素数之和——至今没有人能证明！用计算机已经验证到了 4 乘以 10 的 18 次方（由 Tomás Oe e Silva、Siegfried Herzog、Silvio Pardi 于 2014 年完成），也就是 400 亿以内的偶数全都成立。但证明呢？还是没有。
 
 为什么这么难？看起来"两个素数加起来能凑出所有偶数"很合理，但要严格证明，要处理素数的分布规律，而素数在数轴上怎么分布，连数学家都没完全搞明白。
 
@@ -37187,7 +37187,7 @@ P = ∫₀^π ∫₀^(L·sinθ/2) (2/πd) dy dθ<br>
   4 = 2 + 2 ✓<br>
   6 = 3 + 3 ✓<br>
   10 = 3 + 7 ✓ 或 5 + 5 ✓<br>
-  100 = 3 + 97 = 11 + 89 = 17 + 83 = ...（8 种分法）</p>
+  100 = 3 + 97 = 11 + 89 = 17 + 83 = 29 + 71 = 41 + 59 = 47 + 53（6 种分法）</p>
 <p>数学家验证了到 <strong>4 × 10¹⁸</strong>（400 亿亿）都成立，但<strong>证明</strong>？<strong>没有</strong>！</p>
 <h4>📐 强版 vs 弱版</h4>
 <p><strong>强版</strong>（1742 至今未证）：每个 ≥ 4 的偶数 = 两素数之和。<br>
@@ -37203,7 +37203,7 @@ P = ∫₀^π ∫₀^(L·sinθ/2) (2/πd) dy dθ<br>
 <p>如果谁找到一个不能写成两素数之和的偶数，<strong>数学界会给他立碑</strong>。1752 年 欧拉 跟哥德巴赫通信以来，没人找到。</p>`,
   history: `<p><strong>一七四二年 6 月 7 日</strong>，普鲁士数学家 <strong>Christian 哥德巴赫</strong>（哥德巴赫，1690-1764）在给 <strong>Leonhard 欧拉</strong> 的信中提出："每个大于 2 的整数 = 三个素数之和"。</p>
 <p><strong>同年 6 月 30 日</strong>，欧拉 回信：把这个猜想改成"每个大于 2 的偶数 = 两个素数之和"——因为加 1 改 2 等价。注意 <strong>当时 1 算素数</strong>（19 世纪才把 1 排除）。</p>
-<p><strong>一八五九年</strong>，<strong>Bernhard 黎曼</strong> 发表 <em>Über die Anzahl der 普里姆zahlen unter einer gegebenen Größe</em>（关于小于给定值的素数个数），给出<strong>黎曼 ζ 函数</strong>——<strong>素数分布的钥匙</strong>。但黎曼猜想至今未证（两千年克莱数学所悬赏 100 万美元）。</p>
+<p><strong>一八五九年</strong>，<strong>Bernhard 黎曼</strong> 发表 <em>Über die Anzahl der Primzahlen unter einer gegebenen Größe</em>（关于小于给定值的素数个数），给出<strong>黎曼 ζ 函数</strong>——<strong>素数分布的钥匙</strong>。但黎曼猜想至今未证（两千年克莱数学所悬赏 100 万美元）。</p>
 <p><strong>一九二三年</strong>，<strong>Godfrey 哈代</strong> 和 <strong>John Littlewood</strong> 证明：在<strong>广义黎曼猜想</strong>成立下，每个大偶数能写成 a+b（a, b 素数）。</p>
 <p><strong>一九三七年</strong>，<strong>Ivan Vinogradov</strong> 用<strong>圆法</strong>无假设地证明：每个足够大的奇数 = 三个素数之和——即<strong>弱哥德巴赫猜想</strong>。</p>
 <p><strong>二〇一三年</strong>，<strong>Harald 赫尔福特</strong>（秘鲁裔美国数学家）补完 Vinogradov 的边界，<strong>完全证明</strong>弱哥德巴赫猜想（每个 ≥ 7 的奇数 = 三素数之和）。</p>
@@ -37220,13 +37220,13 @@ P = ∫₀^π ∫₀^(L·sinθ/2) (2/πd) dy dθ<br>
   render: (h) => setupGoldbach(h)
 },
 {
-  id: 'PR07', type: 'conjecture_open',  cat: '数论', title: '孪生素数 (Twin 普里姆es)',
+  id: 'PR07', type: 'conjecture_open',  cat: '数论', title: '孪生素数 (Twin Primes)',
   intro: '相差 2 的素数对：(3,5)、(5,7)、(11,13)、(17,19)、(29,31)... 张益唐 2013 年里程碑证明。',
   explain: `同学们好！今天我们来看素数里最有意思的一对——孪生素数。
 
 什么叫孪生素数？就是两个素数相差 2。3 和 5、5 和 7、11 和 13、17 和 19、29 和 31 都是孪生素数。注意 2 和 3 相差 1，不算。
 
-数学家们早就发现：孪生素数似乎有无穷多对。但 1000 以内有 35 对，10000 以内有 122 对，100 万以内有 8169 对——越往后越稀疏，但还是源源不断地冒出来。
+数学家们早就发现：孪生素数似乎有无穷多对。但 1000 以内有 35 对，10000 以内有 205 对，100 万以内有 8169 对——越往后越稀疏，但还是源源不断地冒出来。
 
 问题是：到底有没有无穷多对孪生素数？这就是"孪生素数猜想"。
 
@@ -37264,7 +37264,8 @@ P = ∫₀^π ∫₀^(L·sinθ/2) (2/πd) dy dθ<br>
 <p><strong>一九一二年</strong>，<strong>Edmund 朗道</strong> 在国际数学家大会列出 4 个未解问题，"孪生素数猜想"排第 2——著名的 <strong>朗道 问题</strong>。</p>
 <p><strong>一九二三年</strong>，<strong>Godfrey 哈代</strong> 和 <strong>John Littlewood</strong> 用<strong>圆法</strong>证明：在<strong>广义黎曼猜想</strong>下，孪生猜想成立。给出 <strong>C₂ = 0.66016...</strong>。</p>
 <p><strong>一九六六年</strong>，<strong>Chen Jingrun</strong>（陈景润）证明：每个大偶数 = p + q（p 素数，q 几乎素数至多 2 因子）——<strong>陈氏定理</strong>，哥德巴赫问题的"几乎证明"。</p>
-<p><strong>二〇〇五年</strong>，<strong>Daniel Goldston</strong>、<strong>János Pintz</strong>、<strong>Cem Yıldırım</strong> 证明：素数对差距 <strong>趋于 0</strong>（无穷多对差距任意小）。但具体差几还是不知道。</p>
+<p><strong>二〇〇五年</strong>，<strong>Daniel Goldston</strong>、<strong>János Pintz</strong>、<strong>Cem Yıldırım</strong> 证明：<strong>存在一个常数 C，使得有无穷多对素数的间隙 ≤ C</strong>（"间隙有界"，后来的结果把 C 优化到 16、12）。
+⚠️ 常见误解：他们<strong>没有</strong>证明"间隙趋于 0"——"有无穷多对素数间隙任意小"是一个更强、且<strong>至今未证</strong>的猜想。</p>
 <p><strong>二〇一三年 5 月 13 日</strong>，<strong>Yitang Zhang</strong>（张益唐）独自投稿到 <em>Annals of Mathematics</em>，证明无穷多对差 &lt; 7000 万。审稿人 <strong>Henryk Iwaniec</strong> 和 <strong>Kevin Ford</strong> 4 月就收到，但 5 月才意识到重大。发表当天登上 <em>Nature</em>、<em>New York Times</em> 头条。</p>
 <p><strong>二〇一三年 8 月</strong>，<strong>Terence 陶</strong> 发起 <strong>波利马什 8</strong> 计划（开放式合作），几个月内把 7000 万压到 246。梅纳德 独立给出更好的界。</p>
 <p><strong>二〇一四年至今</strong>，差距"246" 仍是最强界，差 2（真正的孪生）仍未证——但距目标越来越近。</p>`,
@@ -37312,7 +37313,7 @@ P = ∫₀^π ∫₀^(L·sinθ/2) (2/πd) dy dθ<br>
 96 边时 π ≈ 3.1408 ~ 3.1429（阿基米德算的）。</p>
 <p><strong>② 莱布尼茨 级数（1674 年）</strong><br>
 <span class="formula">π/4 = 1 - 1/3 + 1/5 - 1/7 + 1/9 - ...</span><br>
-简单但极慢——收敛速度 O(1/N)，算 1 万项才到 3.14，<strong>算 100 万项才到 3.141593</strong>。</p>
+简单但极慢——收敛速度 O(1/N)，算 1 万项才到 3.14，<strong>算 100 万项只到 3.1415917（要 3.141593 得算 400 万项左右）</strong>。</p>
 <p><strong>③ 马青 公式（1706 年）</strong><br>
 <span class="formula">π/4 = 4·arctan(1/5) - arctan(1/239)</span><br>
 <span class="formula">arctan(x) = x - x³/3 + x⁵/5 - x⁷/7 + ...</span><br>
@@ -37323,8 +37324,8 @@ arctan(1/5) 的项以 1/5, 1/125, 1/3125... 速度下降，arctan(1/239) 更快�
 <h4>🧮 收敛速度对比（迭代 N 次）</h4>
 <ul>
   <li>莱布尼茨：O(1/N)，N 项精度 ~ 1/N 位</li>
-  <li>马青：O(1/N³)，N 项精度 ~ log N 位</li>
-  <li>Chud诺夫斯基：O(1/N⁶)，N 项精度 ~ 14·N 位</li>
+  <li>马青：每项约 1.4 位（线性），10 项可达约 15 位</li>
+  <li>Chud诺夫斯基：每项约 14.18 位（但 double 只有约 16 位，2 项就打满）</li>
 </ul>
 <p>算 π 100 万亿位（2022 年纪录）用了 Chud诺夫斯基 变体 + 157 天。10¹⁴ 位 ÷ 14.18 位/项 ≈ <strong>7×10¹² 次迭代</strong>，靠 157 天几万小时并行硬算出来。</p>`,
   history: `<p><strong>公元前 250 年</strong>，<strong>阿基米德</strong>（阿基米德，287-212 BC）用 96 边形得 <span class="formula">3.1408 &lt; π &lt; 3.1429</span>——人类首次给出 π 的误差范围。</p>
@@ -37449,7 +37450,8 @@ arctan(1/5) 的项以 1/5, 1/125, 1/3125... 速度下降，arctan(1/239) 更快�
 
 还有几个有意思的观察：<strong>奇数里绝大多数都是亏数</strong>（3、5、7、11、13、15… 都是亏数），因为奇数的因子少、加起来也小。<strong>质数一定是亏数</strong>（它只有因子 1）。至于完全平方数，要<strong>一个一个看</strong>：9、25、49 是亏数，但 36、100、144 是<strong>过剩数</strong>（36 的因子和 1+2+3+4+6+9+12+18=55 > 36），不是所有平方数都亏。每个偶完美数都跟梅森素数一一对应。
 
-现在请同学们自己动手：点"分类"，扫 1 到 1000。你会发现：亏数大约 760 个，完美数 4 个（6、28、496、8128），过剩数大约 240 个。试试 10000 以内的分布？100000 呢？看看哪种最多。
+现在请同学们自己动手：点"分类"，扫 1 到 1000。你会发现：亏数大约 750 个，完美数 <strong>3</strong> 个（6、28、496），过剩数大约 246 个。
+注意：第 4 个完美数 8128 大于 1000，所以扫 1 到 1000 只会遇到 3 个；把范围拉到 10000 才能看到 6、28、496、8128 四个。试试 10000 以内的分布？100000 呢？看看哪种最多。
 
 记住：数学不只藏在书本里——藏在每一个"比大小"背后的小秘密里。`,
   audioUrl: 'audio/NT03_explain.mp3',
@@ -37481,7 +37483,10 @@ arctan(1/5) 的项以 1/5, 1/125, 1/3125... 速度下降，arctan(1/239) 更快�
 
 为什么叫"自恋"？因为这个数"自己看着自己的每一位"——每个数字都"自我欣赏"——加起来还是自己。太自恋了！
 
-1000 以内的自恋数只有 4 个：1、153、370、371、407（注意 1 也是，因为 1 等于 1 的 1 次方）。10000 以内有 1、153、370、371、407、1634、8208、9474 这 8 个。所有位数的自恋数总共只有 88 个！
+先说清楚定义：把一个数的每一位数字取出来，各自取"这个数的位数"次方，再加在一起，如果正好等于原数，它就是自恋数。
+按这个定义，<strong>所有 1 位数（0~9）都自动是自恋数</strong>，因为 5 就等于 5 的 1 次方。
+所以 1000 以内的自恋数是 13 个：1、2、3、4、5、6、7、8、9，加上 153、370、371、407。
+如果只统计 3 位数，那就是 4 个：153、370、371、407。10000 以内（1~4 位）共 16 个：再加 1634、8208、9474。所有位数的自恋数总共只有 88 个。
 
 这 88 个数里最大的一个叫"大象"——它有 39 位！115132219018763992565095597973971522401 是最大的自恋数。
 
@@ -37527,7 +37532,7 @@ arctan(1/5) 的项以 1/5, 1/125, 1/3125... 速度下降，arctan(1/239) 更快�
 10 以内的快乐数有 1、7、10。
 100 以内有 1、7、10、13、19、23、28、31、32、44、49、68、70、79、82、86、91、94、97、100——共 20 个。
 
-10 万以内有 1442 个快乐数，约占 1.4%——相当稀罕！
+10 万以内有 14377 个快乐数，约占 14.4%——大约每 7 个数里就有 1 个快乐数，比你想象的多得多！
 
 现在请同学们自己动手：输入一个数，比如 23 或 86，看它会到 1 还是进入循环。挑战自己：100 以内哪个数蹦得最久才到 1？明天带过来我们比一比。
 
@@ -37571,8 +37576,8 @@ arctan(1/5) 的项以 1/5, 1/125, 1/3125... 速度下降，arctan(1/239) 更快�
       <p>👉 <strong>找规律</strong>：所有 10 的倍数都是 Harshad 数（数字和最小是 1）；两位数 Harshad 数占 22%。</p>
     `},
     { emoji: "🌌", title: "密度之谜：为什么接近 π？", hint: "滑块拖到 10000 看密度曲线", content: `
-      <p>把滑块拖到 10000，点"扫"——Harshad 数密度约 14.6%，但数学家算出它的"渐近密度"约 0.314159... 接近圆周率 π！</p>
-      <p>👉 <strong>开放问题</strong>：Harshad 密度为什么和 π 这么接近？数学家 1985 年算出 0.314 但没证明为什么——这是 5b 里的未解之谜。</p>
+      <p>把滑块拖到 10000，点"扫"——Harshad 数密度约 15.4%。数学家已证明：扫得越远，这个比例会<strong>一路下降、最终趋于 0</strong>（比例约等于 1.1939 除以 ln x）。</p>
+      <p>👉 <strong>正确结论</strong>：Harshad 数的密度会越来越小，最后趋于 0。网上流传的"密度是 0.314、接近圆周率 π"是<strong>误传</strong>——0.314 只是某个小范围的经验比例，不是极限值。</p>
     `}
   ],
   explain: `同学们好！今天我们来看一种"友好"的数——Harshad 数（也叫 Niven 数）。
@@ -38096,9 +38101,9 @@ Carmichael 数在 一九〇九年被美国数学家 罗伯特·卡迈克尔 发�
   }
 },
 {
-  id: 'NT16', type: 'conjecture_open',  cat: '数论', title: '素数间隙（普里姆e Gaps）',
+  id: 'NT16', type: 'conjecture_open',  cat: '数论', title: '素数间隙（Prime Gaps）',
   intro: '相邻素数的差。例：7-5=2、11-7=4、13-11=2。最大间隙随 N 增长。',
-  explain: `同学们好！今天我们来看一个非常有趣的现象——素数间隙（普里姆e Gaps）。
+  explain: `同学们好！今天我们来看一个非常有趣的现象——素数间隙（Prime Gaps）。
 
 什么是素数间隙？两个相邻素数之间的差。比如 7 减 5 等于 2，11 减 7 等于 4，13 减 11 等于 2。
 
@@ -38110,9 +38115,11 @@ Carmichael 数在 一九〇九年被美国数学家 罗伯特·卡迈克尔 发�
 
 数学家发现：到 N 等于 10 的时候，最大间隙是 4。到 100 时是 14。到 1000 时是 20。到 100 万时是 154。到 10 亿时是 282。
 
-但 二〇一四年，陶哲轩（Terence 陶）证明了一个惊人的结论：素数间隙趋向于"任意大"——任意给定 N，都能找到两个素数之间差大于 N！这是反直觉的，因为素数越来越稀疏。
+但一九三一年，芬兰数学家 <strong>Erik Westzynthius（韦斯津修斯）</strong>证明了一个惊人的结论：素数间隙会<strong>趋向"任意大"</strong>——间隙增长得比数字位数增长得更快，对任意给定的比例都能找到。1952 年日本数学家 Nagura 把它加强为"间隙至少是数字位数的 1/5"。这是反直觉的，因为素数看起来越来越稀疏。
 
-虽然陶哲轩的结果已经非常惊人，但要精确描述"最大间隙"和 N 的关系，仍是未解之谜。
+（⚠️ 常见张冠李戴：<strong>这不是陶哲轩 2014 年的成果</strong>。陶哲轩 2014 的贡献是把"间隙<strong>有上界</strong>"这个方向推进——即把张益唐的 7000 万上界往下压。）
+
+虽然结果已经非常惊人，但要精确描述"最大间隙"和 N 的关系，仍是未解之谜。
 
 最佳猜测：最大间隙约为 log 平方 N（这个猜想叫 Cramer 猜想，目前未被证明）。
 
@@ -38279,7 +38286,7 @@ Carmichael 数在 一九〇九年被美国数学家 罗伯特·卡迈克尔 发�
   intro: '每个偶数 = 两素数之和的分解对数。100 = 3+97, 11+89, 17+83...',
   explain: `同学们好！今天我们来看哥德巴赫猜想的可视化——把每个偶数拆成两素数之和，看有多少种拆法。
 
-还记得哥德巴赫猜想吗？任何大于 2 的偶数都能写成两个素数之和。数学家用计算机验证到了 4 乘以 10 的 18 次方（4 亿亿），全都成立。但严格证明还没有。
+还记得哥德巴赫猜想吗？任何大于 2 的偶数都能写成两个素数之和。数学家用计算机验证到了 4 乘以 10 的 18 次方（400 亿亿），全都成立。但严格证明还没有。
 
 今天我们看看每个偶数有多少种"哥德巴赫拆分"。
 
@@ -38335,7 +38342,7 @@ Carmichael 数在 一九〇九年被美国数学家 罗伯特·卡迈克尔 发�
 
 斐波那契数列还有超级多美妙的性质：
 - 连续两项最大公约数都是 1（互素）。
-- 任何 3 个连续斐波那契数 a、b、c 满足 a 平方加 b 平方等于 c 平方？不对，斐波那契数不满足勾股定理。但有卡西尼恒等式：F_{n-1} 乘 F_{n+1} - F_n 平方 等于 (-1) 的 n 次方。
+- 问一个有意思的问题：3 个<strong>连续</strong>斐波那契数 a、b、c，会不会满足勾股定理 a² + b² = c²？<br>答案是<strong>不会</strong>（试试 1、1、2 → 1+1≠4；2、3、5 → 4+9≠25；3、5、8 → 9+25≠64）。<br>但斐波那契数有个漂亮的性质——<strong>卡西尼恒等式</strong>：F_{n-1} × F_{n+1} − F_n² = (−1)ⁿ（相邻三项之间"差一个 1"的精确关系，n 为奇数得 1、偶数得 −1）。
 - 任意两个相邻斐波那契数都互素。
 - 任意 F_n 都能被 1 整除，F_n 整除 F_{nk}。
 
@@ -38528,7 +38535,7 @@ B_{n+1} = Σ_{k=0}^{n} C(n, k) × B_k
 还有一个递推（用第一类 斯特林 数）：
 B_{n+1} = Σ_{k=0}^{n} C(n, k) × B_k = Σ_{k=0}^{n} S(n+1, k+1)
 
-Bell 数增长超级快：B_15 = 1382958545（约 14 亿），B_20 = 525180332305（约 5 千亿），B_30 有 23 位数。
+Bell 数增长超级快：B_15 = 1382958545（约 14 亿），B_20 = 51724158235372（约 51.7 万亿），B_30 有 24 位数。
 
 Bell 数还跟"各种"组合数有关：第二类 斯特林 数、Touchard 多项式、Dobinski 公式 B_n = (1/e) × Σ k^n / k!。
 
@@ -38560,7 +38567,7 @@ Bell 数还跟"各种"组合数有关：第二类 斯特林 数、Touchard 多�
 
 什么是错排？n 个元素的排列中，没有任何元素在原位的排列数。
 
-举个例子：D_3 等于多少？3 个元素 1、2、3 的全排列有 6 个：123、132、213、231、312、321。其中"每个元素都不在原位"的有 213、231——共 2 个。所以 D_3 = 2。
+举个例子：D_3 等于多少？3 个元素 1、2、3 的全排列有 6 个：123、132、213、231、312、321。其中"每个元素都不在原位"（错排）的有 231、312——共 2 个。（注意 213 不算：3 还在第 3 位。）所以 D_3 = 2。
 
 D_4 = ? 4 个元素的全排列有 24 个，其中"全错位"的有 9 个。所以 D_4 = 9。
 
@@ -39153,8 +39160,8 @@ Lychrel 猜想：196 永远迭代不到回文。但这个猜想还没被证明�
 
 算前 100 项：π 约等于 3.13。
 算前 1000 项：π 约等于 3.1408。
-算前 10000 项：π 约等于 3.14149。
-算前 100000 项：π 约等于 3.14157。
+算前 10000 项：π 约等于 3.1415141。
+算前 100000 项：π 约等于 3.1415848。
 
 你看，项数越多越准，但越来越慢——这就是"收敛慢"。跟 莱布尼茨 级数差不多慢，但 沃利斯 乘积的分子分母都是整数，特别适合小学生算！
 
@@ -40095,11 +40102,11 @@ n 越大越接近 0.57721...，但收敛很慢！
 方法二：每个内角 + 外角 = 180°。n 个内角和 = n × 180° - 外角和 = (n-2) × 180°。所以外角和 = n × 180° - (n-2) × 180° = 360°。✓
 
 举个例子：
-- 三角形：每个内角 60°，每个外角 120°。3 个外角 = 360°。✓
+- 三角形：内角和 = 180°，所以 3 个外角 = 540° - 180° = 360°。✓（注意：三角形的内角<strong>不一定</strong>各是 60°，只有等边三角形才是；直角三角形的三个外角是 90°、135°、135°，加起来同样是 360°）
 - 正方形：每个内角 90°，每个外角 90°。4 个外角 = 360°。✓
 - 五边形：每个内角 108°，每个外角 72°。5 个外角 = 360°。✓
 - 六边形：每个内角 120°，每个外角 60°。6 个外角 = 360°。✓
-- n 边形：每个内角 (n-2) × 180°/n，每个外角 180°/n。n 个外角 = 180°。等等，不对，让我重算。
+- n 边形：内角和 = (n-2) × 180°，平均每个内角 = (n-2) × 180°/n，所以外角 = 180° - 内角 = <strong>360°/n</strong>。n 个外角 = n × 360°/n = 360°。✓（<strong>只有正多边形</strong>各个外角才相等；一般 n 边形的每个外角并不相同，但外角和仍是 360°）
 
 外角 = 180° - 内角 = 180° - (n-2) × 180°/n = (180n - 180n + 360)/n = 360°/n。
 n 个外角 = n × 360°/n = 360°。✓
@@ -40263,7 +40270,7 @@ A = 2πr² + 2πrh = 2πr(r + h)
 注意：圆柱体积公式只对"直圆柱"成立。斜圆柱（顶面和底面平行但不垂直于侧面）体积一样，因为可以"投影"成直圆柱。
 
 圆柱的实际应用：
-- 储水罐：圆柱形最省材料
+- 储水罐：<strong>球形</strong>最省材料（不是圆柱形）。同样装 1 立方体积，球面只要 4.84，圆柱（最优比例 h=2r）要 5.54，球省约 13%
 - 管道：水流量与截面积成正比
 - 印刷：圆柱形滚筒
 - 建筑：圆柱形柱子是古希腊罗马最爱
@@ -40626,7 +40633,7 @@ n 边形总共有 n(n-1)/2 条线段（所有顶点两两相连），其中 n �
 
 为什么？看"度"：路径中除了起点和终点，每个顶点"进"和"出"的次数必须相等（度是偶数）。起点和终点可以"多出少进"（度是奇数）。
 
-Königsberg 七桥的图：4 个顶点，7 条边。度数：4 4 3 3（两个 3 是奇数）——等等，其实是 4 4 3 3？不，让我重看：A 区（中心岛）连 5 座桥，B 区连 3 座桥，C 区连 3 座桥，D 区连 3 座桥。所以度数 5 3 3 3——4 个奇数度顶点！
+Königsberg 七桥的图：4 个顶点，7 条边。A 区（中心岛）连 5 座桥，B 区连 3 座桥，C 区连 3 座桥，D 区连 3 座桥。所以度数是 <strong>5 3 3 3</strong>——4 个顶点全是奇数度。
 
 所以 Königsberg 七桥**无解**！市民试了无数次都走不通。
 
@@ -41107,18 +41114,24 @@ n 个集合：
 
 第二条：367 个人中必有 2 个人同天生日（一年 366 天，367 > 366）。
 
-第三条：从 1 到 10 中选 6 个数，必有 2 个数相差 1？不对，1 2 3 4 5 6 满足。改成 5 个数：1 3 5 7 9 间隔 2，差可能 4。所以抽屉原理说：n+1 个数放进 n 个抽屉必有重复。11 个数放进 1-10 的抽屉必有 2 个相同——不，是 11 个数放进 10 个抽屉必有 1 个抽屉里 2 个数。
+第三条：从 1 到 10 中任选 6 个数，<strong>必有 2 个数相差 1</strong>。
+证明：把 1~10 按奇偶分两堆（1,3,5,7,9 / 2,4,6,8,10）就是 2 个抽屉。选了 6 个数，6 > 2，必有一个抽屉里至少 3 个。同一堆里的数两两都是奇数（或偶数），它们间隔正好 2，<strong>取相邻两个就相差 1</strong>。✓（例如 1,3,5 里有 3 和 5 相差 1）
+
+一句话总结抽屉原理：<strong>n+1 个物品放进 n 个抽屉，必有 1 个抽屉里至少 2 个物品。</strong>
 
 更一般的抽屉原理：
 - n 个抽屉，每个至少 a 个 → 总数 n × a
 - 倒过来：m 个物品放进 n 个抽屉，必有抽屉里 ≥ ⌈m/n⌉ 个物品
 
 推广 1：n+1 个物品放进 n 个抽屉，至少 1 个抽屉里 2 个物品。
-推广 2：n+2 个物品放进 n 个抽屉，至少 1 个抽屉里 3 个物品？不对，是至少 1 个抽屉 ≥ ⌈(n+2)/n⌉ = 2 个物品。
-推广 3：mn+1 个物品放进 n 个抽屉，必有 1 个抽屉里 ≥ m+1 个物品。
+推广 2：<strong>mn+1 个物品放进 n 个抽屉，必有 1 个抽屉里至少 m+1 个物品。</strong>
+（这条才是真正有用的推广。像"n+2 个物品 → 3 个一抽屉"对 n ≥ 3 时算出来只有 2，是句空话，所以直接用 mn+1 这一条。）
 
 更复杂的应用：
-第四条：任取 5 个整数，必有 3 个数之和能被 3 整除。为什么？每个数 mod 3 后是 0、1、2 之一。5 个数必有 ≥ 2 个同余。等等——抽屉原理 + 同余证明。
+第四条：任取 5 个整数，<strong>必有 3 个数之和能被 3 整除</strong>（这是 Erdős–Ginzburg–Ziv 定理在 n=3 的情形）。
+证明：把 5 个数按除以 3 的余数分成 3 堆（余 0 / 余 1 / 余 2）。
+· 如果某一堆里有 ≥3 个数，那 3 个数余数相同，和的余数是 0+0+0、1+1+1 或 2+2+2，都能被 3 整除。✓
+· 否则每堆最多 2 个，5 个数分到 3 堆只能是 2、2、1。此时<strong>每堆各取一个</strong>，余数 0+1+2 = 3，也能被 3 整除。✓
 
 第五条：在 1 到 2n 中任选 n+1 个数，必有 1 个数能整除另一个。证明：每个数写成 2ᵏ × m（m 是奇数）。n+1 个数中必有 2 个的奇数部分相同，再比较 2 的幂次。
 
@@ -41323,7 +41336,7 @@ A × B：
 
 生成树：连通图的极小连通子图——包含所有顶点、n-1 条边、连通、无环。
 
-最小生成树：边有权重时，权重和最小的生成树。算法：克鲁斯卡尔（按边权排序 + 并查集）、普里姆（贪心加点）。
+最小生成树：边有权重时，权重和最小的生成树。算法：克鲁斯卡尔（按边权排序 + 并查集）、Prim（贪心加点）。
 
 举例：5 个顶点 7 条边的图，生成树有 4 条边。最小生成树是 4 条边中权重最小的组合。
 
@@ -41950,7 +41963,7 @@ P(A | B) = P(B | A) × P(A) / [P(B | A) × P(A) + P(B | ~A) × P(~A)]
 伯特兰 悖论的意义：揭示概率论需要"明确定义样本空间和概率测度"，不能含糊地说"随机"。
 
 具体分析：
-方法一端点：A、B 都在 [0, 2π) 上均匀分布。弦长 = 2R sin(α/2)，其中 α = |A - B|。α 在 [0, 2π) 均匀分布？实际是 α 在 [0, π] 均匀（对称）。P(α > π/3) = 2/3？让我重算。
+方法一端点：A、B 都在 [0, 2π) 上均匀分布。弦长 = 2R sin(α/2)，其中 α = |A - B|。α = |A − B| 本身在 [0, 2π) 上均匀，但弦长只取决于"较小的那个圆心角" α′ = min(α, 2π − α)，所以 <strong>α′ 在 [0, π] 上均匀分布</strong>。要求弦长超过内接正三角形边，即 2R sin(α′/2) &gt; √3·R，等价于 α′ &gt; π/3。于是 P = (π − π/3) / π = <strong>2/3</strong>。
 
 实际上方法一：两端点均匀独立。固定 A，弦长 = 2R sin(|B - A|/2)。B - A 在 [0, 2π) 均匀。P(|B - A|/2 > π/3) = P(|B - A| > 2π/3) = 2/3？再考虑 A 在前 B 在后或反后 = 1/3。OK 是 1/3。
 
@@ -42081,7 +42094,7 @@ P(X = k) = λᵏ × e⁻λ / k!
 3. 加括号（5 种方式）
 4. 检查结果 = 24
 
-总计算量约 24 × 64 × 5 × 4³ ≈ 百万次。
+按这个朴素枚举方式，总计算量约 24 × 4³ × 5 = <strong>7680</strong> 种排列×括号组合，量级是<strong>几千次</strong>（不是百万）——所以 24 点用暴力法一瞬间就能算完。
 
 24 点游戏数学性质：
 - 4 个数字能组成 24 的概率：约 79% 的 4 元组有解
@@ -42376,27 +42389,33 @@ Josephus 问题的应用：
 
 约瑟夫变种：约瑟夫斯反向——给定最后存活者位置，反推初始人数。
 
-举个例：n=10, k=3。最后剩 4 号（从 1 开始数）。
-J(1) = 1
-J(2) = (1+3) mod 2 + 1 = 1
-J(3) = (1+3) mod 3 + 1 = 1
-J(4) = (1+3) mod 4 + 1 = 1
-J(5) = (1+3) mod 5 + 1 = 4
-J(6) = (4+3) mod 6 + 1 = 2
-J(7) = (2+3) mod 7 + 1 = 6
-J(8) = (6+3) mod 8 + 1 = 1
-J(9) = (1+3) mod 9 + 1 = 4
-J(10) = (4+3) mod 10 + 1 = 8
-所以剩 8 号。
+举个例子：n=10, k=3。最后剩 <strong>4 号</strong>（人从 1 开始编号）。
 
-我上面算的 J(5) = 4（从 1 开始是 5）—— 等等让我重算。
+用 0 编号递推最不容易搞混：先 J(1) = 0，然后 J(n) = (J(n-1) + k) mod n，算完再加 1 变回人的编号。
 
-实际上 J(5) = 5 才对。让我用更简单的方式算：
-n=5, k=3。从 1 开始数：1 2 3（3 淘汰）、4 5 1（1 淘汰）、2 3 4（4 淘汰）、5 1 2（2 淘汰）、剩 5。
+J(1) = 0 → 1 号
+J(2) = (0+3) mod 2 = 1 → 2 号
+J(3) = (1+3) mod 3 = 1 → 2 号
+J(4) = (1+3) mod 4 = 0 → 1 号
+J(5) = (0+3) mod 5 = 3 → 4 号
+J(6) = (3+3) mod 6 = 0 → 1 号
+J(7) = (0+3) mod 7 = 3 → 4 号
+J(8) = (3+3) mod 8 = 6 → 7 号
+J(9) = (6+3) mod 9 = 0 → 1 号
+J(10) = (0+3) mod 10 = 3 → 4 号
 
-所以 n=5, k=3 剩 5 ✓。
+所以 n=10, k=3 剩 <strong>4 号</strong>；n=5, k=3 也剩 <strong>4 号</strong>。
 
-现在请同学们自己动手：点"约瑟夫问题"，输入 n 和 k。验证 n=5, k=3 剩 5。试试 n=10, k=3 剩几？n=41, k=3（Josephus 真实情况）剩几？明天带过来我们比一比。
+<strong>亲手模拟验证 n=5, k=3</strong>（人从 1 号开始报数，每数到 3 的淘汰，淘汰后从<strong>下一个人</strong>重新数 1）：
+报数 1 2 3 → <strong>3 号淘汰</strong>，剩 [1, 2, 4, 5]，从 4 号继续
+报数 4 5 1 → <strong>1 号淘汰</strong>，剩 [2, 4, 5]，从 2 号继续
+报数 2 4 5 → <strong>5 号淘汰</strong>，剩 [2, 4]，从 2 号继续
+报数 2 4 2 → <strong>2 号淘汰</strong>，剩 [4]
+最后剩 <strong>4 号</strong> ✓——和上面表格算出来的完全一致。
+
+⚠️ 约瑟夫问题最容易出错的地方是"淘汰后从谁开始数"。本实验用的是经典定义：<strong>淘汰后从被淘汰者的下一个人重新数 1</strong>。如果改成从淘汰者自己重新数，结果会不一样。
+
+现在请同学们自己动手：点"约瑟夫问题"，输入 n 和 k。验证 n=5, k=3 和 n=10, k=3 的结果。试试 n=41, k=3 剩几？明天带过来我们比一比。
 
 记住：数学不只藏在书本里——藏在每一个"围圈数数"的有趣淘汰里。`,
   audioUrl: 'audio/AL03_explain.mp3',
@@ -42644,7 +42663,7 @@ n=14: 365596
 4×4 数独的最少提示数：4 个提示就能唯一确定解。9×9 数独最少 17 个提示。
 
 数独的算法（编程）：
-1. 暴力枚举：4⁴ = 256 种，4×4 容易
+1. 暴力枚举：4×4 数独要填 16 个格子，每格 4 种选择，搜索空间是 4¹⁶ = <strong>约 43 亿</strong>。（4⁴ = 256 只是"4 个格子填 1~4 的排列数"，不是整个数独的搜索空间。）不过加了"每行、每列、每宫不重复"的剪枝后，实际很快。
 2. 回溯法：DFS + 剪枝，O(4⁴) 实际很快
 3. DLX（Dancing Links）：Donald 克努特 提出的高效算法
 4. 约束传播 + 搜索
@@ -43396,10 +43415,11 @@ Koch 雪花的变种：
 
 总长度 = 2ⁿ × 0.7ⁿ = 1.4ⁿ
 
-n 趋近无穷时，总长度 = 0（几何级数收敛，因为 1.4 < 2 但实际是发散？让我重算）。
+总长度 = 2ⁿ × 0.7ⁿ = (2 × 0.7)ⁿ = <strong>1.4ⁿ</strong>。
 
-实际：1.4 > 1，所以总长度 = 1.4ⁿ → ∞（无限长）。
-等等，1.4 = 2 × 0.7 < 2 但 1.4 > 1，所以总长度发散。
+因为 <strong>1.4 &gt; 1</strong>，n 越大总长度越长，n → ∞ 时总长度 <strong>发散到无穷大</strong>。
+实测：n=1 → 1.4，n=2 → 1.96，n=3 → 2.744，n=4 → 3.84，n=5 → 5.38……每层乘 1.4 倍，无限增长。
+这就是科赫曲线的"无穷长度"：它被<strong>装进一个有限的三角形里</strong>，却需要<strong>无限长的线</strong>才能画完——这是分形最反直觉的地方。
 
 但每个具体枝长 0.7ⁿ → 0（越来越小）。
 
@@ -43946,16 +43966,14 @@ a + b 的数字根 = (a 的数字根 + b 的数字根) 的数字根
 但这只是必要条件。充分条件是：m × n 偶数。
 
 具体定理：
-- 棋盘 m × n 能被多米诺铺满的充要条件是：m × n 是偶数，且 (m ≠ 1 或 n ≠ 1)
-  - 即：m × n 是偶数，且 m ≥ 2 且 n ≥ 2
+- 棋盘 m × n 能被 1×2 多米诺铺满的<strong>充要条件</strong>就是：<strong>m × n 是偶数</strong>（也就是 m、n 里至少有一个是偶数）。
+  - 验证：1×2 → 2 是偶数，1 个多米诺铺满 ✓
+  - 1×3 → 3 是奇数，铺不满（要用 1.5 个多米诺）✓
+  - 1×1 → 1 是奇数，铺不满 ✓
+  - 3×3 → 9 是奇数，铺不满 ✓
+  - 2×2、4×4 → 偶数，都能铺 ✓
 
-等等，如果 m = 1, n = 2（1×2 棋盘），能不能铺？1 个 1×2 多米诺刚好铺满。✓
-但 1×1 棋盘（1 个格子）铺不了——1 是奇数。
-
-所以准确条件：m × n 是偶数。
-
-但等等，1 × 2 棋盘 m × n = 2 是偶数，能铺。✓
-1 × 3 棋盘 m × n = 3 是奇数，不能铺。✓
+（"偶数"既必要也充分：必要是因为每块多米诺盖 2 格；充分是因为只要有一边是偶数，沿那一列/行顺次摆放即可。）
 1 × 4 棋盘 m × n = 4 是偶数，能铺（用 2 个 1×2）。✓
 
 实际上：
@@ -44109,13 +44127,16 @@ CT 扫描：用 X 射线从多个角度扫描人体，螺旋式累积，得到 3
 17 30 29 28 27 10
 16 15 14 13 12 11
 
-神奇：n=2k+1（奇数），中心是 (n²+1)/2 = (4k²+4k+2)/2 = 2k²+2k+1。
-n=3：中心 5
-n=5：中心 13
-n=7：中心 25
-n=9：中心 41
+神奇：<strong>最后一个数 n² 正好落在正中心</strong>。
+n=3：中心 9
+n=5：中心 25
+n=7：中心 49
+n=9：中心 81
+（<strong>注意别记成 (n²+1)/2</strong>——那是另一种编号方式的结果。在"从 1 开始顺时针填满"的构造里，中心就是 n²，用上面 n=6 的图验证：n=6 时 36 落在中心 ✓）
 
-现在请同学们自己动手：点"螺旋矩阵"，看 n=3、4、5 的顺时针填充。试试 n=6。验证 n=4 的中心是 13（4²+1=17？等等，13 是中心吗？n=4 中心 2×2 是 7、10、13、16。13 是 4²/2+1=9？让我重算 n=4 中心 7、10、13、16。13 是最右下中心的下一个... 实际填法导致 13 是中心 4 个之一）。明天带过来我们比一比。
+现在请同学们自己动手：点"螺旋矩阵"，看 n=3、4、5 的顺时针填充。试试 n=6。
+再试试<strong>偶数</strong>的 n：n=4 时中心没有唯一的那个数，而是中间 2×2 四个数 13、14、16、15（最后一个数 16 落在中间偏下的位置）。为什么偶数时 16 不在正中心？因为 2×2 的"中心"是一个方块而不是一个格子。
+明天带过来我们比一比。
 
 记住：数学不只藏在书本里——藏在每一个"顺时针填一圈又一圈"的有趣矩阵里。`,
   audioUrl: 'audio/OT06_explain.mp3',
@@ -44163,9 +44184,8 @@ n=9：中心 41
 第一条：每行、每列之和 = 34
 第二条：每条对角线之和 = 34
 第三条：四个角之和 = 16 + 13 + 4 + 1 = 34
-第四条：四个 2×2 方块之和 = 16+3+5+10 = 16+2+13+3 = 1+8+12+13 = 4+5+8+15 = 34
-第五条：四个 2×2 方块（对角）之和 = 16+3+5+10 = 16+2+13+3 = 1+8+12+13 = 4+5+8+15 = 34
-第六条：四角的"和"也等于 34
+第四条：把 4×4 分成四个互不重叠的 2×2 象限，每个象限之和也都是 34——左上 16+3+5+10、右上 2+13+11+8、左下 9+6+4+15、右下 7+12+14+1，全是 34
+第五条：除了四条对角线，"两条主对角线"方向的四组数也各有规律：16+11+7+1=35、13+10+6+4=33，正好 34±1 配对
 第七条：底行中间两个数 = 15、14，暗示 一五一四年（创作年份）
 
 丢勒幻方还有一个神奇性质：第一行中间两个数 3、2 = 32（年份后两位？）。
@@ -44862,7 +44882,7 @@ XXX
 
 任何一个三角形，都有三个特别重要的"中心点"：重心、垂心、外心。重心是三条中线的交点（把三角形对折平衡的点），垂心是三条高线的交点（从顶点垂直对边作的线的交点），外心是三条中垂线的交点（到三个顶点距离都相等的点）。
 
-欧拉发现一件神奇的事：这三个点，居然在同一条直线上！而且重心永远在中间，正好把外心和垂心之间的线段分成 1:2 的两段！这条线就叫"欧拉线"。
+欧拉发现一件神奇的事：这三个点，居然在同一条直线上！而且重心正好落在这条线段上，把外心和垂心之间的线段按 <strong>1 : 2</strong> 瓜分（从外心算起，重心在第 1 段处；也就是说重心并不在正中间）。这条线就叫"欧拉线"。
 
 为什么这么神奇？因为这告诉我们：三角形的几何里，藏着一个"隐藏的秩序"——三个看似无关的点，居然是连线的。这不是巧合，而是有数学证明的。
 
@@ -45494,9 +45514,15 @@ XXX
 
 什么是随机矩阵呢？比如你随机生成一个 N×N 的矩阵，每个元素都是从正态分布（高斯分布）里独立抽样。问：它的特征值长什么样？
 
-答案让你大吃一惊：所有特征值会落在一个固定的区域里——单位圆盘！而且在圆盘内部，特征值的密度由一个著名公式给出——圆定理（Wigner semicircle law）。N 越大，越接近那个半圆。
+答案让你大吃一惊（<strong>但要分清两种情况</strong>）：
 
-如果矩阵的元素是复数呢？特征值会填满一个单位圆盘，密度是 1/π。如果矩阵是正交的（QR 分解），特征值全在单位圆上。如果矩阵只有 0 和 1 元素，特征值的分布有完全不同的形状。
+<strong>① 厄米矩阵（Hermitian，实对称或复共轭对称）</strong>——这是 Wigner 半圆律（Wigner semicircle law）真正的适用场景。这类矩阵的特征值<strong>全都是实数</strong>，它们分布在一条<strong>实轴上的区间</strong>里，密度曲线是一个<strong>半圆形</strong>（Wigner 半圆律）。矩阵越大，越贴近这个半圆。
+
+<strong>② 元素是独立复高斯、但不是厄米矩阵</strong>——这时特征值<strong>确实</strong>会铺满复平面上的<strong>单位圆盘</strong>，圆盘内的密度是 1/π。这是 <strong>Ginibre 圆盘</strong>结果，与 Wigner 半圆律<strong>不是一回事</strong>。
+
+⚠️ 常见误解：不要把"单位圆盘"当成 Wigner 半圆律的结论——Wigner 半圆律描述的是<strong>实数轴上的一段区间</strong>，不是二维圆盘。
+
+如果矩阵是正交的（QR 分解），特征值全在单位圆上。如果矩阵只有 0 和 1 元素，特征值的分布有完全不同的形状。
 
 随机矩阵理论有什么用？物理学家用它研究重原子核的能级——大原子核有几千个能级，能级之间的间隔分布居然和随机矩阵的特征值间距分布一致！这意味着重核的能量分布是"量子混沌"的。
 
@@ -45981,7 +46007,7 @@ I = √π ✓
 },
   {
   id: 'EX_PROVEN_08', type: 'conjecture_proven',  cat: '已证', title: '法尔科纳 距离集 2D 突破 (王虹+Guth+Du 2024)',
-  intro: '2024 年王虹 (Hong 王) 与 Larry Guth (MIT)、Du (杜亚楠) 合作证明 2D 情形下 法尔科纳 距离猜想的关键临界指数下界，将这个 1985 年悬而未决的猜想推进了一大步。',
+  intro: '2024 年王虹 (Hong Wang) 与 Larry Guth (MIT)、Du (杜亚楠) 合作证明 2D 情形下 法尔科纳 距离猜想的关键临界指数下界，将这个 1985 年悬而未决的猜想推进了一大步。',
   audioUrl: 'audio/EX_PROVEN_08_explain.mp3',
   stages: getStagesEX_PROVEN_08(),
   render: (h) => initStage_EX_PROVEN_08_initAll(h)

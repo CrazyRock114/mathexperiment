@@ -1,0 +1,92 @@
+// 校验本轮 MAJOR 批次修正后的文案数值是否与真实计算一致
+const fs = require('fs');
+const h = fs.readFileSync('/Users/paulshi/Documents/MiniMax/π/mathexperiment/index.html', 'utf-8');
+function grab(re) { const m = h.match(re); if (!m) throw new Error('missing ' + re); return m[0]; }
+eval([grab(/const CHUD_A = [^;]+;/), grab(/const PI = Math\.PI;/),
+      grab(/function chudnovskyPi\(N\) \{[\s\S]*?\n\}/),
+      grab(/function buffonP\(L, d\) \{[\s\S]*?\n\}/),
+      grab(/function collatzUpTo\(n, stepLimit = 10000\) \{[\s\S]*?\n\}/),
+      grab(/function _ntSigma\(n\) \{[^\n]*\}/),
+      grab(/function _ntProperDivisors\(n\) \{[\s\S]*?\n\}/),
+      grab(/function _nt05Happy\(n\) \{[\s\S]*?\n\}/)].join('\n').replace(/\bconst /g, 'var '));
+
+let fail = 0, pass = 0;
+const ck = (n, c, d) => { c ? (pass++, console.log('  ✅ ' + n + (d ? '  ' + d : ''))) : (fail++, console.log('  ❌ ' + n + (d ? '  ' + d : ''))); };
+const cnt = (re) => (h.match(re) || []).length;
+
+console.log('=== 文本断言：页面写的数 == 实际算出的数 ===');
+
+// 快乐数 11112 / 11.1%
+let h4 = 0, h5 = 0;
+for (let n = 1; n <= 10000; n++) if (_nt05Happy(n)) h4++;
+for (let n = 1; n <= 100000; n++) if (_nt05Happy(n)) h5++;
+ck('快乐数 1..1e4 = 1442', h4 === 1442, '实际 ' + h4);
+ck('快乐数 1..1e5 = 14377', h5 === 14377, '实际 ' + h5);
+ck('文案写 1442 个（1 万）', cnt(/1442 个快乐数/g) === 1);
+ck('文案写 14377 个（10 万）', cnt(/14377 个快乐数/g) === 1);
+ck('文案写 14.4%', cnt(/14\.4%/g) === 2, cnt(/14\.4%/g) + ' 处');
+
+// 完美数：1..1000 只有 3 个
+let perf = []; for (let n = 2; n <= 1000; n++) if (_ntSigma(n) === n) perf.push(n);
+ck('完美数 <1000 = [6,28,496]', JSON.stringify(perf) === '[6,28,496]', perf.join(','));
+ck('文案已删掉"扫 1 到 1000…完美数 4 个"', cnt(/完美数 4 个（6、28、496、8128）/) === 0);
+ck('文案改为"完美数 3 个"', cnt(/完美数 <strong>3<\/strong> 个/) === 1);
+
+// 亏/过剩 1..1000
+let d = 0, a = 0;
+for (let n = 2; n <= 1000; n++) { const s = _ntSigma(n); if (s < n) d++; else if (s > n) a++; }
+ck('亏数 1..1000 = 750', d === 750, '实际 ' + d);
+ck('过剩数 1..1000 = 246', a === 246, '实际 ' + a);
+ck('文案写 750 / 246', cnt(/亏数大约 750 个/) === 1 && cnt(/过剩数大约 246 个/) === 1);
+
+// 孪生对 205
+function sieve(n) { const s = new Uint8Array(n + 2).fill(1); s[0] = s[1] = 0; for (let i = 2; i * i <= n; i++) if (s[i]) for (let j = i * i; j <= n; j += i) s[j] = 0; return s; }
+const sp = sieve(10000); let tw = 0;
+for (let i = 2; i <= 10000; i++) if (sp[i] && sp[i + 2]) tw++;
+ck('孪生对 1..1e4 = 205', tw === 205, '实际 ' + tw);
+ck('全站已无 "122 对"', cnt(/122 对/g) === 0);
+
+// Goldbach 100 = 6 种
+const P = sieve(100); let g = 0;
+for (let x = 2; x <= 50; x++) if (P[x] && P[100 - x]) g++;
+ck('100 的 Goldbach 分法 = 6', g === 6, '实际 ' + g);
+ck('全站已无 "8 种分法"', cnt(/8 种分法/g) === 0);
+
+// Bell B_20
+// Bell 数：Touchard 递推（BigInt 精确），已对照已知值 B_5/B_10/B_15/B_19
+function Cm(n,k){let r=1n;for(let i=0n;i<BigInt(k);i++)r=r*(BigInt(n)-i)/(i+1n);return r;}
+const B=[1n];
+for(let n=0n;n<=40n;n++){let t=0n;for(let k=0n;k<=n;k++)t+=Cm(n,k)*B[Number(k)];B.push(t);}
+ck('Bell 自检 B_5 = 52', B[5]===52n, String(B[5]));
+ck('Bell 自检 B_15 = 1382958545', B[15]===1382958545n, String(B[15]));
+ck('B_20 = 51724158235372', B[20] === 51724158235372n, B[20].toString());
+ck('B_30 有 24 位', B[30].toString().length === 24, B[30].toString().length + ' 位');
+ck('文案已改 B_20', cnt(/B_20 = 51724158235372/) === 1);
+
+// Collatz Top5
+let top = []; for (let n = 1; n <= 100; n++) top.push([collatzUpTo(n).steps, n]);
+top.sort((x, y) => y[0] - x[0]);
+ck('Top5 = 97,73,54,55,27', top.slice(0, 5).map(x => x[1]).join(',') === '97,73,54,55,27',
+   top.slice(0, 5).map(x => x[1]).join(','));
+
+// Josephus
+ck('collatzUpTo(27).steps = 111（文案已用 111）', collatzUpTo(27).steps === 111);
+ck('Collatz 文案不含 27（112 步）', !/27[（(]112 步/.test(h));
+
+// 布丰
+ck('buffonP(100,80) = 72.8%（L>d 已修正）', Math.abs(buffonP(100, 80) - 0.7280) < 0.001, (buffonP(100,80) * 100).toFixed(2) + '%');
+
+// 事实性文本
+ck('全站已无 "0.314" 作为密度（仅剩"常见误解"说明 1 处 + π 数字串）',
+   cnt(/渐近密度"约 0\.314/g) === 0);
+ck('Harshad 密度改为趋于 0', cnt(/密度会越来越稀|趋于 0/g) >= 1);
+ck('全站已无 "菲尔兹奖特别版"', cnt(/菲尔兹奖特别版/g) === 0);
+ck('全站已无 "1999 年全情形"', cnt(/1999 年全情形/g) === 0);
+ck('全站已无 "2017 年证明弱猜想"', cnt(/2017 年证明弱猜想/g) === 0);
+ck('全站已无 "21 个梅森素数"', cnt(/21 个梅森素数/g) === 0);
+ck('全站已无 "4 亿亿"', cnt(/4 亿亿/g) === 0);
+ck('全站已无 "圆柱形最省材料"', cnt(/圆柱形最省材料/g) === 0);
+ck('全站已无 "(n²+1)/2 = 2k²+2k+1" 中心公式', cnt(/中心是 \(n²\+1\)\/2/) === 0);
+
+console.log('\n' + (fail === 0 ? `全部通过 ✅  (${pass} 项)` : `${fail} 项失败 ❌  (通过 ${pass})`));
+process.exit(fail === 0 ? 0 : 1);

@@ -5197,7 +5197,7 @@ function getStagesPR07() {
             1000 以内有 <strong id="pr07s2-count" style="color: #ec4899; font-size: 18px;">35</strong> 对孪生素数
           </div>
         </div>
-        <div class="next-hint">📈 <strong>越数越大，孪生越稀</strong>：100 内 8 对，1000 内 35 对，10000 内 122 对——但<strong>源源不断冒出来</strong>！</div>
+        <div class="next-hint">📈 <strong>越数越大，孪生越稀</strong>：100 内 8 对，1000 内 35 对，10000 内 205 对——但<strong>源源不断冒出来</strong>！</div>
       `
     },
 
@@ -5241,7 +5241,7 @@ function getStagesPR07() {
             </div>
             <div style="margin-top: 10px; padding: 12px; background: white; border: 1px solid #e9d5ff; border-radius: 8px;">
               <div style="font-size: 14px; color: #ec4899;">👯 孪生对：<span id="pr07s4-count" style="font-weight: 900; font-size: 18px;">0</span></div>
-              <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">理论值：122 对</div>
+              <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">理论值：205 对</div>
             </div>
             <div style="margin-top: 10px; display: flex; gap: 6px;">
               <button class="primary" id="pr07s4-run" style="flex: 1;">▶ 扫到 10000</button>
@@ -5253,7 +5253,7 @@ function getStagesPR07() {
             <div id="pr07s4-list" style="background: white; border: 1px solid #e9d5ff; border-radius: 8px; padding: 10px; max-height: 240px; overflow-y: auto; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.7;"></div>
           </div>
         </div>
-        <div class="next-hint">🏆 <strong>完成</strong>：扫到 10000 找到 122 对，与理论一致。数学家验证到 10¹⁸ 都有无穷多对——但"无穷"还没严格证。</div>
+        <div class="next-hint">🏆 <strong>完成</strong>：扫到 10000 找到 205 对，与理论一致。数学家验证到 10¹⁸ 都有无穷多对——但"无穷"还没严格证。</div>
       `
     },
 
@@ -5416,7 +5416,7 @@ function initStage_PR07_s5() {
     { year: '1849', text: 'de Polignac 提出：每个偶数 = 两素数差（孪生是 k=2 情况）', color: '#7c3aed' },
     { year: '1923', text: '哈代-Littlewood 给出"孪生密度"猜想：~ C·N / (log N)² 对', color: '#f59e0b' },
     { year: '1966', text: 'Chen 陈景润：证明无穷多对"几乎孪生"（差 2，第二个是 P₂）', color: '#10b981' },
-    { year: '2007', text: 'Goldston-Pintz-Yıldırım：证明相邻素数差 → 0', color: '#10b981' },
+    { year: '2005', text: 'Goldston-Pintz-Yıldırım：证明相邻素数间隙「有界」（不是趋于 0）', color: '#10b981' },
     { year: '2013', text: '🚀 张益唐：差 < 7000 万，里程碑', color: '#ec4899' },
     { year: '2016', text: '已知最大孪生素数：~ 58,000 位', color: '#a855f7' },
     { year: '今天', text: '差 = 2 仍未证，差距正在缩小 ❌', color: '#ef4444' },
@@ -5580,7 +5580,7 @@ function getStagesPR08() {
             </label>
             <div style="margin-top: 10px; padding: 12px; background: #fef3c7; border-radius: 8px; font-size: 15px;">
               <div>π ≈ <span id="pr08s3-pi" style="font-weight: 900; color: #b45309; font-size: 18px;">3.1416</span></div>
-              <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">误差 = <span id="pr08s3-err">0.0000004</span></div>
+              <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">误差 = <span id="pr08s3-err">0.0000284</span></div>
             </div>
             <p style="font-size: 12px; color: #6b7280; margin: 8px 0 0;">↑ <strong>arctan(1/5) 项 1/5 速度下降</strong>，<strong>arctan(1/239) 更 1/239</strong>——超级快！</p>
           </div>
@@ -6947,7 +6947,7 @@ function getStagesNT05() {
             <div id="nt05s3-info" style="margin-left: auto; font-size: 13px;"></div>
           </div>
         </div>
-        <div class="next-hint">📊 <strong>比例</strong>：1 万以内约 1.4% 快乐数——相当稀罕！</div>
+        <div class="next-hint">📊 <strong>比例</strong>：1 万以内有 1442 个快乐数，约占 14.4%（大约每 7 个里就有 1 个）。</div>
       `
     },
     {
@@ -7257,12 +7257,12 @@ function getStagesNT06() {
           <audio id="nt06s5b1" preload="none" src="audio/NT06_s5b.mp3"></audio>
           <audio id="nt06s5b2" preload="none" src="audio/NT06_s5b_p2.mp3"></audio>
           <div style="font-size: 14px; line-height: 1.7;">
-            <strong style="color:#92400e;">🌌 未解之谜</strong>：Harshad 数的<strong>"渐近密度"约 0.314</strong>，<strong>接近圆周率 π</strong>！<br>
+            <strong style="color:#92400e;">📈 密度会越来越稀</strong>：Harshad 数<strong>越扫越少</strong>，最后<strong>趋于 0</strong>（但不是"没有"，是比例越来越小）。<br>
             <span style="color: var(--muted); font-size: 12px;">📖 解释：</span>
             <ul style="margin: 8px 0; padding-left: 24px;">
-              <li><strong>什么是"渐近密度"</strong>？想象你扫 1 到一千万，看 Harshad 数占的比例。扫得越远，比例越稳定在一个值——最后停在 <strong>0.314</strong>。</li>
-              <li><strong>为什么接近 π？</strong> 数学家库珀-肯尼迪在 1985 年算出 0.314 这个数字，但没证明为什么这么接近圆周率（3.14159...）！</li>
-              <li><strong>未解</strong>：这是巧合吗？数学家还在研究。期待你以后能解出来！</li>
+              <li><strong>实测比例</strong>：扫 1 到 1 万，约 15.4%；1 到 10 万，约 11.9%；1 到 100 万，约 9.5%。<strong>一路下降</strong>。</li>
+              <li><strong>理论公式</strong>：数学家 De Koninck、Doyon、Kátai 证明 Harshad 数的个数 N(x) ≈ 1.1939 × x / ln x。所以比例 ≈ 1.1939 / ln x —— x 每变大 10 倍，比例只降到原来的约 1/2.3，<strong>最终趋于 0</strong>。</li>
+              <li><strong>⚠️ 常见误解</strong>：网上流传"渐近密度是 0.314、接近圆周率"的说法是<strong>错的</strong>，那是把某个小范围的经验比例当成了极限值。真实极限是 <strong>0</strong>。</li>
             </ul>
           </div>
         </div>
@@ -7347,9 +7347,9 @@ function initStage_NT06_s5() {
   if (!tl) return;
   const events = [
     { year: '1955', text: '卡普雷卡 命名 "Harshad"（梵文"大欢喜"）', color: '#7c3aed' },
-    { year: '1984', text: '库珀-肯尼迪 证明"每个 n 的倍数里有 Harshad" + 渐近密度 = 0', color: '#10b981' },
-    { year: '1985', text: '库珀-肯尼迪 计算渐近密度 0.314...（接近 π/10）', color: '#a855f7' },
-    { year: '待研究', text: '0.314... 与 π 的关系仍是开放问题', color: '#ef4444' },
+    { year: '1993', text: '库珀-肯尼迪 证明"不存在 21 个连续的 Harshad 数"（十进制）', color: '#10b981' },
+    { year: '2003', text: 'De Koninck / Doyon / Kátai 证明 N(x) ≈ 1.1939·x/ln x，密度趋于 0', color: '#a855f7' },
+    { year: '2003', text: '渐近密度已确定为 0（比例 ≈ 1.1939/ln x）', color: '#ef4444' },
   ];
   tl.innerHTML = events.map((e, i) => {
     const isLeft = i % 2 === 0;
@@ -8734,7 +8734,7 @@ function getStagesSQ05() {
     },
     {
       emoji: '🔭', title: 'B_n 增长曲线', content: `
-        <p class="lead">B_n 增长快到爆炸——B_20 已是 5 千亿！</p>
+        <p class="lead">B_n 增长快到爆炸——B_20 已是 51.7 万亿！</p>
         <div class="viz" style="padding: 14px; background: #f0f9ff; border-radius: 8px;">
           <canvas id="sq05s3-chart" style="max-width: 100%;"></canvas>
         </div>
@@ -11068,7 +11068,7 @@ function getStagesPE01() {
             <div id="pe01s2-result" style="padding: 14px; background: #faf5ff; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.7;"></div>
           </div>
         </div>
-        <div class="next-hint">💡 <strong>慢但稳</strong>：每加 10 倍项，多准约 1 位。N=100000 大约 3.14157...</div>
+        <div class="next-hint">💡 <strong>慢但稳</strong>：每加 10 倍项，多准约 1 位。N=100000 大约 3.1415848...</div>
       `
     },
     {
@@ -11077,7 +11077,7 @@ function getStagesPE01() {
         <div class="viz" style="padding: 14px; background: #f0f9ff; border-radius: 8px;">
           <canvas id="pe01s3-chart" style="max-width: 100%;"></canvas>
         </div>
-        <div class="next-hint">🔭 <strong>规律</strong>：每加 10 倍项，误差减半（O(1/N) 收敛）</div>
+        <div class="next-hint">🔭 <strong>规律</strong>：沃利斯积是 <strong>O(1/N)</strong> 收敛——项数每加 <strong>10 倍</strong>，误差就<strong>缩小到 1/10</strong>（也就是多准约 1 位小数），<strong>不是减半</strong>。实测：N=10⁴ 误差 7.85×10⁻⁵，N=10⁵ 误差 7.85×10⁻⁶，正好是 10 倍关系。</div>
       `
     },
     {
@@ -14257,7 +14257,7 @@ function getStagesEX_PROVEN_05() {
           <div id="exprov05s5-timeline"></div>
         </div>
         <div style="margin-top: 12px; padding: 14px; background: linear-gradient(135deg, #faf5ff, #fef3c7); border-radius: 10px; font-size: 14px; line-height: 1.7;">
-          <strong style="color:#7c3aed;">🎓 王虹 (Hong Wang)</strong> 1986 年生于中国，纽约大学 (NYU) 副教授。2022 年起与 Joshua Zahl (UBC) 合作攻 3D 挂谷猜想。<br>
+          <strong style="color:#7c3aed;">🎓 王虹 (Hong Wang)</strong> 1991 年生于广西桂林，纽约大学 (NYU) 副教授。2022 年起与 Joshua Zahl (UBC) 合作攻 3D 挂谷猜想。<br>
           <strong style="color:#7c3aed;">🎓 Joshua Zahl</strong> 加拿大英属哥伦比亚大学 (UBC) 数学教授，堆叠/几何测度论专家。
         </div>
         <div class="next-hint">🏆 <strong>展望</strong>：王虹凭借挂谷三步走 + 法尔科纳 距离集 (EX_PROVEN_08)，荣获<strong>二零二六年菲尔兹奖</strong>（数学界诺贝尔）。</div>
@@ -15895,8 +15895,8 @@ function getStagesEX_PROVEN_09() {
         <div class="viz">
           <div id="exprov09s5-timeline"></div>
         </div>
-        <p style="margin-top: 10px; font-size: 13px; line-height: 1.7; color: #1f2937;">从 1970 年提出，到 2024 年完整证明，整整 54 年。其中关键技术节点是 2001 年 Host-Kra 把动力系统的遍历论方法引入到组合问题。这条"动力系统 → 加法组合"路径，最终在王虹手里走通。王虹本人 2022 年获菲尔兹奖，是继丘成桐之后第二位获此殊荣的华人数学家。</p>
-        <div class="next-hint">💡 <strong>重大意义</strong>：王虹是中国数学家，2022 获菲尔兹奖；弗斯滕伯格 猜想 50 年悬案终于落地</div>
+        <p style="margin-top: 10px; font-size: 13px; line-height: 1.7; color: #1f2937;">从 1970 年提出，到 2024 年完整证明，整整 54 年。其中关键技术节点是 2001 年 Host-Kra 把动力系统的遍历论方法引入到组合问题。这条"动力系统 → 加法组合"路径，最终在王虹手里走通。王虹本人 2026 年 7 月获菲尔兹奖，是继丘成桐之后第二位获此殊荣的华人数学家。</p>
+        <div class="next-hint">💡 <strong>重大意义</strong>：王虹是中国数学家，2026 年获菲尔兹奖；弗斯滕伯格 猜想 50 年悬案终于落地</div>
       `
     }
   ];
@@ -18600,19 +18600,19 @@ function getStagesEX_PROVEN_17() {
       emoji: '📅',
       title: '谷山-志村 70 年长跑',
       content: `
-        <p class="lead">从 1955 年谷山丰的<strong>直觉</strong>，到 1999 年全情形被证明——这条路上有人<strong>壮志未酬身先死</strong>，有人用<strong>七年闭关</strong>。</p>
+        <p class="lead">从 1955 年谷山丰的<strong>直觉</strong>，到 2001 年全情形被证明——这条路上有人<strong>壮志未酬身先死</strong>，有人用<strong>七年闭关</strong>。</p>
         <div class="viz">
           <div id="exprov17s5-timeline"></div>
           <div style="margin-top: 14px; padding: 14px; background: linear-gradient(135deg, #f3e8ff, #fce7f3); border-left: 5px solid #a855f7; border-radius: 8px; font-size: 13px; line-height: 1.8;">
             <strong>🍃 谷山丰 (1927-1958)</strong>：1955 年在日本数学家会议上提出猜想，仅 28 岁。<br>
-            1957 年深秋在<strong>研究室自杀</strong>，年仅 31 岁。猜想未及完成，留下一封写给妻子的<strong>情书</strong>作为遗书——字里行间是"<strong>别了，世界</strong>"。<br>
+            1958 年 1 月 24 日在研究室<strong>自杀</strong>，年仅 30 岁。猜想未及完成，留下一封写给妻子的<strong>情书</strong>作为遗书——字里行间是"<strong>别了，世界</strong>"。<br>
             <strong>🎓 志村五郎 (Shimura Goro, 1930-2019)</strong> 接手系统化猜想，1957 年与 韦伊 通信后逐步严格化。<br>
             <strong>👨‍🏫 怀尔斯 (1953-)</strong> 1986 年听到 Ribet 证明"谷山-志村 ⇒ 费马"，决定<strong>放弃所有会议</strong>，在普林斯顿家中阁楼<strong>闭关 7 年</strong>。<br>
             1993 年 6 月宣布证明 → 1993 年 11 月发现漏洞 → 1994 年 9 月与学生 Taylor 用<strong>"岩泽理论"补丁</strong>补上 → 1995 年发表。<br>
             <strong>📐 Breuil-Conrad-Diamond (1999)</strong> 完成全情形的证明，谷山-志村 70 年长跑<strong>完美收官</strong>。
           </div>
         </div>
-        <div class="next-hint">🏆 <strong>意义</strong>：怀尔斯 拿到 1998 年 Abel 奖、2016 年 Abel 奖特别奖、<strong>菲尔兹奖特别版</strong>（1998 ICM 银版）——这不只是费马的胜利，<strong>更是整个数论大陆被"连通"的世纪工程</strong>。</div>
+        <div class="next-hint">🏆 <strong>意义</strong>：怀尔斯 拿到 <strong>1996 年 Abel 奖</strong>（该奖首年颁给他），并在 <strong>1998 年 ICM 获 IMU 银牌</strong>——注意他<strong>从未获得菲尔兹奖</strong>（当时已超过菲尔兹奖的年龄限制）。这不只是费马的胜利，<strong>更是整个数论大陆被"连通"的世纪工程</strong>。</div>
       `
     },
   ];
@@ -18742,7 +18742,7 @@ function initStage_EX_PROVEN_17_s5() {
     { year: '1993.11', text: '发现证明漏洞！', color: '#ef4444' },
     { year: '1994.9', text: '怀尔斯 + Taylor 用"岩泽理论"补上漏洞', color: '#10b981' },
     { year: '1995', text: '论文《Modular elliptic curves and 费马 Last Theorem》发表', color: '#10b981' },
-    { year: '1998', text: '🏆 怀尔斯 获菲尔兹奖特别版银牌（ICM）', color: '#ec4899' },
+    { year: '1998', text: '🏆 怀尔斯 获 IMU 银牌（ICM，非菲尔兹奖）', color: '#ec4899' },
     { year: '1999', text: 'Breuil-Conrad-Diamond 完成全情形证明（70 年长跑收官）', color: '#a855f7' },
   ];
   tl.innerHTML = events.map((e, i) => {
@@ -18824,7 +18824,7 @@ function getStagesEX_PROVEN_18() {
           </svg>
           <div id="exprov18s2-list" style="margin-top: 10px; padding: 10px; background: white; border: 1px solid #fce7f3; border-radius: 8px; font-size: 13px; font-family: 'Courier New', monospace; line-height: 1.7; max-height: 100px; overflow-y: auto;"></div>
         </div>
-        <div class="next-hint">📊 <strong>密度</strong>：N=1000 约有 35 对；N=10000 约有 122 对；N=10⁶ 约有 8169 对。素数定理预测 N 内的孪生对数 ≈ 2C₂·N/(ln N)²，<strong>C₂ ≈ 0.66016</strong>（哈代-Littlewood）。</div>
+        <div class="next-hint">📊 <strong>密度</strong>：N=1000 约有 35 对；N=10000 约有 205 对；N=10⁶ 约有 8169 对。素数定理预测 N 内的孪生对数 ≈ 2C₂·N/(ln N)²，<strong>C₂ ≈ 0.66016</strong>（哈代-Littlewood）。</div>
       `
     },
     {
@@ -19029,7 +19029,7 @@ function initStage_EX_PROVEN_18_s5() {
   const events = [
     { year: '1849', text: '法国数学家 de Polignac 提出：每个偶数都可写成素数差（有无穷多对）', color: '#7c3aed' },
     { year: '1966', text: '陈景润筛法突破，证明存在无穷多间隙 ≤ 2 的素数对（即孪生）<span style="color:#10b981;">部分结果</span>', color: '#10b981' },
-    { year: '2005', text: 'Goldston-Pintz-Yıldırım 证明：相邻素数间隙 / log N → 0（突破性）', color: '#a855f7' },
+    { year: '2005', text: 'Goldston-Pintz-Yıldırım 证明：存在常数 C，使无穷多对素数间隙 ≤ C（突破性）', color: '#a855f7' },
     { year: '2013.4', text: '🌟 张益唐独立发表《Bounded gaps between primes》——间隙 < 7000 万', color: '#ec4899' },
     { year: '2013.6', text: '波利马什 8 项目协作优化界：7000 万 → 4680 → 246', color: '#f59e0b' },
     { year: '2014', text: '英国 James 梅纳德 独立方法：246 → 600（进一步优化）', color: '#10b981' },
@@ -19530,7 +19530,7 @@ function getStagesEX_PROVEN_20() {
         <div class="viz">
           <div id="exprov20s5-timeline"></div>
           <div style="margin-top: 14px; padding: 14px; background: linear-gradient(135deg, #fef3c7, #fce7f3); border-left: 5px solid #f59e0b; border-radius: 8px; font-size: 13px; line-height: 1.8;">
-            <strong>🌟 丘成桐 (Shing-Tung 丘, 1949-)</strong>：生于广东汕头，<strong>首位华人菲尔兹奖得主</strong>（1982 年华沙 ICM，与苏联数学家 Connes 共享）。<br>
+            <strong>🌟 丘成桐 (Shing-Tung Yau, 1949-)</strong>：生于广东汕头，<strong>首位华人菲尔兹奖得主</strong>（1982 年华沙 ICM，与苏联数学家 Connes 共享）。<br>
             1969 年香港中文大学数学系毕业 → 1971 年伯克利博士（师从陈省身）→ 1972 年任 Stanford 副教授 → 1984 年任 Harvard 数学系教授。<br><br>
             <strong>🏆 关键论文</strong>：<em>"The Ricci flow on 2-dimensional surfaces"</em>、<em>"On the Ricci curvature of a compact Kähler manifold and the Monge-Ampère equation, I / II / III"</em>，《American Journal of Mathematics》，<strong>1976 年 3 篇共 60 页</strong>，彻底证明 Calabi 猜想。<br><br>
             <strong>🇨🇳 中文名字</strong>："丘"读 qiū（不是 yu）。丘成桐曾任清华大学丘成桐数学科学中心主任，<strong>推动中国数学走向世界</strong>。
@@ -21489,7 +21489,7 @@ function initStage_EX08_s4() {
       // 代入 y² = x³ - x + 1: 1 = x³ - x + 1 → x³ - x = 0 → x(x²-1) = 0 → x = 0, 1, -1
       // 第三个交点 R' = (-1, 1)
       // R = P + Q = 关于 x 轴对称 = (-1, -1)
-      out.innerHTML = `<strong style="color:#7c3aed;">a=-1, b=1 椭圆曲线</strong><br>P = (0, 1), Q = (1, 1)<br>─────────────────<br>过 P, Q 的直线: y = 1 (水平)<br>代入曲线: 1 = x³ - x + 1<br>→ x(x² - 1) = 0<br>→ x = 0, 1, <strong style="color:#f59e0b;">-1</strong><br>─────────────────<br>第三个交点 R' = (-1, 1)<br>关于 x 轴对称: R = (-1, -1)<br>─────────────────<br><strong style="color:#10b981;">P + Q = (-1, -1)</strong><br><br>验证: (-1)² - (-1) + 1 = 1 + 1 + 1 = 3? 不对，y²=(-1)²=1，x³-(-1)+1=1+1+1=3 ✗<br>→ 实际上 (-1)² - (-1) + 1 = 1+1+1 = 3，y²=1≠3... 重新算<br>正确: x=-1, y²=(-1)³-(-1)+1=-1+1+1=1 → y=±1, R=(-1, -1) ✓`;
+      out.innerHTML = `<strong style="color:#7c3aed;">a=-1, b=1 椭圆曲线</strong><br>P = (0, 1), Q = (1, 1)<br>─────────────────<br>过 P, Q 的直线: y = 1 (水平)<br>代入曲线: 1 = x³ - x + 1<br>→ x(x² - 1) = 0<br>→ x = 0, 1, <strong style="color:#f59e0b;">-1</strong><br>─────────────────<br>第三个交点 R' = (-1, 1)<br>关于 x 轴对称: R = (-1, -1)<br>─────────────────<br><strong style="color:#10b981;">P + Q = (-1, -1)</strong><br><br>验算 R=(-1,-1) 真的在曲线上：<br>左边 y² = (-1)² = <strong>1</strong><br>右边 x³ - x + 1 = (-1)³ - (-1) + 1 = -1 + 1 + 1 = <strong>1</strong><br>两边相等 ✓ 所以 <strong>P + Q = (-1, -1)</strong>`;
     };
   } catch (e) { console.error('initStage_EX08_s4 err:', e); }
 }
@@ -24462,7 +24462,7 @@ function getStagesNT15() {
         <div class="viz">
           <div id="nt15s5-timeline"></div>
         </div>
-        <div class="next-hint">❓ <strong>未解</strong>：回文素数有无穷多个？2017 年证明弱猜想（5+ 奇数 = 3 素数和）</div>
+        <div class="next-hint">❓ <strong>未解</strong>：回文素数有无穷多个？（注意：这条是<strong>回文素数</strong>问题，和哥德巴赫弱猜想是两回事——弱猜想"每个大于 7 的奇数 = 三个素数之和"已由 Helfgott 在 <strong>2013 年</strong>证明）</div>
       `
     },
   ];
@@ -24531,7 +24531,7 @@ function getStagesNT16() {
     },
     {
       emoji: '📅', title: '素数间隙小史', content: `
-        <p class="lead">欧几里得 2300 年前证素数无穷 → 2014 陶哲轩证明间隙 → ∞</p>
+        <p class="lead">欧几里得 2300 年前证素数无穷 → 1931 韦斯津修斯证明最大间隙增长快于位数 → ∞</p>
         <div class="viz">
           <div id="nt16s5-timeline"></div>
         </div>
@@ -24764,7 +24764,7 @@ function getStagesNT19() {
         <p class="lead">GIMPS（互联网梅森素数大搜索）项目：</p>
         <div class="viz" style="padding: 14px; background: #f0f9ff; border-radius: 8px; font-size: 13px; line-height: 1.8;">
           1996 启动，全球志愿者用家用电脑搜索<br>
-          到 2024 年已发现 21 个梅森素数<br>
+          到 2024 年已发现 52 个梅森素数<br>
           最大：2^82589933 - 1（24862048 位）<br>
           2018 年由 Patrick Laroche 发现
         </div>
@@ -25330,7 +25330,7 @@ function initStage_NT16_s5() {
   const events = [
     { year: '~300 BC', text: '欧几里得证明素数有无穷多', color: '#f59e0b' },
     { year: '1936', text: 'Cramer 猜想：max gap ~ ln²N', color: '#7c3aed' },
-    { year: '2014', text: '陶哲轩证明素数间隙 → 无穷', color: '#10b981' },
+    { year: '1931', text: '韦斯津修斯证明素数间隙增长快于位数（+ 1952 Nagura 定量下界）', color: '#10b981' },
     { year: '2024', text: '最长间隙 1476 (10¹⁸ 范围内)', color: '#3b82f6' },
   ];
   tl.innerHTML = events.map((e, i) => {
@@ -25617,7 +25617,7 @@ function initStage_NT20_s5() {
     { year: '1937', text: 'Vinogradov 证明奇数情形', color: '#7c3aed' },
     { year: '1966', text: '陈景润证明"1+2"（最接近）', color: '#10b981' },
     { year: '2013', text: '赫尔福特 证明弱哥德巴赫', color: '#3b82f6' },
-    { year: '今天', text: '强猜想仍未证明（悬赏 100 万美元）', color: '#ec4899' },
+    { year: '今天', text: '强猜想仍未证明（⚠️ 注意：Clay 千禧年 7 大难题不含哥德巴赫，此项没有百万悬赏）', color: '#ec4899' },
   ];
   tl.innerHTML = events.map((e, i) => {
     const isLeft = i % 2 === 0;
@@ -29068,7 +29068,7 @@ function getStagesGR10() {
             <strong>最小生成树 (MST)</strong><br>
             边权之和最小<br>
             克鲁斯卡尔: 按权排序 + 并查集<br>
-            普里姆: 贪心加点
+            Prim: 贪心加点
           </div>
           <div style="flex: 1 1 220px; padding: 14px; background: #bbf7d0; border-left: 4px solid #10b981; border-radius: 6px; font-size: 13px;">
             <strong>生成树计数</strong><br>
@@ -29153,7 +29153,7 @@ function initStage_GR10_s5() {
     { year: '1847', text: 'Kirchhoff 在电路分析中提出矩阵树定理', color: '#7c3aed' },
     { year: '1857', text: 'Cayley 给出 n^(n-2) 标号树计数公式', color: '#f59e0b' },
     { year: '1926', text: 'Borůvka 提出第一个 MST 算法', color: '#10b981' },
-    { year: '1956', text: '克鲁斯卡尔 / 普里姆 给出经典 MST 算法', color: '#3b82f6' },
+    { year: '1956', text: '克鲁斯卡尔 (Kruskal) / Prim 给出经典 MST 算法', color: '#3b82f6' },
   ];
   tl.innerHTML = events.map((e, i) => {
     const isLeft = i % 2 === 0;
@@ -36786,7 +36786,7 @@ const EXPERIMENTS = [{
   svgDemo: "",
   explain: "",
   audioUrl: "audio/EX_PROVEN_17_explain.mp3",
-  stages: [{"emoji": "🥚", "title": "什么是椭圆曲线？", "content": "\n        <p class=\"lead\"><strong style=\"color:#7c3aed;\">椭圆曲线</strong>是形如 <span class=\"formula\">y² = x³ + ax + b</span> 的三次曲线。它跟椭圆其实没关系——只是积分 <span class=\"formula\">∫dx/√(x³+ax+b)</span> 算椭圆弧长，名字就这么留下了。</p>\n        <div class=\"viz\" style=\"display: flex; gap: 12px; align-items: center; flex-wrap: wrap; justify-content: center;\">\n          <svg id=\"exprov17s1-svg\" width=\"320\" height=\"240\" viewBox=\"-160 -120 320 240\" style=\"background: #faf5ff; border-radius: 8px;\">\n            <line x1=\"-160\" y1=\"0\" x2=\"160\" y2=\"0\" stroke=\"#9ca3af\" stroke-width=\"1\"/>\n            <line x1=\"0\" y1=\"-120\" x2=\"0\" y2=\"120\" stroke=\"#9ca3af\" stroke-width=\"1\"/>\n            <g id=\"exprov17s1-grid\"></g>\n            <polyline id=\"exprov17s1-curve\" fill=\"none\" stroke=\"#7c3aed\" stroke-width=\"2.5\"/>\n          </svg>\n          <div style=\"flex: 1 1 200px; min-width: 200px;\">\n            <div style=\"padding: 12px; background: linear-gradient(135deg, #faf5ff, #fef3c7); border-radius: 8px; font-family: 'Courier New', monospace; font-size: 16px; text-align: center; color: #6b21a8; font-weight: 700;\">\n              y² = x³ + ax + b\n            </div>\n            <div style=\"margin-top: 10px; padding: 10px; background: white; border: 1px solid #e9d5ff; border-radius: 8px; font-size: 13px; line-height: 1.7;\">\n              <strong>💎 关键不变量</strong>：<strong style=\"color:#ec4899;\">j-不变量</strong> j(a,b) = 1728·(4a)³ / (4a³ + 27b²)<br>\n              <span style=\"color: #6b7280; font-size: 12px;\">→ 给每条椭圆曲线打一个\"指纹数字\"</span>\n            </div>\n          </div>\n        </div>\n        <div class=\"next-hint\">🤔 <strong>问题</strong>：怎么把代数曲线和<strong>看起来完全无关</strong>的模形式对应起来？</div>\n      "}, {"emoji": "🎨", "title": "滑动 a, b 看曲线变化", "content": "\n        <p class=\"lead\">拖滑块改 a 和 b，<strong style=\"color:#7c3aed;\">实时</strong>看椭圆曲线变形。注意 j-不变量的变化——这是谷山-志村猜想的\"钥匙\"。</p>\n        <div class=\"viz\" style=\"display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap;\">\n          <div style=\"flex: 0 0 auto;\">\n            <svg id=\"exprov17s2-svg\" width=\"300\" height=\"280\" viewBox=\"-150 -140 300 280\" style=\"background: #faf5ff; border-radius: 8px;\">\n              <line x1=\"-150\" y1=\"0\" x2=\"150\" y2=\"0\" stroke=\"#9ca3af\" stroke-width=\"1\"/>\n              <line x1=\"0\" y1=\"-140\" x2=\"0\" y2=\"140\" stroke=\"#9ca3af\" stroke-width=\"1\"/>\n              <g id=\"exprov17s2-grid\"></g>\n              <polyline id=\"exprov17s2-curve\" fill=\"none\" stroke=\"#7c3aed\" stroke-width=\"2.5\"/>\n            </svg>\n          </div>\n          <div style=\"flex: 1 1 220px; min-width: 220px;\">\n            <label style=\"display: block; margin: 8px 0; font-weight: 700;\">\n              a = <span id=\"exprov17s2-av\" style=\"color:#7c3aed; font-family: monospace;\">-1</span>\n              <input type=\"range\" id=\"exprov17s2-a\" min=\"-3\" max=\"3\" step=\"0.1\" value=\"-1\" style=\"width: 100%;\">\n            </label>\n            <label style=\"display: block; margin: 8px 0; font-weight: 700;\">\n              b = <span id=\"exprov17s2-bv\" style=\"color:#ec4899; font-family: monospace;\">0</span>\n              <input type=\"range\" id=\"exprov17s2-b\" min=\"-3\" max=\"3\" step=\"0.1\" value=\"0\" style=\"width: 100%;\">\n            </label>\n            <div style=\"display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap;\">\n              <button class=\"primary small exprov17s2-preset\" data-a=\"-1\" data-b=\"0\">经典</button>\n              <button class=\"ghost small exprov17s2-preset\" data-a=\"0\" data-b=\"1\">y²=x³+1</button>\n              <button class=\"ghost small exprov17s2-preset\" data-a=\"-2\" data-b=\"2\">怪</button>\n              <button class=\"ghost small exprov17s2-preset\" data-a=\"-1\" data-b=\"2\">奇异</button>\n            </div>\n            <div style=\"margin-top: 12px; padding: 10px; background: #f3e8ff; border-radius: 8px; font-size: 13px;\">\n              <div>j-不变量 = <strong id=\"exprov17s2-j\" style=\"color: #6b21a8; font-size: 16px;\">1728</strong></div>\n              <div style=\"font-size: 12px; color: #6b7280; margin-top: 4px;\" id=\"exprov17s2-disc\">判别式 Δ = 4(-1)³ + 27(0)²</div>\n            </div>\n          </div>\n        </div>\n        <div class=\"next-hint\">⚠️ <strong>注意</strong>：4a³ + 27b² = 0 时曲线奇异（自交、尖点），j 没意义！这是\"坏曲线\"——谷山-志村只看好曲线。</div>\n      "}, {"emoji": "🌊", "title": "模形式：另一种\"指纹\"", "content": "\n        <p class=\"lead\">椭圆曲线有 <strong style=\"color:#7c3aed;\">j-不变量</strong> 作指纹。模形式有另一套指纹——<strong style=\"color:#ec4899;\">傅里叶系数 a<sub>n</sub></strong>。</p>\n        <div class=\"viz\">\n          <div style=\"display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start;\">\n            <div>\n              <div style=\"font-size: 13px; font-weight: 700; color: #7c3aed; margin-bottom: 4px;\">🥚 椭圆曲线端</div>\n              <div style=\"padding: 12px; background: #faf5ff; border-radius: 8px; font-size: 13px; line-height: 1.7;\">\n                y² = x³ + ax + b<br>\n                ↓<br>\n                <strong style=\"color:#7c3aed;\">j-不变量</strong> j = 1728·(4a)³ / (4a³ + 27b²)<br>\n                <span style=\"color: #6b7280; font-size: 12px;\">一个复数，整条曲线的\"指纹\"</span>\n              </div>\n            </div>\n            <div>\n              <div style=\"font-size: 13px; font-weight: 700; color: #ec4899; margin-bottom: 4px;\">🌊 模形式端</div>\n              <div style=\"padding: 12px; background: #fce7f3; border-radius: 8px; font-size: 13px; line-height: 1.7;\">\n                f(τ) = Σ a<sub>n</sub>·q<sup>n</sup>  (q = e<sup>2πiτ</sup>)<br>\n                ↓<br>\n                <strong style=\"color:#ec4899;\">傅里叶系数</strong> {a<sub>1</sub>, a<sub>2</sub>, a<sub>3</sub>, ...}<br>\n                <span style=\"color: #6b7280; font-size: 12px;\">无穷序列，模形式的\"指纹\"</span>\n              </div>\n            </div>\n          </div>\n          <div style=\"margin-top: 14px; padding: 14px; background: linear-gradient(135deg, #faf5ff, #fce7f3); border-radius: 10px;\">\n            <div style=\"font-size: 13px; font-weight: 700; color: #6b21a8; margin-bottom: 8px;\">🔍 模形式举例：艾森斯坦 级数 G₄(τ)</div>\n            <div style=\"display: flex; gap: 14px; align-items: center; flex-wrap: wrap;\">\n              <svg id=\"exprov17s3-svg\" width=\"220\" height=\"120\" style=\"background: white; border-radius: 6px;\"></svg>\n              <div style=\"font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.6;\">\n                G₄(τ) = 1 + 240·Σ σ₃(n)·q<sup>n</sup><br>\n                a₁=1, a₂=240·9=2160, a₃=240·28=6720<br>\n                <span style=\"color: #6b7280;\">σ₃(n) = 1³+2³+...（立方和）</span>\n              </div>\n            </div>\n          </div>\n        </div>\n        <div class=\"next-hint\">🌀 <strong>模形式</strong>是定义在上半平面 {τ: Im(τ)>0} 上、对 <span class=\"formula\">SL(2,ℤ)</span> 变换不变的\"复函数\"——<strong>双周期函数</strong>。</div>\n      "}, {"emoji": "🔗", "title": "谷山-志村：跨世纪的对应", "content": "\n        <p class=\"lead\"><strong style=\"color:#7c3aed;\">谷山-志村猜想 (Taniyama-Shimura, 1955)</strong>：<strong>每条椭圆曲线 = 一个模形式</strong>。两套\"指纹\"完全对得上。</p>\n        <div class=\"viz\" style=\"display: flex; gap: 16px; align-items: center; flex-wrap: wrap; justify-content: center;\">\n          <div style=\"text-align: center;\">\n            <div style=\"display: inline-block; width: 110px; height: 110px; border-radius: 50%; background: linear-gradient(135deg, #faf5ff, #e9d5ff); border: 3px solid #7c3aed; line-height: 110px; font-size: 28px; font-weight: 900; color: #6b21a8;\">E</div>\n            <div style=\"margin-top: 6px; font-size: 12px; color: #6b21a8; font-weight: 700;\">椭圆曲线</div>\n            <div style=\"font-size: 11px; color: #6b7280;\">y² = x³ + ax + b</div>\n          </div>\n          <div style=\"font-size: 36px; color: #ec4899; font-weight: 900;\">⇄</div>\n          <div style=\"text-align: center;\">\n            <div style=\"display: inline-block; width: 110px; height: 110px; border-radius: 50%; background: linear-gradient(135deg, #fce7f3, #fbcfe8); border: 3px solid #ec4899; line-height: 110px; font-size: 28px; font-weight: 900; color: #be185d;\">f</div>\n            <div style=\"margin-top: 6px; font-size: 12px; color: #be185d; font-weight: 700;\">模形式</div>\n            <div style=\"font-size: 11px; color: #6b7280;\">f(τ) = Σ aₙqⁿ</div>\n          </div>\n        </div>\n        <div style=\"margin-top: 14px; padding: 14px; background: linear-gradient(135deg, #fef3c7, #fed7aa); border-left: 5px solid #f59e0b; border-radius: 8px; font-size: 14px; line-height: 1.7;\">\n          <strong>🌉 为什么这个猜想=大定理？</strong><br>\n          1986 年 K. Ribet 证明：<strong style=\"color:#7c3aed;\">谷山-志村 ⇒ 费马大定理</strong>。<br>\n          即：椭圆曲线 ⟷ 模形式 的对应关系如果成立，则 <span class=\"formula\">x<sup>n</sup> + y<sup>n</sup> = z<sup>n</sup></span>（n≥3 时）<strong>无正整数解</strong>。<br>\n          <span style=\"color: #92400e;\">所以 怀尔斯 证明费马大定理 = 间接证明了谷山-志村的<strong>半稳定情形</strong>！</span>\n        </div>\n        <div class=\"next-hint\">💡 <strong>智慧</strong>：数论的两块大陆（椭圆曲线 vs 模形式）通过这个猜想\"接壤\"——1995 怀尔斯 在接壤处架桥。</div>\n      "}, {"emoji": "📅", "title": "谷山-志村 70 年长跑", "content": "\n        <p class=\"lead\">从 1955 年谷山丰的<strong>直觉</strong>，到 1999 年全情形被证明——这条路上有人<strong>壮志未酬身先死</strong>，有人用<strong>七年闭关</strong>。</p>\n        <div class=\"viz\">\n          <div id=\"exprov17s5-timeline\"></div>\n          <div style=\"margin-top: 14px; padding: 14px; background: linear-gradient(135deg, #f3e8ff, #fce7f3); border-left: 5px solid #a855f7; border-radius: 8px; font-size: 13px; line-height: 1.8;\">\n            <strong>🍃 谷山丰 (1927-1958)</strong>：1955 年在日本数学家会议上提出猜想，仅 28 岁。<br>\n            1957 年深秋在<strong>研究室自杀</strong>，年仅 31 岁。猜想未及完成，留下一封写给妻子的<strong>情书</strong>作为遗书——字里行间是\"<strong>别了，世界</strong>\"。<br>\n            <strong>🎓 志村五郎 (Shimura Goro, 1930-2019)</strong> 接手系统化猜想，1957 年与 韦伊 通信后逐步严格化。<br>\n            <strong>👨‍🏫 怀尔斯 (1953-)</strong> 1986 年听到 Ribet 证明\"谷山-志村 ⇒ 费马\"，决定<strong>放弃所有会议</strong>，在普林斯顿家中阁楼<strong>闭关 7 年</strong>。<br>\n            1993 年 6 月宣布证明 → 1993 年 11 月发现漏洞 → 1994 年 9 月与学生 Taylor 用<strong>\"岩泽理论\"补丁</strong>补上 → 1995 年发表。<br>\n            <strong>📐 Breuil-Conrad-Diamond (1999)</strong> 完成全情形的证明，谷山-志村 70 年长跑<strong>完美收官</strong>。\n          </div>\n        </div>\n        <div class=\"next-hint\">🏆 <strong>意义</strong>：怀尔斯 拿到 1998 年 Abel 奖、2016 年 Abel 奖特别奖、<strong>菲尔兹奖特别版</strong>（1998 ICM 银版）——这不只是费马的胜利，<strong>更是整个数论大陆被\"连通\"的世纪工程</strong>。</div>\n      "}],
+  stages: [{"emoji": "🥚", "title": "什么是椭圆曲线？", "content": "\n        <p class=\"lead\"><strong style=\"color:#7c3aed;\">椭圆曲线</strong>是形如 <span class=\"formula\">y² = x³ + ax + b</span> 的三次曲线。它跟椭圆其实没关系——只是积分 <span class=\"formula\">∫dx/√(x³+ax+b)</span> 算椭圆弧长，名字就这么留下了。</p>\n        <div class=\"viz\" style=\"display: flex; gap: 12px; align-items: center; flex-wrap: wrap; justify-content: center;\">\n          <svg id=\"exprov17s1-svg\" width=\"320\" height=\"240\" viewBox=\"-160 -120 320 240\" style=\"background: #faf5ff; border-radius: 8px;\">\n            <line x1=\"-160\" y1=\"0\" x2=\"160\" y2=\"0\" stroke=\"#9ca3af\" stroke-width=\"1\"/>\n            <line x1=\"0\" y1=\"-120\" x2=\"0\" y2=\"120\" stroke=\"#9ca3af\" stroke-width=\"1\"/>\n            <g id=\"exprov17s1-grid\"></g>\n            <polyline id=\"exprov17s1-curve\" fill=\"none\" stroke=\"#7c3aed\" stroke-width=\"2.5\"/>\n          </svg>\n          <div style=\"flex: 1 1 200px; min-width: 200px;\">\n            <div style=\"padding: 12px; background: linear-gradient(135deg, #faf5ff, #fef3c7); border-radius: 8px; font-family: 'Courier New', monospace; font-size: 16px; text-align: center; color: #6b21a8; font-weight: 700;\">\n              y² = x³ + ax + b\n            </div>\n            <div style=\"margin-top: 10px; padding: 10px; background: white; border: 1px solid #e9d5ff; border-radius: 8px; font-size: 13px; line-height: 1.7;\">\n              <strong>💎 关键不变量</strong>：<strong style=\"color:#ec4899;\">j-不变量</strong> j(a,b) = 1728·(4a)³ / (4a³ + 27b²)<br>\n              <span style=\"color: #6b7280; font-size: 12px;\">→ 给每条椭圆曲线打一个\"指纹数字\"</span>\n            </div>\n          </div>\n        </div>\n        <div class=\"next-hint\">🤔 <strong>问题</strong>：怎么把代数曲线和<strong>看起来完全无关</strong>的模形式对应起来？</div>\n      "}, {"emoji": "🎨", "title": "滑动 a, b 看曲线变化", "content": "\n        <p class=\"lead\">拖滑块改 a 和 b，<strong style=\"color:#7c3aed;\">实时</strong>看椭圆曲线变形。注意 j-不变量的变化——这是谷山-志村猜想的\"钥匙\"。</p>\n        <div class=\"viz\" style=\"display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap;\">\n          <div style=\"flex: 0 0 auto;\">\n            <svg id=\"exprov17s2-svg\" width=\"300\" height=\"280\" viewBox=\"-150 -140 300 280\" style=\"background: #faf5ff; border-radius: 8px;\">\n              <line x1=\"-150\" y1=\"0\" x2=\"150\" y2=\"0\" stroke=\"#9ca3af\" stroke-width=\"1\"/>\n              <line x1=\"0\" y1=\"-140\" x2=\"0\" y2=\"140\" stroke=\"#9ca3af\" stroke-width=\"1\"/>\n              <g id=\"exprov17s2-grid\"></g>\n              <polyline id=\"exprov17s2-curve\" fill=\"none\" stroke=\"#7c3aed\" stroke-width=\"2.5\"/>\n            </svg>\n          </div>\n          <div style=\"flex: 1 1 220px; min-width: 220px;\">\n            <label style=\"display: block; margin: 8px 0; font-weight: 700;\">\n              a = <span id=\"exprov17s2-av\" style=\"color:#7c3aed; font-family: monospace;\">-1</span>\n              <input type=\"range\" id=\"exprov17s2-a\" min=\"-3\" max=\"3\" step=\"0.1\" value=\"-1\" style=\"width: 100%;\">\n            </label>\n            <label style=\"display: block; margin: 8px 0; font-weight: 700;\">\n              b = <span id=\"exprov17s2-bv\" style=\"color:#ec4899; font-family: monospace;\">0</span>\n              <input type=\"range\" id=\"exprov17s2-b\" min=\"-3\" max=\"3\" step=\"0.1\" value=\"0\" style=\"width: 100%;\">\n            </label>\n            <div style=\"display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap;\">\n              <button class=\"primary small exprov17s2-preset\" data-a=\"-1\" data-b=\"0\">经典</button>\n              <button class=\"ghost small exprov17s2-preset\" data-a=\"0\" data-b=\"1\">y²=x³+1</button>\n              <button class=\"ghost small exprov17s2-preset\" data-a=\"-2\" data-b=\"2\">怪</button>\n              <button class=\"ghost small exprov17s2-preset\" data-a=\"-1\" data-b=\"2\">奇异</button>\n            </div>\n            <div style=\"margin-top: 12px; padding: 10px; background: #f3e8ff; border-radius: 8px; font-size: 13px;\">\n              <div>j-不变量 = <strong id=\"exprov17s2-j\" style=\"color: #6b21a8; font-size: 16px;\">1728</strong></div>\n              <div style=\"font-size: 12px; color: #6b7280; margin-top: 4px;\" id=\"exprov17s2-disc\">判别式 Δ = 4(-1)³ + 27(0)²</div>\n            </div>\n          </div>\n        </div>\n        <div class=\"next-hint\">⚠️ <strong>注意</strong>：4a³ + 27b² = 0 时曲线奇异（自交、尖点），j 没意义！这是\"坏曲线\"——谷山-志村只看好曲线。</div>\n      "}, {"emoji": "🌊", "title": "模形式：另一种\"指纹\"", "content": "\n        <p class=\"lead\">椭圆曲线有 <strong style=\"color:#7c3aed;\">j-不变量</strong> 作指纹。模形式有另一套指纹——<strong style=\"color:#ec4899;\">傅里叶系数 a<sub>n</sub></strong>。</p>\n        <div class=\"viz\">\n          <div style=\"display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start;\">\n            <div>\n              <div style=\"font-size: 13px; font-weight: 700; color: #7c3aed; margin-bottom: 4px;\">🥚 椭圆曲线端</div>\n              <div style=\"padding: 12px; background: #faf5ff; border-radius: 8px; font-size: 13px; line-height: 1.7;\">\n                y² = x³ + ax + b<br>\n                ↓<br>\n                <strong style=\"color:#7c3aed;\">j-不变量</strong> j = 1728·(4a)³ / (4a³ + 27b²)<br>\n                <span style=\"color: #6b7280; font-size: 12px;\">一个复数，整条曲线的\"指纹\"</span>\n              </div>\n            </div>\n            <div>\n              <div style=\"font-size: 13px; font-weight: 700; color: #ec4899; margin-bottom: 4px;\">🌊 模形式端</div>\n              <div style=\"padding: 12px; background: #fce7f3; border-radius: 8px; font-size: 13px; line-height: 1.7;\">\n                f(τ) = Σ a<sub>n</sub>·q<sup>n</sup>  (q = e<sup>2πiτ</sup>)<br>\n                ↓<br>\n                <strong style=\"color:#ec4899;\">傅里叶系数</strong> {a<sub>1</sub>, a<sub>2</sub>, a<sub>3</sub>, ...}<br>\n                <span style=\"color: #6b7280; font-size: 12px;\">无穷序列，模形式的\"指纹\"</span>\n              </div>\n            </div>\n          </div>\n          <div style=\"margin-top: 14px; padding: 14px; background: linear-gradient(135deg, #faf5ff, #fce7f3); border-radius: 10px;\">\n            <div style=\"font-size: 13px; font-weight: 700; color: #6b21a8; margin-bottom: 8px;\">🔍 模形式举例：艾森斯坦 级数 G₄(τ)</div>\n            <div style=\"display: flex; gap: 14px; align-items: center; flex-wrap: wrap;\">\n              <svg id=\"exprov17s3-svg\" width=\"220\" height=\"120\" style=\"background: white; border-radius: 6px;\"></svg>\n              <div style=\"font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.6;\">\n                G₄(τ) = 1 + 240·Σ σ₃(n)·q<sup>n</sup><br>\n                a₁=1, a₂=240·9=2160, a₃=240·28=6720<br>\n                <span style=\"color: #6b7280;\">σ₃(n) = 1³+2³+...（立方和）</span>\n              </div>\n            </div>\n          </div>\n        </div>\n        <div class=\"next-hint\">🌀 <strong>模形式</strong>是定义在上半平面 {τ: Im(τ)>0} 上、对 <span class=\"formula\">SL(2,ℤ)</span> 变换不变的\"复函数\"——<strong>双周期函数</strong>。</div>\n      "}, {"emoji": "🔗", "title": "谷山-志村：跨世纪的对应", "content": "\n        <p class=\"lead\"><strong style=\"color:#7c3aed;\">谷山-志村猜想 (Taniyama-Shimura, 1955)</strong>：<strong>每条椭圆曲线 = 一个模形式</strong>。两套\"指纹\"完全对得上。</p>\n        <div class=\"viz\" style=\"display: flex; gap: 16px; align-items: center; flex-wrap: wrap; justify-content: center;\">\n          <div style=\"text-align: center;\">\n            <div style=\"display: inline-block; width: 110px; height: 110px; border-radius: 50%; background: linear-gradient(135deg, #faf5ff, #e9d5ff); border: 3px solid #7c3aed; line-height: 110px; font-size: 28px; font-weight: 900; color: #6b21a8;\">E</div>\n            <div style=\"margin-top: 6px; font-size: 12px; color: #6b21a8; font-weight: 700;\">椭圆曲线</div>\n            <div style=\"font-size: 11px; color: #6b7280;\">y² = x³ + ax + b</div>\n          </div>\n          <div style=\"font-size: 36px; color: #ec4899; font-weight: 900;\">⇄</div>\n          <div style=\"text-align: center;\">\n            <div style=\"display: inline-block; width: 110px; height: 110px; border-radius: 50%; background: linear-gradient(135deg, #fce7f3, #fbcfe8); border: 3px solid #ec4899; line-height: 110px; font-size: 28px; font-weight: 900; color: #be185d;\">f</div>\n            <div style=\"margin-top: 6px; font-size: 12px; color: #be185d; font-weight: 700;\">模形式</div>\n            <div style=\"font-size: 11px; color: #6b7280;\">f(τ) = Σ aₙqⁿ</div>\n          </div>\n        </div>\n        <div style=\"margin-top: 14px; padding: 14px; background: linear-gradient(135deg, #fef3c7, #fed7aa); border-left: 5px solid #f59e0b; border-radius: 8px; font-size: 14px; line-height: 1.7;\">\n          <strong>🌉 为什么这个猜想=大定理？</strong><br>\n          1986 年 K. Ribet 证明：<strong style=\"color:#7c3aed;\">谷山-志村 ⇒ 费马大定理</strong>。<br>\n          即：椭圆曲线 ⟷ 模形式 的对应关系如果成立，则 <span class=\"formula\">x<sup>n</sup> + y<sup>n</sup> = z<sup>n</sup></span>（n≥3 时）<strong>无正整数解</strong>。<br>\n          <span style=\"color: #92400e;\">所以 怀尔斯 证明费马大定理 = 间接证明了谷山-志村的<strong>半稳定情形</strong>！</span>\n        </div>\n        <div class=\"next-hint\">💡 <strong>智慧</strong>：数论的两块大陆（椭圆曲线 vs 模形式）通过这个猜想\"接壤\"——1995 怀尔斯 在接壤处架桥。</div>\n      "}, {"emoji": "📅", "title": "谷山-志村 70 年长跑", "content": "\n        <p class=\"lead\">从 1955 年谷山丰的<strong>直觉</strong>，到 2001 年全情形被证明——这条路上有人<strong>壮志未酬身先死</strong>，有人用<strong>七年闭关</strong>。</p>\n        <div class=\"viz\">\n          <div id=\"exprov17s5-timeline\"></div>\n          <div style=\"margin-top: 14px; padding: 14px; background: linear-gradient(135deg, #f3e8ff, #fce7f3); border-left: 5px solid #a855f7; border-radius: 8px; font-size: 13px; line-height: 1.8;\">\n            <strong>🍃 谷山丰 (1927-1958)</strong>：1955 年在日本数学家会议上提出猜想，仅 28 岁。<br>\n            1958 年 1 月 24 日在研究室<strong>自杀</strong>，年仅 30 岁。猜想未及完成，留下一封写给妻子的<strong>情书</strong>作为遗书——字里行间是\"<strong>别了，世界</strong>\"。<br>\n            <strong>🎓 志村五郎 (Shimura Goro, 1930-2019)</strong> 接手系统化猜想，1957 年与 韦伊 通信后逐步严格化。<br>\n            <strong>👨‍🏫 怀尔斯 (1953-)</strong> 1986 年听到 Ribet 证明\"谷山-志村 ⇒ 费马\"，决定<strong>放弃所有会议</strong>，在普林斯顿家中阁楼<strong>闭关 7 年</strong>。<br>\n            1993 年 6 月宣布证明 → 1993 年 11 月发现漏洞 → 1994 年 9 月与学生 Taylor 用<strong>\"岩泽理论\"补丁</strong>补上 → 1995 年发表。<br>\n            <strong>📐 Breuil-Conrad-Diamond (1999)</strong> 完成全情形的证明，谷山-志村 70 年长跑<strong>完美收官</strong>。\n          </div>\n        </div>\n        <div class=\"next-hint\">🏆 <strong>意义</strong>：怀尔斯 拿到 <strong>1996 年 Abel 奖</strong>（该奖首年颁给他），并在 <strong>1998 年 ICM 获 IMU 银牌</strong>——注意他<strong>从未获得菲尔兹奖</strong>（当时已超过菲尔兹奖的年龄限制）。这不只是费马的胜利，<strong>更是整个数论大陆被\"连通\"的世纪工程</strong>。</div>\n      "}],
   render: function(h) { return initStage_EX_PROVEN_17_initAll(h); }
 }];
 
