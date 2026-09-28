@@ -31680,7 +31680,9 @@ function initStage_AL02_s4() {
     if (!runBtn) return;
     const nimXor = arr => arr.reduce((a, b) => a ^ b, 0);
     const update = () => {
-      const lines = ['用博弈树（搜 1000 步）验证 XOR 判定：<br>'];
+      // 标题原写"搜 1000 步"，但下面实际是 search(piles, 0, 6)——深度只有 6。
+      // 深度截断会把未走完的局面当和局(0)，与 Bouton 判定产生系统性偏差。
+      const lines = ['用博弈树（递归深度 <strong>6</strong>）验证 XOR 判定：<br>'];
       let ok = 0, total = 50;
       for (let trial = 0; trial < total; trial++) {
         const nPiles = 2 + Math.floor(Math.random() * 4);
@@ -35010,7 +35012,10 @@ function initStage_FR03_s3() {
       const ax = x1, ay = y1;
       const bx = x1 + dx, by = y1 + dy;
       const cx = x1 + 2 * dx, cy = y1 + 2 * dy;
-      const peakX = bx + (dx - dy * Math.sqrt(3) / 2);
+      // 峰点应在 [bx,cx] 的中点：bx + dx/2，再减去 y 方向隆起 dy*√3/2。
+      // 原式写成 bx + (dx - dy*√3/2)，把整个 dx 当成了 x 偏移，
+      // 导致三段折线不等长、破坏自相似，画出来的不是 Koch 曲线。
+      const peakX = bx + dx / 2 - dy * Math.sqrt(3) / 2;
       const peakY = by + (dy + dx * Math.sqrt(3) / 2);
       koch(ax, ay, bx, by, d - 1);
       koch(bx, by, peakX, peakY, d - 1);
@@ -35089,9 +35094,23 @@ function initStage_FR04_s2() {
       const r = Math.max(0.3, Math.min(0.95, parseFloat(rIn.value) || 0.7));
       const branches = Math.pow(2, n);
       const segLen = Math.pow(r, n);
+      // (2r)^n 只是【第 n 代】枝条的长度和；整棵树（含前 n 代全部枝条）是等比数列求和。
       const totalLen = Math.pow(2 * r, n);
+      // 2r<1：等比数列求和 1/(1−2r)；2r=1：每代等长，总长恒为 n+1；2r>1：求和无意义，只看末代
+      const allGen = (2 * r < 1) ? (1 - Math.pow(2 * r, n + 1)) / (1 - 2 * r)
+                    : (Math.abs(2 * r - 1) < 1e-9 ? n + 1 : Math.pow(2 * r, n));
       const converge = (2 * r) < 1;
-      out.innerHTML = `深度 n = ${n}, 角度 θ = ${a}°, 缩放 r = ${r}<br>树枝数 = 2^${n} = <strong>${branches}</strong><br>每根长 = r^${n} = <strong>${segLen.toFixed(4)}</strong><br>总长 (2r)^${n} = <strong>${totalLen.toFixed(4)}</strong> ${totalLen < 1 ? '→ 收敛' : '→ 发散'}<br>${converge ? 'r &lt; 0.5 时总长收敛到 0' : 'r &gt; 0.5 时总长发散到 ∾'}`;
+      const tail = Math.abs(2 * r - 1) < 1e-9
+        ? 'r = 0.5 时 2r = 1，每代等长，总长恒为 n+1 = ' + (n + 1) + '，既不增长也不趋于 0'
+        : converge
+        ? 'r &lt; 0.5（2r &lt; 1）时：<strong>第 n 代</strong>长度趋于 0，但<strong>整棵树总长收敛到有限值 1/(1−2r) = ' + (1 / (1 - 2 * r)).toFixed(4) + '</strong>，并不是 0'
+        : 'r &gt; 0.5（2r &gt; 1）时：每一代都比上一代长，总长<strong>发散到 ∞</strong>';
+      out.innerHTML = '深度 n = ' + n + ', 角度 θ = ' + a + '°, 缩放 r = ' + r
+        + '<br>树枝数 = 2^' + n + ' = <strong>' + branches + '</strong>'
+        + '<br>每根长 = r^' + n + ' = <strong>' + segLen.toFixed(4) + '</strong>'
+        + '<br>第 ' + n + ' 代枝条长和 (2r)^' + n + ' = <strong>' + totalLen.toFixed(4) + '</strong> ' + (totalLen < 1 ? '→ 趋于 0' : '→ 增长')
+        + '<br>整棵树（0~' + n + ' 代全部枝条）总长 = <strong>' + allGen.toFixed(4) + '</strong>'
+        + '<br>' + tail;
     };
     nIn.oninput = render; aIn.oninput = render; rIn.oninput = render;
     render();
@@ -35711,7 +35730,12 @@ function initStage_OT04_s2() {
     if (!nIn) return;
     const sumDigits = (x) => String(x).split('').reduce((a, c) => a + parseInt(c), 0);
     const render = () => {
-      const n = parseInt(nIn.value) || 12345;
+      // ⚠️ 原来写 parseInt(...) || 12345：输入 0 时 0 是 falsy，会被替换成 12345，
+      //     学生输入 0 却看到 12345 的迭代路径。0 的数字根就是 0。
+      // 负数没有数字根，这里显式拒绝，而不是输出 -5 再自称"一致"。
+      const n = parseInt(nIn.value);
+      if (!Number.isFinite(n)) { out.innerHTML = '请输入一个非负整数'; return; }
+      if (n < 0) { out.innerHTML = '⚠️ 负数没有数字根（数字根是对非负整数按 9 取模定义的）'; return; }
       const path = [n];
       let cur = n;
       while (cur >= 10) { cur = sumDigits(cur); path.push(cur); }
@@ -36065,8 +36089,12 @@ function initStage_OT07_s3() {
       { name: '变体 1', g: [1, 14, 14, 1, 11, 8, 8, 7, 6, 3, 3, 4, 16, 9, 9, 10] },
       { name: '变体 2', g: [1, 8, 13, 12, 15, 10, 3, 6, 4, 5, 16, 9, 14, 11, 2, 7] },
     ];
-    // 第 3-4 个不是真幻方，重置为已知解
-    samples[2] = { name: '变体 A', g: [1, 14, 12, 7, 6, 11, 9, 8, 10, 5, 13, 16, 15, 2, 4, 3] };
+    // 变体 1 / 变体 2 不是真幻方，重置为已知解。
+    // ⚠️ 原来的"变体 A" = [1,14,12,7 / 6,11,9,8 / 10,5,13,16 / 15,2,4,3] 也不是幻方：
+    //    行和 [34,34,44,24]、列和 [32,32,38,34]、对角 28/36，四个条件全不满足，
+    //    却与丢勒、杨辉并排展示。现改用丢勒顺时针旋转 90°（旋转保持幻方性质），
+    //    实测行/列/对角均 34，且 1~16 各出现一次。
+    samples[2] = { name: '变体 A（丢勒旋转 90°）', g: [4, 9, 5, 16, 15, 6, 10, 3, 14, 7, 11, 2, 1, 12, 8, 13] };
     samples[3] = { name: '变体 B', g: [7, 12, 1, 14, 2, 13, 8, 11, 16, 3, 10, 5, 9, 6, 15, 4] };
     out.innerHTML = samples.map(s => {
       const g = s.g;
@@ -36407,7 +36435,9 @@ function initStage_OT09_s4() {
         if (pick === ball) stayWins++;
         if (switched === ball) switchWins++;
       }
-      out.innerHTML = `跑了 ${N} 次（${mode}）<br>不换胜率: <strong>${(stayWins / N * 100).toFixed(1)}%</strong><br>换杯胜率: <strong>${(switchWins / N * 100).toFixed(1)}%</strong><br>${hostFail > 0 ? `主持人失败 ${hostFail} 次<br>` : ''}${mode === 'know' ? '→ 换杯 2/3' : mode === 'random_ok' ? '→ 换杯 1/2' : '→ 换杯随机'}`;
+      out.innerHTML = `跑了 ${N} 次（${mode}）<br>不换胜率: <strong>${(stayWins / N * 100).toFixed(1)}%</strong><br>换杯胜率: <strong>${(switchWins / N * 100).toFixed(1)}%</strong><br>${hostFail > 0 ? `主持人失败 ${hostFail} 次<br>` : ''}${mode === 'know' ? '→ 换杯 2/3 ≈ 66.7%（主持人知情，必开空杯）'
+        : mode === 'random_ok' ? '→ 换杯 2/3 ≈ 66.7%（本模式同样必开空杯，只是在可开空杯里随机选）'
+        : '→ 换杯约 1/3 ≈ 33.3%（主持人完全随机，约一半时会开错有球的杯子并作废该局）'}`;
     };
     btn.onclick();
   } catch (e) { console.error('initStage_OT09_s4 err:', e); }
