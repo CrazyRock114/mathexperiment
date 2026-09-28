@@ -5561,7 +5561,12 @@ function getStagesPR08() {
               <button class="ghost small pr08s1-preset" data-n="48">48</button>
               <button class="ghost small pr08s1-preset" data-n="96">96</button>
             </div>
-            <p style="font-size: 12px; color: #6b7280; margin: 8px 0 0;">↑ 阿基米德用 <strong>96 边形</strong> 算到 3.1408 ~ 3.1429——只有 2 位精度！</p>
+            <p style="font-size: 12px; color: #6b7280; margin: 8px 0 0;">↑ 边数翻倍，误差约缩到 1/4：6 边差 0.142，24 边差 0.0090，96 边只差 0.00056。</p>
+            <p style="font-size: 12px; color: #6b7280; margin: 4px 0 0;">📌 <strong>为什么这里显示 3.141033，而史书说阿基米德算出 3.1408 ~ 3.1429？</strong><br>
+            两者都对，只是<strong>算的不是同一个东西</strong>：<br>
+            · <strong>阿基米德的 3.1408 ~ 3.1429</strong> 是他用 96 边形推出的<strong>有理数上下界</strong>：下界 223/71 = 3.140845（内接），上界 22/7 = 3.142857（外切）。这是一个<strong>区间</strong>，不是单值。<br>
+            · <strong>本页面显示的 3.141033</strong> 是内接 96 边形的"周长 ÷ 2"这个<strong>单点估计</strong>（n·sin(π/n)），它恰好落在阿基米德那个区间里 ✓。<br>
+            换句话说：3.1408 是区间下界，3.1410 是区间内的一个具体估计值，两者不矛盾。</p>
           </div>
         </div>
         <div class="next-hint">💡 <strong>问题</strong>：96 边形才 2 位精度。要算到 100 位得多少边形？试试 <strong>2¹⁰⁰ ≈ 10³⁰</strong> 边形——宇宙原子数都不够！</div>
@@ -30493,22 +30498,14 @@ function initStage_PB07_s3() {
     if (!ctx) return;
     if (ctx._chart) { ctx._chart.destroy(); ctx._chart = null; }
     const B = 30, p = 0.5;
-    const labels = [], fairData = [], unfairData = [];
-    for (let A = 1; A < B; A++) {
-      labels.push(A);
-      fairData.push((A / B) * 100);
-      const r = 0.45 / 0.55;  // p=0.45
-      const pr = p === 0.5 ? A / B : (1 - Math.pow((1-p)/p, A)) / (1 - Math.pow((1-p)/p, B));
-      const prUnfair = (1 - Math.pow(0.45/0.55, A)) / (1 - Math.pow(0.45/0.55, B));
-      fairData.push((A / B) * 100);
-      unfairData.push(prUnfair * 100);
-    }
-    // 上面 fairData 被推了 2 次,修正:重做
+    // 公平局 p=0.5：赢到 B 的概率 = A/B
+    // 庄家优势 p=0.45：赢到 B 的概率 = (1 - r^A)/(1 - r^B)，r = q/p = 0.45/0.55
+    const labels = [];
     const f = [], u = [];
     for (let A = 1; A < B; A++) {
+      labels.push(A);
       f.push((A / B) * 100);
-      const prUnfair = (1 - Math.pow(0.45/0.55, A)) / (1 - Math.pow(0.45/0.55, B));
-      u.push(prUnfair * 100);
+      u.push((1 - Math.pow(0.45 / 0.55, A)) / (1 - Math.pow(0.45 / 0.55, B)) * 100);
     }
     ctx._chart = new Chart(ctx, {
       type: 'line',
@@ -39281,13 +39278,14 @@ Lychrel 猜想：196 永远迭代不到回文。但这个猜想还没被证明�
 
 继续算：
 - 3 + 4/24 - 4/120 + 4/336 - 4/720 + 4/1320 = 3.1427
-- 7 项：3.1408
-- 10 项：3.1424
-- 20 项：3.14159...
+- 7 项：3.140881
+- 10 项：3.141840
+- 20 项：3.141624
 
-跟 莱布尼茨 比，尼拉康塔 快多了！莱布尼茨 要 1000 项才到 3.14，尼拉康塔 只要 7 项就超过 3.14。
+跟 莱布尼茨 比，尼拉康塔 快多了！莱布尼茨 要约 1000 项才到 3.14（实测 1000 项 = 3.1406），尼拉康塔 只要 7 项就已经超过 3.14（3.140881）。
+（小提示：上面的"项数"指<strong>级数总项数</strong>，首项是那个 3；下面交互框里的 N 指<strong>修正项的个数</strong>，所以 N=20 对应总 21 项 = 3.141566。）
 
-为什么？因为每项的分子都是 4，但分母增长更快（每项是三个连续整数的乘积）。分母大致是 4n³ 量级，所以误差以 1/n³ 速度衰减——这比 莱布尼茨 的 1/n 快得多！
+为什么？因为每项的分子都是 4，但分母增长更快（每项是三个连续整数的乘积）。分母是 3 个连续整数的乘积、大约 8n³ 量级，级数是交错级数，所以误差以 <strong>O(1/n⁴)</strong> 的速度衰减——这比 莱布尼茨 的 1/n 快得多！
 
 更精确地：尼拉康塔 级数的截断误差约为 4/(8n³) 量级。
 
