@@ -32882,9 +32882,11 @@ function initStage_AL07_s3() {
     const tInput = document.getElementById('al07s3-t');
     const runBtn = document.getElementById('al07s3-run');
     const svgEl = document.getElementById('al07s3-svg');
-    if (!runBtn) return;
+    if (!tInput || !runBtn || !svgEl) return;
+    let timer = null;
     const arr = Array.from({ length: 16 }, (_, i) => (i + 1) * 2 - 1); // 1,3,5,...,31
     const update = () => {
+      if (timer) { clearTimeout(timer); timer = null; }
       const t = parseInt(tInput.value) || 11;
       const path = [];
       let lo = 0, hi = arr.length - 1;
@@ -32896,6 +32898,8 @@ function initStage_AL07_s3() {
       }
       let i = 0;
       const render = () => {
+        // stage 被切走后 svgEl 已脱离文档，此时继续写只会往无人看的节点里塞内容
+        if (!document.body.contains(svgEl)) { timer = null; return; }
         const step = i < path.length ? path[i] : path[path.length - 1];
         const w = 30;
         let html = `<svg viewBox="0 0 ${arr.length * w + 20} 80" style="width:100%;">`;
@@ -32918,11 +32922,10 @@ function initStage_AL07_s3() {
         }
         svgEl.innerHTML = html + info;
         i++;
-        if (i <= path.length) setTimeout(render, 700);
+        // 换 stage / 重新查找时必须掐断上一条动画链，否则多个链会同时往同一个 svgEl 写
+        if (i <= path.length) timer = setTimeout(render, 700);
       };
-      runBtn.onclick = () => { i = 0; render(); };
-      // 自动首次播放
-      i = 0; render();
+      runBtn.onclick = () => { if (timer) clearTimeout(timer); i = 0; render(); };
     };
     tInput.oninput = update; update();
   } catch(e) { console.error('AL07_s3', e); }

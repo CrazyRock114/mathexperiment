@@ -35,8 +35,16 @@ for (const f of files) {
   const id = f.replace('.html', '');
   const vc = new VirtualConsole();
   const errs = [];
-  vc.on('jsdomError', e => errs.push('jsdomError: ' + (e.message || e).slice(0, 120)));
-  vc.on('error', (...a) => errs.push(String(a.map(x => (x && x.stack) || x).join(' ')).slice(0, 160)));
+  // 记录源码行：整包跑时偶发的时序类报错，单页复现不了，必须能从输出直接定位
+  const srcOf = (stack) => {
+    const m = String(stack || '').match(/<anonymous>:(\d+):(\d+)/);
+    if (!m) return '';
+    const n = +m[1];
+    const line = (fs.readFileSync(path.join(WORK, f), 'utf-8').split('\n')[n - 1] || '').trim();
+    return line ? `  >> 行${n}: ${line.slice(0, 110)}` : `  >> 行${n}`;
+  };
+  vc.on('jsdomError', e => errs.push('jsdomError: ' + (e.message || e).slice(0, 120) + srcOf(e.detail && e.detail.stack)));
+  vc.on('error', (...a) => errs.push(String(a.map(x => (x && x.stack) || x).join(' ')).slice(0, 160) + srcOf(a.find(x => x && x.stack))));
 
   let dom;
   try {
