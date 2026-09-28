@@ -6820,7 +6820,10 @@ function initStage_NT04_s4() {
       // k 位数范围
       const lo = Math.pow(10, k - 1), hi = Math.pow(10, k) - 1;
       // 用预计算
-      const knownByK = { 1: 9, 2: 0, 3: 4, 4: 3, 5: 3, 6: 1, 7: 4, 8: 3, 9: 0, 10: 1, 11: 8, 12: 1, 13: 1, 14: 1, 15: 1, 16: 1, 17: 1, 18: 1, 19: 1, 20: 0 };
+      // 权威值（OEIS A005188 / MathWorld，十进制自恋数按位数统计，不含 0）：
+      // 原表在 9/12/13/15/16/17/18/19/20 共 9 个位数上是错的
+      //（例如 9 位数其实有 4 个：146511208 / 472335975 / 534494836 / 912985153）。
+      const knownByK = { 1: 9, 2: 0, 3: 4, 4: 3, 5: 3, 6: 1, 7: 4, 8: 3, 9: 4, 10: 1, 11: 8, 12: 0, 13: 0, 14: 1, 15: 0, 16: 2, 17: 3, 18: 0, 19: 4, 20: 1 };
       buckets[k] = knownByK[k] || 0;
     }
     const maxK = 20;
@@ -6871,7 +6874,8 @@ function initStage_NT04_s4() {
       t.textContent = v;
       barsG.appendChild(t);
     }
-    infoEl.textContent = `总计 ${Object.values(buckets).reduce((a, b) => a + b, 0)} 个自恋数（1-20 位）`;
+    const total = Object.values(buckets).reduce((a, b) => a + b, 0);
+    infoEl.textContent = `1-20 位共 ${total} 个（十进制自恋数全表共 88 个，不含 0；最大的有 39 位）`;
   };
   runBtn.click();
 }
@@ -7518,8 +7522,14 @@ function initStage_NT07_s2() {
     pathEl.innerHTML = path.map((v, i) =>
       `<span style="color: ${v === 6174 ? '#ec4899' : '#1e40af'}; font-weight: 700;">${v}</span>${i < path.length - 1 ? ' → ' : ''}`
     ).join('');
+    // ⚠️ 跳过分支会往 path 里塞一个字符串，于是 path.length-1 恰好等于 1，
+    //    命中下面的 steps===1 分支，谎报"1 步到 6174"。
+    //    实际上 1111/2222/9999 这类全相同数字永远到不了 6174（1111→0→0）。
+    const skipped = path.some(v => typeof v === 'string');
     const steps = path.length - 1;
-    resultEl.innerHTML = steps === 1 ? '🎉 1 步到 6174（不动点）' : `✅ ${steps} 步到 6174`;
+    resultEl.innerHTML = skipped
+      ? '⚠️ 各位数字全相同，卡普雷卡变换不适用，<strong>永远到不了 6174</strong>（这类数的下一步恒为 0，之后停在 0）'
+      : steps === 0 ? '🎉 这就是 6174 本身（不动点）' : `✅ ${steps} 步到 6174`;
   };
   nInput.oninput = update;
   document.querySelectorAll('.nt07s2-preset').forEach(btn => {
@@ -8183,7 +8193,7 @@ function getStagesNT10() {
         <p class="lead">输入 n，分解素因子 + 算数字和对比：</p>
         <div class="viz" style="display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap;">
           <div style="flex: 1 1 200px; min-width: 200px;">
-            <label style="display: block; margin: 6px 0; font-weight: 700;">n = <input type="number" id="nt10s2-n" min="4" max="99999" value="22" style="width: 100px; padding: 4px; border: 2px solid #e9d5ff; border-radius: 6px;"></label>
+            <label style="display: block; margin: 6px 0; font-weight: 700;">n = <input type="number" id="nt10s2-n" min="4" max="9999999" value="22" style="width: 100px; padding: 4px; border: 2px solid #e9d5ff; border-radius: 6px;"></label>
             <div style="display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap;">
               <button class="primary small nt10s2-preset" data-n="4">4</button>
               <button class="ghost small nt10s2-preset" data-n="22">22</button>
@@ -8276,7 +8286,10 @@ function initStage_NT10_s2() {
   const resultEl = document.getElementById('nt10s2-result');
   if (!nInput) return;
   const update = () => {
-    const n = Math.max(4, Math.min(99999, parseInt(nInput.value) || 22));
+    // 上限原本是 99999，但页面自带一个 data-n="4937775" 的预设——那正是 NT10 故事里
+    // "姐夫电话 4937775"的关键数字，点它却被静默截断成 99999，学生看到的是另一个数。
+    // 试除分解 7 位数仅需约 2500 次循环，完全在能力范围内，故放宽到 9999999。
+    const n = Math.max(4, Math.min(9999999, parseInt(nInput.value) || 22));
     const factors = _nt10Factor(n);
     const nSum = String(n).split('').reduce((a, d) => a + +d, 0);
     const fSum = factors.reduce((a, p) => a + String(p).split('').reduce((b, d) => b + +d, 0), 0);
@@ -10432,7 +10445,7 @@ function initStage_SQ10_s3() {
     const phi = (1 + Math.sqrt(5)) / 2;
     const phi2 = 1 / (phi * phi);
     const phi1 = 1 / phi;
-    resultEl.innerHTML = `S(${n}) 长度 = ${s.length}<br>0 的个数 = ${zeros}（${p0}%，理论 1/φ² ≈ ${(phi2*100).toFixed(1)}%）<br>1 的个数 = ${ones}（${p1}%，理论 1/φ ≈ ${(phi1*100).toFixed(1)}%）`;
+    resultEl.innerHTML = `S(${n}) 长度 = ${s.length}<br>0 的个数 = ${zeros}（${p0}%，理论 1/φ ≈ ${(phi1*100).toFixed(1)}%）<br>1 的个数 = ${ones}（${p1}%，理论 1/φ² ≈ ${(phi2*100).toFixed(1)}%）`;
   };
   nInput.oninput = update;
   runBtn.onclick = update;
@@ -25473,7 +25486,14 @@ function initStage_NT18_s2() {
     const coprime = [];
     for (let i = 1; i <= n; i++) if (gcd(i, n) === 1) coprime.push(i);
     const factors = factorize(n);
-    const formula = factors.length > 0 ? `n × Π(1 - 1/p) = ${n} × ${factors.map(p => `(1 - 1/${p})`).join(' × ')} = ${coprime.length}` : `${n} = 1 → φ = 1`;
+    // 欧拉公式 φ(n) = n × Π_{p|n}(1 − 1/p)，乘积对【不同的质因子】取，重复因子只算一次。
+    // 原代码直接用 factorize 的结果（36 → [2,2,3,3]），于是显示
+    // 「36 × (1−1/2) × (1−1/2) × (1−1/3) × (1−1/3)」——该式子算出来是 4，
+    // 却在后面标注「= 12」，公式与结论自相矛盾。现改为去重。
+    const primes = [...new Set(factors)];
+    const formula = primes.length > 0
+      ? `n × Π(1 − 1/p)（p 取不同质因子）= ${n} × ${primes.map(p => `(1 − 1/${p})`).join(' × ')} = <strong>${(n * primes.reduce((a, p) => a * (1 - 1 / p), 1)).toFixed(4)}</strong> = φ(${n}) = ${coprime.length} ✓`
+      : `${n} = 1 → φ = 1`;
     resultEl.innerHTML = `n = ${n} = ${factors.join('×')}<br>互素数：${coprime.join(', ')}<br>φ(${n}) = <strong>${coprime.length}</strong><br><br>公式验证：${formula}`;
   };
   nInput.oninput = update;
