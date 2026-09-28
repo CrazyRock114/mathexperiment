@@ -19811,7 +19811,21 @@ function initStage_EX01_s3() {
     const y1 = cy - lineLen * Math.sin(rad);
     const x2 = cx + lineLen * Math.cos(rad);
     const y2 = cy + lineLen * Math.sin(rad);
-    resultEl.innerHTML = `方向 θ = <strong>${theta}°</strong><br>宽度 = <strong style="color:#7c3aed;">${s}</strong><br>(恒等于 s！)`;
+    // 真正去量宽度：沿 θ 方向取边界所有点的投影极值之差。
+    // （原实现直接把 s 打印出来，滑块怎么拖数字都不变——那是"假装在算"。）
+    const arcPts = (P, Q, R, N) => {
+      const a0 = Math.atan2(Q[1] - P[1], Q[0] - P[0]), a1 = Math.atan2(R[1] - P[1], R[0] - P[0]);
+      let d = a1 - a0; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI;
+      const out = [];
+      for (let i = 0; i <= N; i++) { const a = a0 + d * i / N; out.push([P[0] + s * Math.cos(a), P[1] + s * Math.sin(a)]); }
+      return out;
+    };
+    const bnd = [...arcPts(A, C, B, 240), ...arcPts(B, A, C, 240), ...arcPts(C, B, A, 240)];
+    const ux = Math.cos(rad), uy = Math.sin(rad);
+    let mn = Infinity, mx = -Infinity;
+    for (const p of bnd) { const d = p[0] * ux + p[1] * uy; if (d < mn) mn = d; if (d > mx) mx = d; }
+    const w = mx - mn;
+    resultEl.innerHTML = `方向 θ = <strong>${theta}°</strong><br>实测宽度 = <strong style="color:#7c3aed;">${w.toFixed(3)}</strong><br>边长 s = ${s.toFixed(0)}<br>偏差 = <strong style="color:${Math.abs(w - s) < 0.01 ? '#10b981' : '#ef4444'};">${(w - s).toFixed(4)}</strong>（恒等于 0）<br><span style="font-size: 12px; color: #6b7280;">👈 试着把 θ 从 0 拖到 180，宽度始终不变——这就是"定宽曲线"。<br>曲线由 3 段 60° 圆弧拼成，每段圆心都是对面那个顶点，半径都是 s。</span>`;
     svgEl.innerHTML = `<svg viewBox="0 0 200 200" style="max-width: 280px;">
       <path d="${path}" fill="#7c3aed" fill-opacity="0.15" stroke="#7c3aed" stroke-width="2"/>
       <line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="#ef4444" stroke-width="2.5" stroke-dasharray="4 2"/>
