@@ -138,5 +138,10 @@ ck('EX01 已无硬编码宽度打印', cnt(/宽度 = <strong style="color:#7c3ae
 ck('SQ05 ReferenceError 已修（整个 stage 曾是死的）', cnt(/if \(!runBtn\);/) === 0);
 ck('全站已无残缺守卫 if (!x);', cnt(/if \(![A-Za-z_$][\w$]*\);/) === 0);
 
+ck('AL01 5 种括法已补全（不再有 apply(...,p[3]) 误用）', cnt(/apply\(apply\(p\[1\], p\[2\], o2\), p\[3\], o3\), o1\]/) === 1);
+ck('全站已无把 p[3] 当运算符下标的写法', cnt(/apply\(apply\(p\[0\], apply\(p\[1\], p\[2\], o2\), o3\), p\[3\]\)/) === 0);
+ck('PB10 二项 PMF 已改连乘（阶乘会溢出成 NaN）', cnt(/let comb = 1;\n        for \(let i = 0; i < k; i\+\+\) comb \*= \(n - i\) \/ \(k - i\);/) === 1);
+ck('全站已无 PB10 的 factorial(n)/factorial(k) 写法', cnt(/const binom = factorial\(n\) \/ factorial\(k\)/) === 0);
+
 console.log('\n' + (fail === 0 ? `全部通过 ✅  (${pass} 项)` : `${fail} 项失败 ❌  (通过 ${pass})`));
 process.exit(fail === 0 ? 0 : 1);

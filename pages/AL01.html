@@ -31085,9 +31085,16 @@ function initStage_PB10_s4() {
       }
       const lines = pairs.map(({n, p}) => {
         const k = Math.round(lambda);
-        const binom = factorial(n) / factorial(k) / factorial(n - k) * Math.pow(p, k) * Math.pow(1 - p, n - k);
-        const pois = Math.exp(-lambda) * Math.pow(lambda, k) / factorial(k);
-        return `Bin(${n}, ${p}) vs Poi(${lambda}), k=${k}: ${binom.toFixed(4)} vs ${pois.toFixed(4)}`;
+        // C(n,k) 用连乘代替阶乘：n 可达 50000，n! 早已超出 double 上限（→ Infinity），
+        // 直接写 factorial(n)/factorial(k)/factorial(n-k) 会得到 NaN。
+        // 这里 k 很小（= round(λ) ≤ 20），用 Π (n-i)/(k-i) 连乘既精确又不会溢出。
+        let comb = 1;
+        for (let i = 0; i < k; i++) comb *= (n - i) / (k - i);
+        const binom = comb * Math.pow(p, k) * Math.pow(1 - p, n - k);
+        let factK = 1;
+        for (let i = 2; i <= k; i++) factK *= i;
+        const pois = Math.exp(-lambda) * Math.pow(lambda, k) / factK;
+        return `Bin(${n}, ${p}) vs Poi(${lambda}), k=${k}: ${binom.toFixed(6)} vs ${pois.toFixed(6)}`;
       });
       resultEl.innerHTML = `<strong>λ = ${lambda} 时的泊松逼近</strong><br>np = λ 固定, n→∞ p→0:<br><br>${lines.join('<br>')}<br><br>→ 两者越来越接近`;
     };
@@ -36833,10 +36840,18 @@ const EXPERIMENTS = [{
       for (const p of perms) {
         for (let o1 = 0; o1 < 4; o1++) for (let o2 = 0; o2 < 4; o2++) for (let o3 = 0; o3 < 4; o3++) {
           // 5 种括法
+          // 4 个数的 5 种括法，每种写成 [左值, 右值, 顶层运算符下标]，最后统一 apply(a, b, op)
+          //   1. (p0 o1 p1) o3 (p2 o2 p3)
+          //   2. ((p0 o1 p1) o2 p2) o3 p3
+          //   3. (p0 o1 (p1 o2 p2)) o3 p3
+          //   4. p0 o1 ((p1 o2 p2) o3 p3)
+          //   5. p0 o1 (p1 o2 (p2 o3 p3))
           const trials = [
             [apply(p[0], p[1], o1), apply(p[2], p[3], o2), o3],
             [apply(apply(p[0], p[1], o1), p[2], o2), p[3], o3],
-            [p[0], apply(p[1], p[2], o2), apply(apply(p[0], apply(p[1], p[2], o2), o3), p[3])],
+            [apply(p[0], apply(p[1], p[2], o2), o1), p[3], o3],
+            [p[0], apply(apply(p[1], p[2], o2), p[3], o3), o1],
+            [p[0], apply(p[1], apply(p[2], p[3], o3), o2), o1],
           ];
           for (const [a, b, op] of trials) {
             if (a === null || b === null) continue;

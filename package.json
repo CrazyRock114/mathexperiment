@@ -6,7 +6,8 @@
   "scripts": {
     "build": "node extract_exps.js && python3 gen_pages.py",
     "test": "node _regression.js && node _verify_major.js && python3 _audit_pages.py",
-    "test:runtime": "node _page_smoke.js"
+    "test:runtime": "node _page_smoke.js",
+    "test:interact": "node _interact_test.js"
   },
   "devDependencies": {
     "jsdom": "^26.0.0"
