@@ -219,5 +219,45 @@ ck('全站已无把 2√N 画成 Ginibre 半径', cnt(/Rbound = 2 \* Math\.sqrt\
 ck('EX08_s3 格子按取值个数分配', cnt(/cellH = H \/ aVals\.length/) === 1);
 ck('全站已无 EX08_s3 的 H/3 硬编码', cnt(/const cellW = W \/ 3, cellH = H \/ 3;/) === 0);
 
+// ---- v18.15：EX/GR/GM + AL/FR/OT 复核项 ----
+ck('EX18 _matMul 已改为「行向量 × 矩阵」（马尔可夫更新方向）',
+   cnt(/for \(let j = 0; j < 3; j\+\+\) for \(let i = 0; i < 3; i\+\+\) C\[j\] \+= B\[i\] \* A\[i\]\[j\];/) === 1);
+ck('全站已无把行随机 P 当列向量乘的旧 _matMul',
+   cnt(/for \(let i = 0; i < 3; i\+\+\) for \(let j = 0; j < 3; j\+\+\) C\[i\] \+= A\[i\]\[j\] \* B\[j\];/) === 0);
+ck('EX18 已删除死函数 _matPowMulVec', cnt(/_matPowMulVec/) === 0);
+ck('EX18_s3 「第 30 步后」不再多乘一步', cnt(/if \(k < steps\) cur = _matMul\(P, cur\);/) === 1);
+ck('EX18_s4 PageRank 已改为幂迭代实算', cnt(/for \(let it = 0; it < 3000; it\+\+\)/) === 1);
+ck('全站已无 EX18_s4 硬编码 PR 值', cnt(/PR = 0\.220, PR\(B\) = 0\.330/) === 0 && !/pr: 0\.220/.test(h));
+ck('GR07_s3 生日悖论只取一次随机数（避免集合内自碰撞）',
+   cnt(/const v = Math\.floor\(Math\.random\(\) \* N\);\n        if \(bins\.has\(v\)\) \{ hit\+\+; break; \}\n        bins\.add\(v\);/) === 1);
+ck('全站已无 has()/add() 各取一次随机数的写法',
+   cnt(/if \(bins\.has\(Math\.floor\(Math\.random\(\) \* N\)\)\)/) === 0);
+ck('GR07_s3 文案 k=20 已由 90% 订正为约 87%', cnt(/k=20 时约 87%/) === 1);
+ck('GM08_s2 面积夹角已改为底角 72°（原 sin36° 少算 φ 倍）',
+   cnt(/0\.5 \* b \* len \* Math\.sin\(72 \* Math\.PI \/ 180\)/) === 1);
+ck('全站已无 GM08_s2 用 sin\(36°\) 配「底·腰」的错式', cnt(/0\.5 \* b \* len \* Math\.sin\(36 \* Math\.PI \/ 180\)/) === 0);
+ck('GM08_s3 已改画真正的 5 个尖顶黄金三角形', cnt(/5 个黄金三角形（顶角 36°）围成五角星/) === 1);
+ck('GM08_s5 Golden Ratio 命名归因已订正为 Mark Oliver 1835',
+   cnt(/英国教师 Mark Oliver 首次提出命名 "golden ratio"/) === 1);
+ck('全站已无「德国数学家命名 Golden Ratio」', cnt(/德国数学家正式命名/) === 0);
+ck('OT10_s4 已换回 Gosper 滑翔机枪真图形（36 格 / 36×9）',
+   h.indexOf("'XX........X.....X...XX..............',") >= 0);
+ck('全站已无伪造的「高斯帕滑翔机枪」图形',
+   cnt(/\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.XX\.\.\.\.\.\.\.XX\.\.\.\.\.\.\.\.\.\.\.\.\./) === 0);
+ck('OT10_s4 已改用稀疏无限平面（滑翔机不再被环面边界撞回）',
+   cnt(/稀疏无限平面：滑翔机飞出视野后继续飞/) === 1);
+ck('全站已无 OT10_s4 的环面取模', cnt(/grid\[\(r \+ dr \+ N\) % N\]/) === 0);
+ck('全站已无「高斯帕」这个错译名（含 OT10_s5 时间线与教案正文）', cnt(/高斯帕/) === 0);
+ck('FR01_s2 结论改为基于已显示的 z₀..z₅（不再拿未显示的 z₆ 判定）',
+   cnt(/显示的 n=0\.\.5 各步 \|z\| 均 ≤ 2/) === 1);
+ck('全站已无 FR01_s2 用循环后 mag2 判定的写法', cnt(/if \(zx \* zx \+ zy \* zy < 4\) lines\.push/) === 0);
+ck('FR05_s2 已补判最后一次迭代后的 z₈（避免 |z|>2 却标「未逃」）',
+   cnt(/if \(!escaped && finalMag > 2\) \{ escaped = true; lastMag = finalMag; \}/) === 1);
+ck('OT08_s2 非法输入校验已改为查原始字符串',
+   cnt(/if \(raw\.length && \/\[\^XO\.\]\/\.test\(raw\)\)/) === 1);
+ck('全站已无 OT08_s2 永远为假的 b.some\(x => x === undefined\)', cnt(/b\.some\(x => x === undefined\)/) === 0);
+ck('AL08_s2 非数字输入不再渲染 NaN', cnt(/请输入逗号分隔的整数，例如 5,2,8,1,9,3<\/span>/) === 1);
+ck('AL09_s2 非数字输入不再渲染 NaN', cnt(/请输入逗号分隔的整数，例如 5,2,8,1,9,3,7,4,6<\/span>/) === 1);
+
 console.log('\n' + (fail === 0 ? `全部通过 ✅  (${pass} 项)` : `${fail} 项失败 ❌  (通过 ${pass})`));
 process.exit(fail === 0 ? 0 : 1);

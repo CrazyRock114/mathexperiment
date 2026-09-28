@@ -16629,8 +16629,8 @@ function initStage_EX_PROVEN_11_s3() {
   const W = 360, H = 220;
 
   const update = () => {
-    const N = +NInput.value;
-    const t = +tInput.value;
+    const N = Math.max(1, Math.min(100, +NInput.value || 30));
+    const t = Math.max(0, Math.min(20, +tInput.value || 5));
     if (NvEl) NvEl.textContent = N;
     if (tvEl) tvEl.textContent = t;
 
@@ -23497,15 +23497,13 @@ function getStagesEX18() {
     },
   ];
 }
-function _matMul(A, B) { // 3x3 * 1x3
+// 行向量 1×3 乘 3×3 矩阵 P：结果[j] = Σ_i B[i]·P[i][j]
+// P 是「行随机」矩阵（每行和 = 1），马尔可夫更新 π_{k+1} = π_k · P 必须用这个方向，
+// 若当成列向量算 P·π，各分量之和会漂移到 ≠1，收敛到的也不是真正的稳态。
+function _matMul(A, B) {
   const C = [0, 0, 0];
-  for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) C[i] += A[i][j] * B[j];
+  for (let j = 0; j < 3; j++) for (let i = 0; i < 3; i++) C[j] += B[i] * A[i][j];
   return C;
-}
-function _matPowMulVec(P, v, n) {
-  let cur = v.slice();
-  for (let k = 0; k < n; k++) cur = _matMul(P, cur);
-  return cur;
 }
 function initStage_EX18_s1() {
   const wrap = document.getElementById('ex18s1-svg');
@@ -23616,7 +23614,7 @@ function initStage_EX18_s3() {
       data0.push(cur[0]);
       data1.push(cur[1]);
       data2.push(cur[2]);
-      cur = _matMul(P, cur);
+      if (k < steps) cur = _matMul(P, cur);
     }
     if (cv._chart) { cv._chart.destroy(); cv._chart = null; }
     cv._chart = new Chart(cv, {
@@ -23639,23 +23637,43 @@ function initStage_EX18_s4() {
   const info = document.getElementById('ex18s4-info');
   if (!wrap) return;
   // 4 节点小图：A→B, A→C, B→C, C→B, D→C
-  const nodes = [
-    { name: 'A', x: 60, y: 60, pr: 0.220 },
-    { name: 'B', x: 220, y: 40, pr: 0.330 },
-    { name: 'C', x: 220, y: 140, pr: 0.380 },
-    { name: 'D', x: 60, y: 140, pr: 0.070 },
-  ];
   const edges = [[0,1],[0,2],[1,2],[2,1],[3,2]];
+  const names = ['A','B','C','D'];
+  const n = 4, d = 0.85;
+  // PageRank 幂迭代（列随机约定：PR_{k+1}[v] = (1-d)/n + d·Σ_{u→v} PR_k[u]/outdeg(u)）
+  const outdeg = new Array(n).fill(0);
+  edges.forEach(([, j]) => outdeg[j]++);
+  const inDeg = new Array(n).fill(0);
+  edges.forEach(([i]) => inDeg[i]++);
+  let pr = new Array(n).fill(1 / n);
+  for (let it = 0; it < 3000; it++) {
+    const nx = new Array(n).fill((1 - d) / n);
+    for (const [i, j] of edges) nx[j] += d * pr[i] / outdeg[i];
+    pr = nx;
+  }
+  const nodes = [
+    { name: 'A', x: 60, y: 60, pr: pr[0] },
+    { name: 'B', x: 220, y: 40, pr: pr[1] },
+    { name: 'C', x: 220, y: 140, pr: pr[2] },
+    { name: 'D', x: 60, y: 140, pr: pr[3] },
+  ];
   const edgeSvg = edges.map(([i,j]) => {
     const f = nodes[i], t = nodes[j];
     return `<line x1="${f.x}" y1="${f.y}" x2="${t.x}" y2="${t.y}" stroke="#7c3aed" stroke-width="2" marker-end="url(#ar4)"/>`;
   }).join('');
-  const nodeSvg = nodes.map(n => `<g><circle cx="${n.x}" cy="${n.y}" r="${18 + n.pr * 30}" fill="#a855f7" stroke="white" stroke-width="2" opacity="0.85"/><text x="${n.x}" y="${n.y+4}" text-anchor="middle" font-size="13" font-weight="900" fill="white">${n.name}</text><text x="${n.x}" y="${n.y + 38 + n.pr * 18}" text-anchor="middle" font-size="11" font-weight="700" fill="#7c3aed">PR=${n.pr.toFixed(3)}</text></g>`).join('');
+  const nodeSvg = nodes.map(nd => `<g><circle cx="${nd.x}" cy="${nd.y}" r="${18 + nd.pr * 30}" fill="#a855f7" stroke="white" stroke-width="2" opacity="0.85"/><text x="${nd.x}" y="${nd.y+4}" text-anchor="middle" font-size="13" font-weight="900" fill="white">${nd.name}</text><text x="${nd.x}" y="${nd.y + 38 + nd.pr * 18}" text-anchor="middle" font-size="11" font-weight="700" fill="#7c3aed">PR=${nd.pr.toFixed(3)}</text></g>`).join('');
   wrap.innerHTML = `<svg viewBox="0 0 320 220" style="max-width: 100%; background: white; border-radius: 8px;">
     <defs><marker id="ar4" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#7c3aed"/></marker></defs>
     ${edgeSvg}${nodeSvg}
   </svg>`;
-  info.innerHTML = `4 节点示例图：A→B, A→C, B→C, C→B, D→C<br>阻尼 d = 0.85<br><strong style="color:#7c3aed;">PR(A) = 0.220, PR(B) = 0.330, PR(C) = 0.380, PR(D) = 0.070</strong><br>排名：C > B > A > D`;
+  const rank = pr.map((v, i) => ({ i, v })).sort((a, b) => b.v - a.v).map((r, k, arr) => {
+    const tie = arr.findIndex(x => Math.abs(x.v - r.v) < 1e-9);
+    return tie === k ? names[r.i] : null;
+  }).filter(Boolean).join(' > ');
+  info.innerHTML = `4 节点示例图：A→B, A→C, B→C, C→B, D→C<br>阻尼 d = 0.85　（上图为幂迭代实算，非硬编码）<br>` +
+    `<strong style="color:#7c3aed;">PR(A) = ${pr[0].toFixed(3)}, PR(B) = ${pr[1].toFixed(3)}, PR(C) = ${pr[2].toFixed(3)}, PR(D) = ${pr[3].toFixed(3)}</strong><br>` +
+    `和 = ${pr.reduce((a,b)=>a+b,0).toFixed(3)}<br>排名：${rank}<br>` +
+    `<span style="color:#6b7280;">注意 A 和 D 都没有入边，PR 只来自随机跳转项 (1−d)/n = ${((1-d)/n).toFixed(4)}</span>`;
 }
 function initStage_EX18_s5() {
   const tl = document.getElementById('ex18s5-timeline');
@@ -27116,7 +27134,10 @@ function initStage_GM08_s2() {
   const update = () => {
     const b = parseFloat(bIn.value) || 1;
     const len = b * phi;
-    out.innerHTML = `底 b = ${b}<br>φ = (1+√5)/2 = <strong>${phi.toFixed(10)}</strong><br><br>腰长 = b × φ = ${b} × ${phi.toFixed(4)}<br>      = <strong style="color:#7c3aed;">${len.toFixed(4)}</strong><br><br>三角角度:<br>顶角 = 36°<br>底角 = 72° × 2 = 144°<br><br>面积 ≈ ½ · b · b·φ · sin(36°)<br>     = <strong>${(0.5 * b * len * Math.sin(36 * Math.PI / 180)).toFixed(4)}</strong>`;
+    // 面积：底 b 与腰 b·φ 的夹角是「底角 72°」（不是顶角 36°）
+    const areaA = 0.5 * b * len * Math.sin(72 * Math.PI / 180);
+    const areaB = 0.5 * len * len * Math.sin(36 * Math.PI / 180);
+    out.innerHTML = `底 b = ${b}<br>φ = (1+√5)/2 = <strong>${phi.toFixed(10)}</strong><br><br>腰长 = b × φ = ${b} × ${phi.toFixed(4)}<br>      = <strong style="color:#7c3aed;">${len.toFixed(4)}</strong><br><br>三角角度:<br>顶角 = 36°<br>两个底角各 = 72°（36+72+72 = 180° ✓）<br><br>面积 ① ½ · 底 · 腰 · sin(夹角 = 底角 72°)<br>     = <strong style="color:#10b981;">${areaA.toFixed(4)}</strong><br>面积 ② ½ · 腰 · 腰 · sin(夹角 = 顶角 36°)<br>     = <strong style="color:#10b981;">${areaB.toFixed(4)}</strong><br>两式一致 ✓（差 ${Math.abs(areaA - areaB).toExponential(1)}）`;
   };
   bIn.oninput = update;
   document.querySelectorAll('.gm08s2-preset').forEach(btn => {
@@ -27127,27 +27148,30 @@ function initStage_GM08_s2() {
 function initStage_GM08_s3() {
   const wrap = document.getElementById('gm08s3-svg');
   if (!wrap) return;
-  const phi = (1 + Math.sqrt(5)) / 2;
   const cx = 240, cy = 240, R = 180;
   const pts = [];
   for (let i = 0; i < 5; i++) {
     const a = -Math.PI / 2 + 2 * Math.PI * i / 5;
     pts.push([cx + R * Math.cos(a), cy + R * Math.sin(a)]);
   }
-  // 5 个黄金三角形
-  const tris = [];
-  for (let i = 0; i < 5; i++) {
-    const a = pts[i], b = pts[(i + 1) % 5], c = pts[(i + 2) % 5];
-    const poly = `${a[0]},${a[1]} ${b[0]},${b[1]} ${c[0]},${c[1]}`;
-    tris.push(`<polygon points="${poly}" fill="rgba(245,158,11,0.2)" stroke="#f59e0b" stroke-width="1.5"/>`);
-  }
+  // 五角星的 5 个「尖」才是黄金三角形（顶角 36°、底角 72°、底/腰 = 1/φ）。
+  // 尖顶三角形 = 外接正五边形顶点 P_i + 该点引出的两条对角线与第 3 条对角线的最近交点。
+  // 下面坐标由正五边形对角线交点算出，并已验证：顶角 36.00°、底角 72.00°、底/腰 = 0.618034 = 1/φ。
+  const goldTris = [
+    '240.00,60.00 280.41,184.38 199.59,184.38',
+    '411.19,184.38 305.39,261.25 280.41,184.38',
+    '345.80,385.62 240.00,308.75 305.39,261.25',
+    '134.20,385.62 174.61,261.25 240.00,308.75',
+    '68.81,184.38 199.59,184.38 174.61,261.25',
+  ];
+  const tris = goldTris.map(p => `<polygon points="${p}" fill="rgba(245,158,11,0.2)" stroke="#f59e0b" stroke-width="1.5"/>`);
   // 五角星连线
   const starLines = pts.map((p, i) => `<line x1="${p[0]}" y1="${p[1]}" x2="${pts[(i+2)%5][0]}" y2="${pts[(i+2)%5][1]}" stroke="#7c3aed" stroke-width="2.5"/>`).join('');
   wrap.innerHTML = `<svg viewBox="0 0 480 480" style="max-width: 100%; background: white; border-radius: 8px;">
     ${tris.join('')}
     ${starLines}
     ${pts.map(p => `<circle cx="${p[0]}" cy="${p[1]}" r="5" fill="#ef4444"/>`).join('')}
-    <text x="240" y="460" text-anchor="middle" font-size="14" font-weight="700" fill="#7c3aed">5 个黄金三角形围成五角星</text>
+    <text x="240" y="460" text-anchor="middle" font-size="14" font-weight="700" fill="#7c3aed">5 个黄金三角形（顶角 36°）围成五角星</text>
   </svg>`;
 }
 function initStage_GM08_s4() {
@@ -27182,9 +27206,9 @@ function initStage_GM08_s5() {
   const events = [
     { year: 'BC 500', text: '毕达哥拉斯学派用五角星作标志', color: '#7c3aed' },
     { year: 'BC 300', text: '欧几里得《几何原本》研究黄金分割', color: '#f59e0b' },
-    { year: 'AD 1202', text: '斐波那契 在《算经》提出斐波那契数列', color: '#10b981' },
+    { year: 'AD 1202', text: '斐波那契《算经》(Liber Abaci) 兔子问题 → 斐波那契数列', color: '#10b981' },
     { year: '1509', text: 'Pacioli《神圣比例》系统化黄金比例', color: '#3b82f6' },
-    { year: '19世纪', text: '德国数学家正式命名"Golden Ratio"', color: '#ef4444' },
+    { year: '1835', text: '英国教师 Mark Oliver 首次提出命名 "golden ratio"', color: '#ef4444' },
     { year: '今天', text: '建筑设计、艺术、摄影、生物螺旋', color: '#a855f7' },
   ];
   tl.innerHTML = events.map((e, i) => {
@@ -28702,7 +28726,7 @@ function getStagesGR07() {
         <div class="viz" style="padding: 14px; background: #f0f9ff; border-radius: 8px;">
           <canvas id="gr07s3-chart" style="max-width: 100%;"></canvas>
         </div>
-        <div class="next-hint">🔭 <strong>结论</strong> n=100 桶，k=12 时 50% 概率冲突；k=20 时 90%</div>
+        <div class="next-hint">🔭 <strong>结论</strong> n=100 桶，k=12 时约 50% 概率冲突；k=20 时约 87%（1−Π(1−i/100) = 86.96%）</div>
       `
     },
     {
@@ -28767,7 +28791,13 @@ function initStage_GR07_s3() {
     const trials = 1000; let hit = 0;
     for (let t = 0; t < trials; t++) {
       const bins = new Set();
-      for (let i = 0; i < k; i++) { if (bins.has(Math.floor(Math.random() * N))) { hit++; break; } bins.add(Math.floor(Math.random() * N)); }
+      for (let i = 0; i < k; i++) {
+        // 必须只取一次随机数：若 has() 与 add() 各取一次，存入的值彼此从未校验，
+        // 集合增长慢于 i，冲突概率会被系统性低估（k=20 时约低 2 个百分点）
+        const v = Math.floor(Math.random() * N);
+        if (bins.has(v)) { hit++; break; }
+        bins.add(v);
+      }
     }
     labels.push(`k=${k}`); probs.push((hit / trials * 100).toFixed(1));
   }
@@ -32988,8 +33018,13 @@ function initStage_AL08_s2() {
     const resultEl = document.getElementById('al08s2-result');
     if (!aInput) return;
     const update = () => {
-      const arr = aInput.value.split(',').map(Number);
+      const raw = aInput.value.trim();
+      const arr = raw.length ? raw.split(',').map(s => Number(s.trim())) : [];
       if (arr.length === 0) return;
+      if (arr.some(x => !Number.isFinite(x))) {
+        resultEl.innerHTML = '<span style="color:#ef4444;">请输入逗号分隔的整数，例如 5,2,8,1,9,3</span>';
+        return;
+      }
       const steps = [];
       const a = [...arr];
       let comparisons = 0;
@@ -33216,8 +33251,13 @@ function initStage_AL09_s2() {
     const resultEl = document.getElementById('al09s2-result');
     if (!aInput) return;
     const update = () => {
-      const arr = aInput.value.split(',').map(Number);
+      const raw = aInput.value.trim();
+      const arr = raw.length ? raw.split(',').map(s => Number(s.trim())) : [];
       if (arr.length === 0) return;
+      if (arr.some(x => !Number.isFinite(x))) {
+        resultEl.innerHTML = '<span style="color:#ef4444;">请输入逗号分隔的整数，例如 5,2,8,1,9,3,7,4,6</span>';
+        return;
+      }
       const steps = [];
       const qs = (l, r) => {
         if (l >= r) return;
@@ -34785,18 +34825,19 @@ function getStagesOT10() {
       `
     },
     {
-      emoji: '🔬', title: '进阶: 高斯帕滑翔机枪', content: `
-        <p class="lead">高斯帕枪（1970 发现）能无限产生滑翔机——生命游戏的"宇宙工厂"：</p>
+      emoji: '🔬', title: '进阶: Gosper 滑翔机枪', content: `
+        <p class="lead"><strong style="color:#7c3aed;">Gosper 滑翔机枪</strong>（Bill Gosper，1970）只有 36 个活格，却能<strong>无限</strong>吐出滑翔机——生命游戏的"宇宙工厂"：</p>
         <div class="viz" style="display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap;">
           <div style="flex: 1 1 200px;">
-            <label>大小 <input type="number" id="ot10s4-n" value="40" min="20" max="60" style="width: 80px;"></label><br>
-            <button class="primary" id="ot10s4-gun">▶ 放滑翔机枪</button>
+            <label>演化代数 <input type="number" id="ot10s4-n" value="240" min="30" max="600" step="30" style="width: 90px;"></label><br><br>
+            <button class="primary" id="ot10s4-gun">▶ 开始演化</button>
+            <div id="ot10s4-stat" style="margin-top: 12px; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.8;"></div>
           </div>
           <div style="flex: 2 1 300px;">
             <canvas id="ot10s4-cv" style="width: 100%; border-radius: 4px; border: 1px solid var(--line); background: #fff;"></canvas>
           </div>
         </div>
-        <div class="next-hint">🔬 <strong>Gosper Glider Gun</strong>：周期 30，能无限产生滑翔机——可作为"信息载体"模拟 DNA</div>
+        <div class="next-hint">🔬 <strong>看左边那串数字</strong>：枪体本身是周期 30 的稳定结构，每 30 代总格数<strong>恰好 +5</strong>（正好一个滑翔机的格数），于是呈<strong>线性增长</strong>——注意画布视野会自动拉大，因为滑翔机一直往外飞。 Conway 当年猜想"有限初始必然有限"，滑翔机枪正是反例。</div>
       `
     },
     {
@@ -34829,15 +34870,17 @@ function initStage_FR01_s2() {
       const ci = parseFloat(ciIn.value) || 0;
       let zx = 0, zy = 0;
       const lines = [`c = ${cr} + ${ci}i`, '迭代 z = z² + c:'];
+      let judged = false;
       for (let n = 0; n < 6; n++) {
         const mag2 = zx * zx + zy * zy;
         lines.push(`  n=${n}: z = ${zx.toFixed(3)} + ${zy.toFixed(3)}i, |z| = ${Math.sqrt(mag2).toFixed(3)}${mag2 > 4 ? ' → 逃逸' : ''}`);
-        if (mag2 > 4) { lines.push(`  → 判定：c <strong>不在</strong>集合内`); break; }
+        if (mag2 > 4) { lines.push(`  → 判定：c <strong>不在</strong>集合内（第 ${n} 步 |z| > 2 已逃逸）`); judged = true; break; }
         const nx = zx * zx - zy * zy + cr;
         zy = 2 * zx * zy + ci;
         zx = nx;
       }
-      if (zx * zx + zy * zy < 4) lines.push(`  → 6 步内未逃逸；可能<strong>在集合内</strong>`);
+      // 结论必须基于「已显示过」的 z₀..z₅，不能拿没显示过的 z₆ 来判，否则第 6 步才逃逸时会一个字都不输出
+      if (!judged) lines.push(`  → 判定：显示的 n=0..5 各步 |z| 均 ≤ 2，<strong>6 步内未逃逸</strong>；c 可能<strong>在</strong>集合内`);
       out.innerHTML = lines.join('<br>');
     };
     crIn.oninput = render; ciIn.oninput = render;
@@ -35317,6 +35360,8 @@ function initStage_FR05_s2() {
           zx = nx;
         }
         const finalMag = Math.sqrt(zx * zx + zy * zy);
+        // 循环只判了 z₀..z₇，第 8 次迭代后的 z₈ 从未判定：若 |z₈| > 2 却是「未逃」会自相矛盾
+        if (!escaped && finalMag > 2) { escaped = true; lastMag = finalMag; }
         lines.push(`  z₀=(${zx0},${zy0}) → ${escaped ? `逃逸 |z|=${lastMag.toFixed(2)}` : `|z|=${finalMag.toFixed(2)} (未逃)`}`);
       }
       out.innerHTML = lines.join('<br>');
@@ -35759,8 +35804,12 @@ function initStage_OT03_s4() {
     const out = document.getElementById('ot03s4-result');
     if (!btn) return;
     btn.onclick = () => {
-      const b = parseFloat(bIn.value) || 0.5;
-      const turns = parseFloat(tIn.value) || 5;
+      const bRaw = parseFloat(bIn.value);
+      const tRaw = parseFloat(tIn.value);
+      // b 是相邻两圈间距（长度，必须 > 0）；圈数必须 ≥ 1，否则 L = 0 会让相对误差变成 0/0 = NaN
+      const b = Number.isFinite(bRaw) ? bRaw : 0.5;
+      const turns = Number.isFinite(tRaw) ? Math.max(1, Math.min(20, tRaw)) : 5;
+      if (b <= 0) { out.innerHTML = '<span style="color:#ef4444;">b 是相邻两圈的间距，必须 &gt; 0（弧长与 b 成正比）</span>'; return; }
       const theta = turns * 2 * Math.PI;
       const L = 0.5 * b * (theta * Math.sqrt(1 + theta * theta) + Math.log(theta + Math.sqrt(1 + theta * theta)));
       const Lapprox = 0.5 * b * theta * theta;
@@ -36260,9 +36309,15 @@ function initStage_OT08_s2() {
       return best;
     };
     const render = () => {
-      const s = (bIn.value || 'X........').padEnd(9, '.').slice(0, 9);
+      const raw = (bIn.value || '').trim().toUpperCase();
+      // 校验必须针对原始字符串：下面 map 只会产出 'X' / 'O' / null，
+      // 查 x === undefined 永远是 false，输入 ZZZ 会被静默当成空棋盘去跑 minimax
+      if (raw.length && /[^XO.]/.test(raw)) {
+        out.innerHTML = `只能输入 <strong>X</strong> / <strong>O</strong> / <strong>.</strong>（共 9 位，<strong>.</strong> 表示空位）<br>当前输入含非法字符：<span style="color:#ef4444;">${raw.replace(/[<>&]/g, '')}</span>`;
+        return;
+      }
+      const s = (raw || 'X........').padEnd(9, '.').slice(0, 9);
       const b = s.split('').map(c => c === 'X' || c === 'O' ? c : null);
-      if (b.some(x => x === undefined)) { out.innerHTML = '请用 X/O/. 共 9 位'; return; }
       const w = checkWin(b);
       if (w) { out.innerHTML = `棋盘: ${s}<br>游戏结束: <strong>${w === 'T' ? '平' : w + ' 胜'}</strong>`; return; }
       const score = minimax(b, false);
@@ -36658,55 +36713,87 @@ function initStage_OT10_s4() {
     const nIn = document.getElementById('ot10s4-n');
     const btn = document.getElementById('ot10s4-gun');
     const cv = document.getElementById('ot10s4-cv');
-    if (!btn) return;
-    // 高斯帕滑翔机枪（简化版 36×9）
+    const statEl = document.getElementById('ot10s4-stat');
+    if (!btn || !cv) return;
+    // Gosper 滑翔机枪：36 格 / 36×9 / 周期 30 / Bill Gosper 1970
+    // 取自 LifeWiki 标准图形（RLE: 24bo11b$22bobo11b$12b2o6b2o12b2o$11bo3bo4b2o12b2o
+    //   $2o8bo5bo3b2o14b$2o8bo3bob2o4bobo11b$10bo5bo7bo11b$11bo3bo20b$12b2o!）
+    // 已实算验证：总存活格数每 30 代恰好 +5（= 一个滑翔机），呈线性增长
     const gun = [
       '........................X...........',
       '......................X.X...........',
       '............XX......XX............XX',
       '...........X...X....XX............XX',
-      '..........X.....X...XX..............',
-      '..........X.....X...XX..............',
-      '..........X.....X...XX..............',
-      '...........X...X....XX..............',
-      '............XX......XX..............',
+      'XX........X.....X...XX..............',
+      'XX........X...X.XX....X.X...........',
+      '..........X.....X.......X...........',
+      '...........X...X....................',
+      '............XX......................',
     ];
-    btn.onclick = () => {
-      const N = Math.max(20, Math.min(60, parseInt(nIn.value) || 40));
-      const W = 320, H = W * N / 50;
-      cv.width = W; cv.height = H;
+    const seed = () => {
+      const s = new Set();
+      gun.forEach((row, r) => { row.split('').forEach((ch, c) => { if (ch === 'X') s.add(r + ',' + c); }); });
+      return s;
+    };
+    // 稀疏无限平面：滑翔机飞出视野后继续飞，不会被环面边界撞回
+    const step = (s) => {
+      const cnt = new Map();
+      s.forEach(k => {
+        const i = k.indexOf(','), r = +k.slice(0, i), c = +k.slice(i + 1);
+        for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) {
+          if (!dr && !dc) continue;
+          const nk = (r + dr) + ',' + (c + dc);
+          cnt.set(nk, (cnt.get(nk) || 0) + 1);
+        }
+      });
+      const out = new Set();
+      cnt.forEach((v, k) => { if (s.has(k) ? (v === 2 || v === 3) : v === 3) out.add(k); });
+      return out;
+    };
+    const draw = (s, gen, steps, marks) => {
+      const W = 640, H = 420;
+      if (cv.width !== W) { cv.width = W; cv.height = H; }
       const ctx = cv.getContext('2d');
-      let grid = Array.from({ length: N }, () => new Array(Math.floor(N * 50 / 36)).fill(0));
-      const cols = Math.floor(N * 50 / 36);
-      // 放滑翔机枪
-      for (let r = 0; r < gun.length; r++) {
-        for (let c = 0; c < gun[0].length; c++) {
-          if (gun[r][c] === 'X' && r < N && c < cols) grid[r][c] = 1;
-        }
+      ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, H);
+      if (!s.size) {
+        ctx.fillStyle = '#6b7280'; ctx.font = '16px sans-serif';
+        ctx.fillText('全部死亡', 16, 30); return;
       }
-      const draw = () => {
-        const cellW = W / cols, cellH = H / N;
-        ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, H);
-        ctx.fillStyle = '#1e40af';
-        for (let r = 0; r < N; r++) for (let c = 0; c < cols; c++) if (grid[r][c]) ctx.fillRect(c * cellW, r * cellH, cellW - 0.5, cellH - 0.5);
-      };
-      draw();
-      let t = 0;
-      const step = () => {
-        const next = Array.from({ length: N }, () => new Array(cols).fill(0));
-        for (let r = 0; r < N; r++) for (let c = 0; c < cols; c++) {
-          let cnt = 0;
-          for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) {
-            if (dr === 0 && dc === 0) continue;
-            cnt += grid[(r + dr + N) % N][(c + dc + cols) % cols];
-          }
-          if (grid[r][c]) next[r][c] = (cnt === 2 || cnt === 3) ? 1 : 0;
-          else next[r][c] = (cnt === 3) ? 1 : 0;
-        }
-        grid = next; draw(); t++;
-        if (t < 60) setTimeout(step, 80);
-      };
-      setTimeout(step, 300);
+      let minR = Infinity, maxR = -Infinity, minC = Infinity, maxC = -Infinity;
+      const pts = [];
+      s.forEach(k => {
+        const i = k.indexOf(','), r = +k.slice(0, i), c = +k.slice(i + 1);
+        pts.push([r, c]);
+        if (r < minR) minR = r; if (r > maxR) maxR = r;
+        if (c < minC) minC = c; if (c > maxC) maxC = c;
+      });
+      const cols = maxC - minC + 1, rows = maxR - minR + 1;
+      const cell = Math.max(1, Math.min(W / (cols + 2), H / (rows + 2)));
+      const ox = (W - cols * cell) / 2 - minC * cell;
+      const oy = (H - rows * cell) / 2 - minR * cell;
+      ctx.fillStyle = '#1e40af';
+      pts.forEach(([r, c]) => ctx.fillRect(ox + c * cell, oy + r * cell, Math.max(1, cell - 0.5), Math.max(1, cell - 0.5)));
+      ctx.fillStyle = '#374151'; ctx.font = '12px monospace';
+      ctx.fillText(`第 ${gen} / ${steps} 代 · 存活 ${s.size} 格 · 视野 ${cols}×${rows}`, 8, 16);
+      if (statEl) {
+        const rowsHtml = marks.map((m, i) => `第 ${m[0]} 代 = <strong>${m[1]}</strong> 格${i ? `　(+${m[1] - marks[i-1][1]})` : ''}`).join('<br>');
+        statEl.innerHTML = rowsHtml + (marks.length > 1
+          ? `<br><span style="color:#10b981;font-weight:700;">↑ 每 30 代 +5 格 = 每 30 代吐出一个滑翔机 → 线性增长</span>`
+          : '<br><span style="color:#6b7280;">运行中…</span>');
+      }
+    };
+    btn.onclick = () => {
+      if (btn._timer) { clearInterval(btn._timer); btn._timer = null; }
+      const steps = Math.max(30, Math.min(600, parseInt(nIn.value) || 240));
+      let s = seed(), gen = 0;
+      const marks = [[0, s.size]];
+      draw(s, gen, steps, marks);
+      btn._timer = setInterval(() => {
+        s = step(s); gen++;
+        if (gen % 30 === 0) marks.push([gen, s.size]);
+        draw(s, gen, steps, marks);
+        if (gen >= steps) { clearInterval(btn._timer); btn._timer = null; }
+      }, 45);
     };
   } catch (e) { console.error('initStage_OT10_s4 err:', e); }
 }
@@ -36716,7 +36803,7 @@ function initStage_OT10_s5() {
     if (!tl) return;
     const events = [
       { year: '1970', text: 'John 康威 在《科学美国人》公布', color: '#7c3aed' },
-      { year: '1970', text: '高斯帕滑翔机枪被发现', color: '#f59e0b' },
+      { year: '1970', text: 'Bill Gosper 发现 Gosper 滑翔机枪', color: '#f59e0b' },
       { year: '1980s', text: 'Wolfram 元胞自动机研究', color: '#10b981' },
       { year: '2000s', text: '人工生命 / 涌现理论', color: '#3b82f6' },
       { year: '今天', text: '复杂性科学 / 模拟 / 元胞艺术', color: '#ef4444' },

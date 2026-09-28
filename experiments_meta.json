@@ -2784,7 +2784,7 @@
       {
         "emoji": "🔭",
         "title": "哈希冲突扫描",
-        "content": "\n        <p class=\"lead\">n 个桶存 k 个键，k/n 越大越可能冲突（生日悖论）：</p>\n        <div class=\"viz\" style=\"padding: 14px; background: #f0f9ff; border-radius: 8px;\">\n          <canvas id=\"gr07s3-chart\" style=\"max-width: 100%;\"></canvas>\n        </div>\n        <div class=\"next-hint\">🔭 <strong>结论</strong> n=100 桶，k=12 时 50% 概率冲突；k=20 时 90%</div>\n      "
+        "content": "\n        <p class=\"lead\">n 个桶存 k 个键，k/n 越大越可能冲突（生日悖论）：</p>\n        <div class=\"viz\" style=\"padding: 14px; background: #f0f9ff; border-radius: 8px;\">\n          <canvas id=\"gr07s3-chart\" style=\"max-width: 100%;\"></canvas>\n        </div>\n        <div class=\"next-hint\">🔭 <strong>结论</strong> n=100 桶，k=12 时约 50% 概率冲突；k=20 时约 87%（1−Π(1−i/100) = 86.96%）</div>\n      "
       },
       {
         "emoji": "🔬",
@@ -4288,7 +4288,7 @@
     "history": "",
     "tryit": "",
     "svgDemo": "",
-    "explain": "同学们好！今天我们来看一个超神奇的\"模拟生命\"游戏——康威 生命游戏。\n\n生命游戏：无限网格上，每个格子是一个\"细胞\"。每个细胞有 2 个状态：活（黑）或死（白）。\n\n演化规则（每\"代\"）：\n1. 活细胞：2-3 个活邻居 → 继续活\n2. 活细胞：< 2 个活邻居 → 孤独死\n3. 活细胞：> 3 个活邻居 → 拥挤死\n4. 死细胞：恰好 3 个活邻居 → 复活\n5. 其他情况不变\n\n邻居：上、下、左、右 + 4 个对角 = 8 个邻居。\n\n生命游戏由英国数学家 John 康威 在 一九七〇年发明。\n\n生命游戏是\"细胞自动机\"——按规则自动演化，超级简单但能产生惊人的复杂行为。\n\n生命游戏能产生的\"结构\"：\n第一条：静止（Still life）：方块、面包、蜂巢\n第二条：振荡子（Oscillator）：眨眼、灯、烽火\n第三条：滑翔机（Glider）：在网格上移动\n第四条：飞船（Spaceship）：轻量级、中量级、重型\n第五条：枪（Gun）：无限产生滑翔机\n第六条：滋生者（Puff）：能吞噬其他结构\n\n经典\"高斯帕滑翔机枪\"（Gosper glider gun）：一九七〇年发现的第一个\"枪\"，周期 30，能无限产生滑翔机。\n\n滑翔机是生命游戏最重要的\"信息载体\"——它能传递信息，就像生物 DNA 编码。\n\n生命游戏\"图灵完备\"——任何计算机能计算的事，生命游戏都能模拟。\n\n生命游戏哲学：\n- 简单规则 → 复杂行为\n- 元胞 → 涌现\n- 生命 → 自组织\n- 现实 → 计算\n\n生命游戏影响：\n- 复杂性科学\n- 人工生命\n- 涌现理论\n- 演化算法\n- 元胞自动机理论\n\n应用：\n- 生物学：细胞分裂建模\n- 计算机：并行计算\n- 物理：粒子系统\n- 艺术：元胞艺术\n\n具体例子：滑翔机 4 个细胞形成\"X\"形：\n.X.\n..X\nXXX\n\n它每 4 代向对角移动 1 格。可以无限移动。\n\n经典\"繁衍者\"（Breeder）：用滑翔机枪组合，每代产生更多滑翔机。\n\n具体 5×5 振荡子（\"灯\"）：十字形细胞\n.X.\n.X.\n.X.\n它周期 2 闪烁。\n\n现在请同学们自己动手：点\"生命游戏\"，看 20×20 网格。点\"随机\"看初始状态。点\"开始\"看演化。试试\"高斯帕枪\"：点\"预设\"选滑翔机枪。明天带过来我们比一比。\n\n记住：数学不只藏在书本里——藏在每一个\"4 条简单规则\"的有趣涌现生命里。",
+    "explain": "同学们好！今天我们来看一个超神奇的\"模拟生命\"游戏——康威 生命游戏。\n\n生命游戏：无限网格上，每个格子是一个\"细胞\"。每个细胞有 2 个状态：活（黑）或死（白）。\n\n演化规则（每\"代\"）：\n1. 活细胞：2-3 个活邻居 → 继续活\n2. 活细胞：< 2 个活邻居 → 孤独死\n3. 活细胞：> 3 个活邻居 → 拥挤死\n4. 死细胞：恰好 3 个活邻居 → 复活\n5. 其他情况不变\n\n邻居：上、下、左、右 + 4 个对角 = 8 个邻居。\n\n生命游戏由英国数学家 John 康威 在 一九七〇年发明。\n\n生命游戏是\"细胞自动机\"——按规则自动演化，超级简单但能产生惊人的复杂行为。\n\n生命游戏能产生的\"结构\"：\n第一条：静止（Still life）：方块、面包、蜂巢\n第二条：振荡子（Oscillator）：眨眼、灯、烽火\n第三条：滑翔机（Glider）：在网格上移动\n第四条：飞船（Spaceship）：轻量级、中量级、重型\n第五条：枪（Gun）：无限产生滑翔机\n第六条：滋生者（Puff）：能吞噬其他结构\n\n经典\"Gosper 滑翔机枪\"（Gosper glider gun）：一九七〇年 Bill Gosper 发现的第一个\"枪\"，周期 30，能无限产生滑翔机。\n\n滑翔机是生命游戏最重要的\"信息载体\"——它能传递信息，就像生物 DNA 编码。\n\n生命游戏\"图灵完备\"——任何计算机能计算的事，生命游戏都能模拟。\n\n生命游戏哲学：\n- 简单规则 → 复杂行为\n- 元胞 → 涌现\n- 生命 → 自组织\n- 现实 → 计算\n\n生命游戏影响：\n- 复杂性科学\n- 人工生命\n- 涌现理论\n- 演化算法\n- 元胞自动机理论\n\n应用：\n- 生物学：细胞分裂建模\n- 计算机：并行计算\n- 物理：粒子系统\n- 艺术：元胞艺术\n\n具体例子：滑翔机 4 个细胞形成\"X\"形：\n.X.\n..X\nXXX\n\n它每 4 代向对角移动 1 格。可以无限移动。\n\n经典\"繁衍者\"（Breeder）：用滑翔机枪组合，每代产生更多滑翔机。\n\n具体 5×5 振荡子（\"灯\"）：十字形细胞\n.X.\n.X.\n.X.\n它周期 2 闪烁。\n\n现在请同学们自己动手：点\"生命游戏\"，看 20×20 网格。点\"随机\"看初始状态。点\"开始\"看演化。试试\"Gosper 滑翔机枪\"：输入演化代数，点\"开始演化\"，盯住左边那串\"第 N 代 = ? 格\"，看它是不是每 30 代多 5 格。明天带过来我们比一比。\n\n记住：数学不只藏在书本里——藏在每一个\"4 条简单规则\"的有趣涌现生命里。",
     "audioUrl": "audio/OT10_explain.mp3",
     "stages": [
       {
@@ -4308,8 +4308,8 @@
       },
       {
         "emoji": "🔬",
-        "title": "进阶: 高斯帕滑翔机枪",
-        "content": "\n        <p class=\"lead\">高斯帕枪（1970 发现）能无限产生滑翔机——生命游戏的\"宇宙工厂\"：</p>\n        <div class=\"viz\" style=\"display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap;\">\n          <div style=\"flex: 1 1 200px;\">\n            <label>大小 <input type=\"number\" id=\"ot10s4-n\" value=\"40\" min=\"20\" max=\"60\" style=\"width: 80px;\"></label><br>\n            <button class=\"primary\" id=\"ot10s4-gun\">▶ 放滑翔机枪</button>\n          </div>\n          <div style=\"flex: 2 1 300px;\">\n            <canvas id=\"ot10s4-cv\" style=\"width: 100%; border-radius: 4px; border: 1px solid var(--line); background: #fff;\"></canvas>\n          </div>\n        </div>\n        <div class=\"next-hint\">🔬 <strong>Gosper Glider Gun</strong>：周期 30，能无限产生滑翔机——可作为\"信息载体\"模拟 DNA</div>\n      "
+        "title": "进阶: Gosper 滑翔机枪",
+        "content": "\n        <p class=\"lead\"><strong style=\"color:#7c3aed;\">Gosper 滑翔机枪</strong>（Bill Gosper，1970）只有 36 个活格，却能<strong>无限</strong>吐出滑翔机——生命游戏的\"宇宙工厂\"：</p>\n        <div class=\"viz\" style=\"display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap;\">\n          <div style=\"flex: 1 1 200px;\">\n            <label>演化代数 <input type=\"number\" id=\"ot10s4-n\" value=\"240\" min=\"30\" max=\"600\" step=\"30\" style=\"width: 90px;\"></label><br><br>\n            <button class=\"primary\" id=\"ot10s4-gun\">▶ 开始演化</button>\n            <div id=\"ot10s4-stat\" style=\"margin-top: 12px; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.8;\"></div>\n          </div>\n          <div style=\"flex: 2 1 300px;\">\n            <canvas id=\"ot10s4-cv\" style=\"width: 100%; border-radius: 4px; border: 1px solid var(--line); background: #fff;\"></canvas>\n          </div>\n        </div>\n        <div class=\"next-hint\">🔬 <strong>看左边那串数字</strong>：枪体本身是周期 30 的稳定结构，每 30 代总格数<strong>恰好 +5</strong>（正好一个滑翔机的格数），于是呈<strong>线性增长</strong>——注意画布视野会自动拉大，因为滑翔机一直往外飞。 Conway 当年猜想\"有限初始必然有限\"，滑翔机枪正是反例。</div>\n      "
       },
       {
         "emoji": "📅",
