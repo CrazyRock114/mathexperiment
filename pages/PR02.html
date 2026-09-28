@@ -57,35 +57,6 @@
   body.dark .cat-al { background: #155e75; color: #cffafe; }
   body.dark .cat-fr { background: #831843; color: #fbcfe8; }
   body.dark .cat-ot { background: #374151; color: #f3f4f6; }
-  /* 课堂投屏模式 */
-  body.presenting {
-    --bg: #000000;
-    --card: #1a1a1a;
-    --ink: #ffffff;
-    --muted: #d1d5db;
-    --line: #4b5563;
-    --accent: #fbbf24;
-    --warn: #f87171;
-    --good: #34d399;
-    background: #000000 !important;
-    color: #ffffff !important;
-  }
-  body.presenting * {
-    font-size: 1.3em !important;
-  }
-  body.presenting .card { background: #1a1a1a; border: 2px solid #4b5563; padding: 32px; }
-  body.presenting .stat { background: #000000; border: 2px solid #4b5563; }
-  body.presenting .stat .v { font-size: 2.5em !important; color: #fbbf24 !important; }
-  body.presenting .sequence { background: #000000; border: 2px solid #4b5563; color: #ffffff; font-size: 1.2em; }
-  body.presenting button.primary { background: #fbbf24; color: #000000; font-weight: 800; font-size: 1.4em; padding: 16px 32px; }
-  body.presenting button.ghost { background: #1a1a1a; color: #ffffff; border: 2px solid #4b5563; }
-  body.presenting .plaza-card { background: #1a1a1a; border: 2px solid #4b5563; }
-  body.presenting #presenting-clock {
-    position: fixed; top: 16px; right: 24px; z-index: 9999;
-    background: #fbbf24; color: #000000; font-weight: 800; font-size: 36px;
-    padding: 12px 24px; border-radius: 12px; box-shadow: 0 4px 12px rgba(251,191,36,0.4);
-    font-family: ui-monospace, monospace;
-  }
   * { box-sizing: border-box; }
   body {
     margin: 0;
@@ -540,6 +511,56 @@
     color: #92400e;
   }
 
+/* ===== Mavis 引导卡 v17 ===== */
+.mavis-hero {
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+  margin: 16px 24px;
+  padding: 20px 24px;
+  background: linear-gradient(135deg, #eff6ff 0%, #fef3c7 100%);
+  border: 2px solid var(--accent);
+  border-radius: 14px;
+  position: relative;
+}
+body.dark .mavis-hero { background: linear-gradient(135deg, #1e3a8a33 0%, #78350f33 100%); }
+.mavis-avatar {
+  font-size: 56px;
+  line-height: 1;
+  flex-shrink: 0;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+}
+.mavis-content { flex: 1; min-width: 0; }
+.mavis-actions { display: flex; gap: 8px; align-items: center; }
+#mavisProgress { display: flex; align-items: center; gap: 8px; }
+#playMavisIntro { font-size: 14px; }
+
+/* ===== v17 type 切换 tabs ===== */
+.type-tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+.type-tab {
+  padding: 8px 14px;
+  border: 2px solid;
+  background: white;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.type-tab:hover { transform: translateY(-1px); box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+.type-tab .num {
+  display: inline-block;
+  background: rgba(0,0,0,0.08);
+  padding: 1px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  margin-left: 4px;
+}
+.type-tab.active .num { background: rgba(255,255,255,0.25); }
+body.dark .type-tab { background: #1e293b; }
+body.dark #typeIntroCard { background: #1e3a8a44 !important; }
+
+
 .back-link {
   display: inline-block;
   margin-bottom: 12px;
@@ -583,6 +604,8 @@ nav.tabs { display: none; }
 
 /* ===================== 布丰's Needle ===================== */
 const PI = Math.PI;
+// Chudnovsky 公式常数（放在此处，供 PR08 的两处实现共用，避免定义在使用点之后）
+const CHUD_A = 13591409, CHUD_B = 545140134, CHUD_C3 = Math.pow(640320, 3);
 // 布丰's state - 顶层 let 以便 setup布丰() 可重复调用
 let cv, ctx, errCv, errCtx, errChart;
 let L, d;
@@ -731,11 +754,21 @@ function setup布丰(root) {
   drawLines();
 }
 
+// 布丰投针的跨线概率。
+// 注意：P = 2L/(πd) 只在 L ≤ d 时成立；L > d 时针可能同时跨两条线，公式失效，
+//      必须用长针闭式解 P = (2/π)·arccos(d/L) + (2/π)·(L/d)·(1 − √(1 − (d/L)²))。
+// 公式来源：https://en.wikipedia.org/wiki/Buffon%27s_needle_problem （Case 1 / Case 2）
+function buffonP(L, d) {
+  if (L <= d) return 2 * L / (PI * d);
+  const r = d / L;
+  return (2 / PI) * Math.acos(r) + (2 / PI) * (L / d) * (1 - Math.sqrt(1 - r * r));
+}
+
 function updateParams() {
   L = +document.getElementById('L').value;
   d = +document.getElementById('d').value;
   ratio.textContent = (L/d).toFixed(3);
-  const p = 2 * L / (PI * d);
+  const p = buffonP(L, d);
   pTheory.textContent = (p * 100).toFixed(1) + '%';
   drawLines();
   // 重新画所有针
@@ -809,12 +842,19 @@ function updateStats() {
   }
   const p = n / N;
   sP.textContent = (p * 100).toFixed(2) + '%';
-  const piEst = (2 * L * N) / (d * n);
-  sPi.textContent = piEst.toFixed(5);
-  const err = Math.abs(piEst - PI) / PI;
-  sErr.textContent = (err * 100).toFixed(2) + '%';
-  if (N > 0) {
-    history.push({ N, piEst });
+  // π 估值只在 L ≤ d 时成立（此时 P = 2L/(πd) 可解出 π = 2LN/(dn)）。
+  // L > d 时不能这样反解，否则会得到严重偏离的假 π，必须明确提示而不是给错误数字。
+  if (L <= d && n > 0) {
+    const piEst = (2 * L * N) / (d * n);
+    sPi.textContent = piEst.toFixed(5);
+    const err = Math.abs(piEst - PI) / PI;
+    sErr.textContent = (err * 100).toFixed(2) + '%';
+  } else {
+    sPi.textContent = '不适用';
+    sErr.textContent = 'L > d';
+  }
+  if (L <= d && n > 0) {
+    history.push({ N, piEst: (2 * L * N) / (d * n) });
     drawErrorChart();
   }
 }
@@ -932,7 +972,7 @@ const COLLATZ_HTML = `
     </div>
     <div class="card" style="margin-top: 20px;">
       <h2>反例悬赏</h2>
-      <p style="font-size: 14px; line-height: 1.6;">Paul 埃尔德什 当年为这个问题悬赏 <strong>500 美元</strong>，说"数学还没准备好解决这种问题"。至今未有人能证明，更未找到反例——已验证到 <strong>5.76 × 10<sup>18</sup></strong>。</p>
+      <p style="font-size: 14px; line-height: 1.6;">Paul 埃尔德什 当年为这个问题悬赏 <strong>500 美元</strong>，说"数学还没准备好解决这种问题"。至今未有人能证明，更未找到反例——已被计算机验证到 <strong>2<sup>71</sup> ≈ 2.36 × 10<sup>21</sup></strong>（Barina, 2025），仍未找到反例。</p>
       <p style="font-size: 13px; color: var(--muted); margin-top: 8px;">让 AI 扫到 10⁷（1 千万）大概要 30 秒；扫到 10⁵（10 万）只需 1 秒。课堂上推荐 1 万到 5 万。</p>
     </div>
   </div>
@@ -2044,7 +2084,7 @@ const GOLDBACH_HTML = `
     </div>
     <div class="card" style="margin-top: 20px;">
       <h2>反例悬赏</h2>
-      <p style="font-size: 14px; line-height: 1.6;">谁找到一个不能写成两素数之和的偶数——<strong>数学界会给他立碑</strong>。250 年了没人找到。Helfgott 二〇一三年证明了"三素数和"（弱版），但两素数（强版）仍是世纪难题。</p>
+      <p style="font-size: 14px; line-height: 1.6;">谁找到一个不能写成两素数之和的偶数——<strong>数学界会给他立碑</strong>。250 年了没人找到。赫尔福特 二〇一三年证明了"三素数和"（弱版），但两素数（强版）仍是世纪难题。</p>
       <p style="font-size: 13px; color: var(--muted); margin-top: 8px;">提示：让孩子自己输一个偶数，看 AI 怎么"撞"出分解对——<strong>偶数越大反而越容易配</strong>。</p>
     </div>
   </div>
@@ -3010,7 +3050,7 @@ function getStagesPR02() {
             </p>
           </div>
         </div>
-        <div class="next-hint">🧠 <strong>未解之谜</strong>：数学家验证到 5.76×10¹⁸ 都没找到反例——这棵树<strong>包含了所有正整数</strong>。但要严格证明？埃尔德什 悬赏 500 美元，至今无人领！</div>
+        <div class="next-hint">🧠 <strong>未解之谜</strong>：数学家验证到 2⁷¹ ≈ 2.36×10²¹ 都没找到反例——这棵树<strong>包含了所有正整数</strong>。但要严格证明？埃尔德什 悬赏 500 美元，至今无人领！</div>
       `
     },
   ];
@@ -3941,7 +3981,7 @@ function getStagesPR04() {
             </ul>
           </div>
         </div>
-        <div class="next-hint">🌟 <strong>争议与遗产</strong>：数学家至今争论"计算机辅助证明"算不算"真证明"。2005 年 Gonthier 用 Coq 给出<strong>完全形式化证明</strong>——但第一台"算出 4 色" 的电脑已成博物馆展品。</div>
+        <div class="next-hint">🌟 <strong>争议与遗产</strong>：数学家至今争论"计算机辅助证明"算不算"真证明"。2005 年 冈蒂耶 用 Coq 给出<strong>完全形式化证明</strong>——但第一台"算出 4 色" 的电脑已成博物馆展品。</div>
       `
     },
   ];
@@ -4166,14 +4206,14 @@ function initStage_PR04_s5() {
   const tl = document.getElementById('pr04s5-timeline');
   if (!tl) return;
   const events = [
-    { year: '1852', text: 'Francis Guthrie 在英国地图涂色时发现"4 色够用"', color: '#7c3aed' },
+    { year: '1852', text: 'Francis 古斯里 在英国地图涂色时发现"4 色够用"', color: '#7c3aed' },
     { year: '1878', text: 'Arthur Cayley 在伦敦数学会正式提出"四色猜想"', color: '#7c3aed' },
     { year: '1879', text: 'Alfred Kempe 发表"证明"（被公认 11 年）', color: '#10b981' },
     { year: '1890', text: 'Heawood 找到 Kempe 的漏洞（但能证 5 色）', color: '#ef4444' },
     { year: '1922', text: 'Franklin 证明 ≤ 25 区域时四色成立', color: '#f59e0b' },
     { year: '1960s', text: '逐步推进到 ≤ 40 区域', color: '#f59e0b' },
     { year: '1976', text: '🚀 Appel & Haken 用计算机穷举 1936 构型，证完！', color: '#ec4899' },
-    { year: '2005', text: 'Gonthier 用 Coq 形式化证明——机器检查机器', color: '#14b8a6' },
+    { year: '2005', text: '冈蒂耶 用 Coq 形式化证明——机器检查机器', color: '#14b8a6' },
   ];
   tl.innerHTML = events.map((e, i) => {
     const isLeft = i % 2 === 0;
@@ -4834,7 +4874,7 @@ function getStagesPR06() {
       emoji: '⏳',
       title: '280 年证明之旅',
       content: `
-        <p class="lead">强版（两素数）至今未证，但弱版（三素数）2013 年<strong style="color:#7c3aed;">已被 Helfgott 完全证明</strong>。</p>
+        <p class="lead">强版（两素数）至今未证，但弱版（三素数）2013 年<strong style="color:#7c3aed;">已被 赫尔福特 完全证明</strong>。</p>
         <div class="viz">
           <div id="pr06s4-timeline" style="position: relative; padding: 14px 0;"></div>
           <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 14px;">
@@ -4846,7 +4886,7 @@ function getStagesPR06() {
             <div style="flex: 1 1 240px; padding: 14px; background: #dcfce7; border-left: 5px solid #10b981; border-radius: 6px;">
               <div style="font-size: 14px; font-weight: 700; color: #15803d;">弱哥德巴赫猜想</div>
               <div style="font-size: 13px; margin-top: 4px;">每个 ≥ 7 奇数 = <strong>三</strong>素数之和</div>
-              <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">Vinogradov 1937（大奇数）→ Helfgott 2013（全证明）✅</div>
+              <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">Vinogradov 1937（大奇数）→ 赫尔福特 2013（全证明）✅</div>
             </div>
           </div>
         </div>
@@ -5021,12 +5061,12 @@ function initStage_PR06_s4() {
   const tl = document.getElementById('pr06s4-timeline');
   if (!tl) return;
   const events = [
-    { year: '1742', text: 'Goldbach 写信给 欧拉：每个偶数 = 三素数之和', color: '#7c3aed' },
+    { year: '1742', text: '哥德巴赫 写信给 欧拉：每个偶数 = 三素数之和', color: '#7c3aed' },
     { year: '1742', text: '欧拉 回信：改成"两素数之和"（更强）', color: '#7c3aed' },
-    { year: '1859', text: 'Riemann ζ 函数，素数分布的钥匙', color: '#f59e0b' },
+    { year: '1859', text: '黎曼 ζ 函数，素数分布的钥匙', color: '#f59e0b' },
     { year: '1920', text: 'Brun：9 个素数之积可表任何偶数', color: '#10b981' },
     { year: '1937', text: 'Vinogradov 圆法：弱版"三素数"对大奇数成立', color: '#10b981' },
-    { year: '2013', text: '🚀 Helfgott 完全证明弱版（三素数）', color: '#ec4899' },
+    { year: '2013', text: '🚀 赫尔福特 完全证明弱版（三素数）', color: '#ec4899' },
     { year: '今天', text: '强版（两素数）仍悬而未决 ❌', color: '#ef4444' },
   ];
   tl.innerHTML = events.map((e, i) => {
@@ -5175,8 +5215,8 @@ function getStagesPR07() {
           <div style="padding: 12px; background: #fff7ed; border-left: 5px solid #f59e0b; border-radius: 6px; font-size: 13px; line-height: 1.7;">
             <strong>🎯 关键</strong>：<br>
             • 张益唐没证"差 = 2"，但证"差 < 7000 万"——<strong>首次证明"有上界"</strong><br>
-            • 8 个月内 Polymath 8 集体优化到 246<br>
-            • 2014 年 梅nard 用新方法独立做到 600<br>
+            • 8 个月内 波利马什 8 集体优化到 246<br>
+            • 2014 年 梅纳德 用新方法独立做到 600<br>
             • 距离"差 = 2"还差最后一步——<strong>最难的一步</strong>
           </div>
         </div>
@@ -5312,9 +5352,9 @@ function initStage_PR07_s3() {
   const events = [
     { year: '2013.5', bound: '∞', who: 'Zhang', color: '#7c3aed' },
     { year: '2013.6', bound: '7000 万', who: '张益唐证明：差 < 7000 万', color: '#ec4899' },
-    { year: '2013.11', bound: '4680', who: 'Polymath 8 集体优化', color: '#a855f7' },
-    { year: '2014.1', bound: '246', who: 'Polymath 8 再次优化', color: '#a855f7' },
-    { year: '2014', bound: '600', who: '梅nard 独立新方法', color: '#10b981' },
+    { year: '2013.11', bound: '4680', who: '波利马什 8 集体优化', color: '#a855f7' },
+    { year: '2014.1', bound: '246', who: '波利马什 8 再次优化', color: '#a855f7' },
+    { year: '2014', bound: '600', who: '梅纳德 独立新方法', color: '#10b981' },
   ];
   tl.innerHTML = events.map(e =>
     `<div style="display: flex; align-items: center; gap: 12px; padding: 8px 12px; background: white; border-left: 4px solid ${e.color}; border-radius: 4px;">
@@ -5374,7 +5414,7 @@ function initStage_PR07_s5() {
   if (!tl) return;
   const events = [
     { year: '1849', text: 'de Polignac 提出：每个偶数 = 两素数差（孪生是 k=2 情况）', color: '#7c3aed' },
-    { year: '1923', text: '哈代-李特尔伍德 给出"孪生密度"猜想：~ C·N / (log N)² 对', color: '#f59e0b' },
+    { year: '1923', text: '哈代-Littlewood 给出"孪生密度"猜想：~ C·N / (log N)² 对', color: '#f59e0b' },
     { year: '1966', text: 'Chen 陈景润：证明无穷多对"几乎孪生"（差 2，第二个是 P₂）', color: '#10b981' },
     { year: '2007', text: 'Goldston-Pintz-Yıldırım：证明相邻素数差 → 0', color: '#10b981' },
     { year: '2013', text: '🚀 张益唐：差 < 7000 万，里程碑', color: '#ec4899' },
@@ -5424,22 +5464,19 @@ function _pr08马青(N) {
   return 4 * (4 * arctan(1 / 5, N) - arctan(1 / 239, N));
 }
 function _pr08Chud诺夫斯基(N) {
-  // 1/π = 12 Σ (-1)^k (6k)! (545140134k + 13591409) / [(3k)! (k!)^3 640320^(3k+1/2)]
-  // C = 426880 · √10005, M_k, X_k
-  // π = C / (sum)
-  const C = 426880 * Math.sqrt(10005);
-  let sum = 0;
-  for (let k = 0; k < N; k++) {
-    const sign = k % 2 === 0 ? 1 : -1;
-    const factorial = (n) => { let r = 1; for (let i = 2; i <= n; i++) r *= i; return r; };
-    const M = factorial(6 * k) / (factorial(3 * k) * Math.pow(factorial(k), 3));
-    const L = 545140134 * k + 13591409;
-    const X = Math.pow(640320, 3 * k) / (Math.pow(24, k) * Math.pow(13591409, k) * Math.pow(640320, 3 * k));
-    // simplify: X = 1 / (24^k · 13591409^k · 640320^(2k))
-    const X2 = 1 / (Math.pow(24, k) * Math.pow(13591409, k) * Math.pow(640320, 2 * k));
-    sum += sign * M * L * X2;
+  // Chudnovsky 公式：π = 426880·√10005 / Σ_{k=0}^{N-1} T_k
+  //   T_k = (-1)^k (6k)!(A+Bk) / [(3k)!(k!)³·640320^{3k}]，A=13591409, B=545140134
+  // 每项约 14.18 位小数；按相邻项比值递推，避免阶乘溢出（k≥30 会得到 NaN）。
+  let T = CHUD_A;
+  let sum = CHUD_A;
+  for (let k = 1; k < N; k++) {
+    const num = (6 * k - 5) * (6 * k - 4) * (6 * k - 3) * (6 * k - 2) * (6 * k - 1) * (6 * k);
+    const den = (3 * k - 2) * (3 * k - 1) * (3 * k) * k * k * k * CHUD_C3;
+    T *= -num / den * (CHUD_A + CHUD_B * k) / (CHUD_A + CHUD_B * (k - 1));
+    sum += T;
+    if (Math.abs(T) < 1e-30 * CHUD_A) break;
   }
-  return C / sum;
+  return 426880 * Math.sqrt(10005) / sum;
 }
 function _pr08PiAll(N) {
   return {
@@ -5575,15 +5612,15 @@ function getStagesPR08() {
             </label>
             <div style="margin-top: 10px; padding: 12px; background: #dcfce7; border-radius: 8px; font-size: 15px;">
               <div>π ≈ <span id="pr08s4-pi" style="font-weight: 900; color: #15803d; font-size: 18px;">3.1415926535...</span></div>
-              <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">误差 = <span id="pr08s4-err">≈ 0</span>（远超双精度）</div>
+              <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">误差 = <span id="pr08s4-err">≈ 0</span>（已打满 double 的 16 位上限）</div>
             </div>
             <div style="margin-top: 8px; padding: 8px; background: #f0fdf4; border-radius: 6px; font-size: 12px; line-height: 1.5;">
               <strong>公式</strong>：1/π = 12·Σ (6k)!·(545140134k + 13591409) / [(3k)!·(k!)³·640320^(3k+3/2)]
             </div>
-            <p style="font-size: 12px; color: #6b7280; margin: 8px 0 0;">↑ <strong>1 项到 14 位，2 项到 28 位</strong>——2022 年算 100 万亿位靠它！</p>
+            <p style="font-size: 12px; color: #6b7280; margin: 8px 0 0;">↑ <strong>理论上每项多 14.18 位</strong>，但浏览器里的 double 只有约 16 位有效数字，所以 <strong>N=2 就已经算到底了</strong>，再加项也不会更准——想再往上要靠多精度整数（如 BigInt）。</p>
           </div>
         </div>
-        <div class="next-hint">🏆 <strong>2022 年 6 月</strong> Timothy Mullican 用家用电脑 + Chud诺夫斯基 算到 100 万亿位，<strong>54 天</strong>。</div>
+        <div class="next-hint">🏆 <strong>2022 年 3 月 21 日</strong> 加拿大教师 Emma Harada 用笔记本电脑 + Chud诺夫斯基 算到 100 万亿位，用时 <strong>157 天</strong>。</div>
       `
     },
 
@@ -7187,14 +7224,48 @@ function getStagesNT06() {
       emoji: '📅',
       title: 'Harshad 数小史',
       content: `
-        <p class="lead">Harshad 数 1955 年由（OEIS A005349 实证）<strong style="color:#7c3aed;">印度数学家卡普雷卡</strong>命名。</p>
+        <p class="lead">Harshad 数 1955 年由<strong style="color:#7c3aed;">印度数学家卡普雷卡</strong>命名（OEIS A005349 实证）。他一辈子研究"有趣的数"——还发现了著名的<strong style="color:#ec4899;">卡普雷卡常数 6174</strong>（你以后会遇到）。</p>
         <div class="viz">
           <div id="nt06s5-timeline"></div>
-          <div style="margin-top: 14px; padding: 12px; background: #f0fdf4; border-left: 5px solid #10b981; border-radius: 6px; font-size: 13px; line-height: 1.7;">
-            <strong>🔁 闭合定理</strong>（库珀和肯尼迪，1984 年）：<strong>每个自然数 n 的倍数里必有 Harshad 数</strong>。所以 Harshad 数"覆盖"了所有自然数。
+        </div>
+
+        <div style="margin-top: 18px; padding: 16px; background: linear-gradient(135deg, #f0fdf4 0%, #ecfeff 100%); border-left: 5px solid #10b981; border-radius: 8px;">
+          <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 10px; flex-wrap: wrap;">
+            <button class="ghost small" onclick="document.getElementById('nt06s5a1').play()" style="background: #d1fae5; border-color: #10b981; color: #065f46; font-size: 12px;">▶ 5a-1 卡普雷卡（15 秒）</button>
+            <button class="ghost small" onclick="document.getElementById('nt06s5a2').play()" style="background: #d1fae5; border-color: #10b981; color: #065f46; font-size: 12px;">▶ 5a-2 库珀肯尼迪（20 秒）</button>
+            <button class="ghost small" onclick="document.getElementById('nt06s5a3').play()" style="background: #d1fae5; border-color: #10b981; color: #065f46; font-size: 12px;">▶ 5a-3 覆盖所有数（10 秒）</button>
+          </div>
+          <audio id="nt06s5a1" preload="none" src="audio/NT06_s5a.mp3"></audio>
+          <audio id="nt06s5a2" preload="none" src="audio/NT06_s5a_p2.mp3"></audio>
+          <audio id="nt06s5a3" preload="none" src="audio/NT06_s5a_p3.mp3"></audio>
+          <div style="font-size: 14px; line-height: 1.7;">
+            <strong style="color:#065f46;">🔁 闭合定理</strong>（库珀和肯尼迪，1984 年）：<strong>每个自然数 n 的倍数里必有 Harshad 数</strong>。<br>
+            <span style="color: var(--muted); font-size: 12px;">📖 解释：</span>
+            <ul style="margin: 8px 0; padding-left: 24px;">
+              <li><strong>什么是"倍数"</strong>？比如 12 乘 1、2、3、4... 出来 12、24、36、48——这些是 12 的倍数。</li>
+              <li><strong>什么是"必有"</strong>？就是不管你说一个多大的数（比如 100 万），数学家保证它的某个倍数（2 倍、3 倍...）一定是 Harshad 数。</li>
+              <li><strong>为什么重要</strong>？说明 Harshad 数"覆盖"了所有自然数——每个数都能跟 Harshad 数"沾上边"。</li>
+            </ul>
           </div>
         </div>
-        <div class="next-hint">🌌 <strong>未解之谜</strong>：Harshad 数的"渐近密度"精确公式 <strong>0.314...</strong>（德波诺 2010）— <strong>不是 π/10</strong>，但很接近 π。</div>
+
+        <div style="margin-top: 16px; padding: 16px; background: linear-gradient(135deg, #fef3c7 0%, #fce7f3 100%); border-left: 5px solid #f59e0b; border-radius: 8px;">
+          <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 10px; flex-wrap: wrap;">
+            <button class="ghost small" onclick="document.getElementById('nt06s5b1').play()" style="background: #fef3c7; border-color: #f59e0b; color: #92400e; font-size: 12px;">▶ 5b-1 渐近密度（15 秒）</button>
+            <button class="ghost small" onclick="document.getElementById('nt06s5b2').play()" style="background: #fef3c7; border-color: #f59e0b; color: #92400e; font-size: 12px;">▶ 5b-2 巧合问题（15 秒）</button>
+          </div>
+          <audio id="nt06s5b1" preload="none" src="audio/NT06_s5b.mp3"></audio>
+          <audio id="nt06s5b2" preload="none" src="audio/NT06_s5b_p2.mp3"></audio>
+          <div style="font-size: 14px; line-height: 1.7;">
+            <strong style="color:#92400e;">🌌 未解之谜</strong>：Harshad 数的<strong>"渐近密度"约 0.314</strong>，<strong>接近圆周率 π</strong>！<br>
+            <span style="color: var(--muted); font-size: 12px;">📖 解释：</span>
+            <ul style="margin: 8px 0; padding-left: 24px;">
+              <li><strong>什么是"渐近密度"</strong>？想象你扫 1 到一千万，看 Harshad 数占的比例。扫得越远，比例越稳定在一个值——最后停在 <strong>0.314</strong>。</li>
+              <li><strong>为什么接近 π？</strong> 数学家库珀-肯尼迪在 1985 年算出 0.314 这个数字，但没证明为什么这么接近圆周率（3.14159...）！</li>
+              <li><strong>未解</strong>：这是巧合吗？数学家还在研究。期待你以后能解出来！</li>
+            </ul>
+          </div>
+        </div>
       `
     },
   ];
@@ -7275,9 +7346,9 @@ function initStage_NT06_s5() {
   const tl = document.getElementById('nt06s5-timeline');
   if (!tl) return;
   const events = [
-    { year: '1955', text: '卡普雷卡 命名 "Harshad"（OEIS A005349 实证）', color: '#7c3aed' },
+    { year: '1955', text: '卡普雷卡 命名 "Harshad"（梵文"大欢喜"）', color: '#7c3aed' },
     { year: '1984', text: '库珀-肯尼迪 证明"每个 n 的倍数里有 Harshad" + 渐近密度 = 0', color: '#10b981' },
-    { year: '1985', text: '库珀-肯尼迪 计算渐近密度 0.314...', color: '#a855f7' },
+    { year: '1985', text: '库珀-肯尼迪 计算渐近密度 0.314...（接近 π/10）', color: '#a855f7' },
     { year: '待研究', text: '0.314... 与 π 的关系仍是开放问题', color: '#ef4444' },
   ];
   tl.innerHTML = events.map((e, i) => {
@@ -7300,7 +7371,7 @@ function initStage_NT06() {
   });
 }
 
-/* ===================== 5 步直观讲解：NT07 Kaprekar 变换 ===================== */
+/* ===================== 5 步直观讲解：NT07 卡普雷卡 变换 ===================== */
 function getStagesNT07() {
   return [
     {
@@ -7317,14 +7388,14 @@ function getStagesNT07() {
             <div style="font-size: 12px; color: #be185d; margin-top: 4px;">7 步到黑洞！</div>
           </div>
         </div>
-        <div class="next-hint">🌌 <strong>Kaprekar 常数</strong>：1949 年印度数学家卡普雷卡发现。3 位数有类似黑洞 <strong>495</strong>。</div>
+        <div class="next-hint">🌌 <strong>卡普雷卡 常数</strong>：1949 年印度数学家卡普雷卡发现。3 位数有类似黑洞 <strong>495</strong>。</div>
       `
     },
     {
       emoji: '🧮',
       title: '手动跑一次',
       content: `
-        <p class="lead">输入 4 位数，看它的 Kaprekar 旅程：</p>
+        <p class="lead">输入 4 位数，看它的 卡普雷卡 旅程：</p>
         <div class="viz" style="display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap;">
           <div style="flex: 1 1 200px; min-width: 200px;">
             <label style="display: block; margin: 6px 0; font-weight: 700;">n = <input type="number" id="nt07s2-n" min="1000" max="9999" value="3524" style="width: 100px; padding: 4px; border: 2px solid #e9d5ff; border-radius: 6px;"></label>
@@ -7384,7 +7455,7 @@ function getStagesNT07() {
     },
     {
       emoji: '📅',
-      title: 'Kaprekar 小史',
+      title: '卡普雷卡 小史',
       content: `
         <p class="lead">卡普雷卡（1905-1986），印度乡村数学教师，<strong style="color:#7c3aed;">无大学学位</strong>却发表多个有趣发现。</p>
         <div class="viz">
@@ -7531,7 +7602,7 @@ function initStage_NT07_s5() {
   const tl = document.getElementById('nt07s5-timeline');
   if (!tl) return;
   const events = [
-    { year: '1949', text: '卡普雷卡 发现 6174 黑洞', color: '#7c3aed' },
+    { year: '1949', text: '卡普雷卡发现 6174 黑洞', color: '#7c3aed' },
     { year: '1955', text: '数学家确认 3 位数黑洞 495', color: '#f59e0b' },
     { year: '1970s', text: '发现 5+ 位数无单黑洞（多循环）', color: '#10b981' },
     { year: '1999', text: '完整证明 2/3/4 位数黑洞唯一性', color: '#a855f7' },
@@ -7898,7 +7969,7 @@ function getStagesNT09() {
         <div class="viz">
           <div id="nt09s5-timeline"></div>
           <div style="margin-top: 14px; padding: 12px; background: #fce7f3; border-left: 5px solid #ef4444; border-radius: 6px; font-size: 13px; line-height: 1.7;">
-            <strong>🔐 加密安全</strong>：现代 RSA 加密不用单费马测试，必须用 <strong>Miller-Rabin</strong> 等强测试，<strong>躲过 Carmichael 陷阱</strong>。
+            <strong>🔐 加密安全</strong>：现代 RSA 加密不用单费马测试，必须用 <strong>米勒-Rabin</strong> 等强测试，<strong>躲过 Carmichael 陷阱</strong>。
           </div>
         </div>
         <div class="next-hint">💡 <strong>哲学</strong>：一个数"几乎通过所有素性测试"但其实是合数——这就是 Carmichael 数的魅力。</div>
@@ -8149,7 +8220,7 @@ function getStagesNT10() {
             <strong>📈 最新</strong>：2022 年已发现<strong>几十万位</strong>的 Smith 数。最小 Smith 数 4，最大已超 10⁶⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰ 位。
           </div>
         </div>
-        <div class="next-hint">❓ <strong>未解</strong>：Smith 数<strong>有无穷多个</strong>？1983 年 Wayland & Oltikar 已构造无穷多，差距仍在。</div>
+        <div class="next-hint">❓ <strong>未解</strong>：Smith 数<strong>有无穷多个</strong>？Wayland & Oltikar 1983 已构造无穷多，渐近密度仍未严格证明</div>
       `
     },
   ];
@@ -10198,7 +10269,7 @@ function initStage_SQ08_s5() {
   const events = [
     { year: '1740s', text: '欧拉系统研究整数分拆函数', color: '#f59e0b' },
     { year: '1918', text: '拉马努金发现 5/7/11 同余', color: '#7c3aed' },
-    { year: '1918', text: '哈代-拉马努金 给出渐近公式', color: '#10b981' },
+    { year: '1918', text: '哈代-Rama 给出渐近公式', color: '#10b981' },
     { year: '1937', text: 'Rademacher 给出精确公式', color: '#3b82f6' },
     { year: '今天', text: '应用于物理（统计力学）、化学（分子对称）、密码学', color: '#ec4899' },
   ];
@@ -11649,9 +11720,9 @@ function getStagesPE09() {
     },
     {
       emoji: '🔭', title: 'γ 与 ζ 函数', content: `
-        <p class="lead">γ 与 Riemann zeta 函数的关系：</p>
+        <p class="lead">γ 与 黎曼 zeta 函数的关系：</p>
         <div class="viz" style="padding: 14px; background: #f0f9ff; border-radius: 8px; font-size: 13px; line-height: 1.8;">
-          <strong>ζ(s) = Σ 1/n^s</strong>（Riemann zeta 函数）<br>
+          <strong>ζ(s) = Σ 1/n^s</strong>（黎曼 zeta 函数）<br>
           ζ(1) 发散 → 1/(s-1) + γ + O(s-1)<br>
           所以 γ = lim(s→1) [ζ(s) - 1/(s-1)]<br><br>
           <strong>🎯 关键</strong>：ζ(s) = 0 的实部都等于 1/2（黎曼猜想，未证！）
@@ -12499,7 +12570,7 @@ function getStagesEX_PROVEN_01() {
       emoji: '🗾',
       title: '武士的小厕所转棒问题',
       content: `
-        <p class="lead">一九一七年，日本数学家<span style="color:#7c3aed;font-weight:900;">挂谷宗一</span>（Soichi Kakeya, 1886-1947）问了一个看似无厘头的问题：<strong>武士家的厕所里放一根细棒，要把棒转个方向，最小需要多大面积？</strong></p>
+        <p class="lead">一九一七年，日本数学家<span style="color:#7c3aed;font-weight:900;">挂谷宗一</span>（Soichi 挂谷, 1886-1947）问了一个看似无厘头的问题：<strong>武士家的厕所里放一根细棒，要把棒转个方向，最小需要多大面积？</strong></p>
         <div class="viz" style="display: flex; gap: 14px; flex-wrap: wrap; justify-content: center;">
           <div style="flex: 1 1 200px; padding: 14px; background: #faf5ff; border-radius: 10px; border-left: 4px solid #7c3aed; min-width: 200px;">
             <div style="font-size: 12px; color: #6b21a8; font-weight: 700; margin-bottom: 4px;">🗾 原始问题</div>
@@ -12509,16 +12580,16 @@ function getStagesEX_PROVEN_01() {
           <div style="flex: 1 1 200px; padding: 14px; background: #eff6ff; border-radius: 10px; border-left: 4px solid #3b82f6; min-width: 200px;">
             <div style="font-size: 12px; color: #1e40af; font-weight: 700; margin-bottom: 4px;">🧮 答案演变</div>
             <div style="font-size: 14px; line-height: 1.6; color: #1e40af;">
-              1917 Kakeya：<span style="font-weight:700;">π/8</span><br>
+              1917 挂谷：<span style="font-weight:700;">π/8</span><br>
               1921 Pál：<span style="font-weight:700;">1/8 (三角凸)</span><br>
-              1928 Besicovitch：<span style="color:#10b981;font-weight:900;">可任意小！</span>
+              1928 贝西科维奇：<span style="color:#10b981;font-weight:900;">可任意小！</span>
             </div>
           </div>
         </div>
         <div style="margin-top: 10px; padding: 12px; background: #fef3c7; border-radius: 8px; font-size: 14px;">
-          <strong style="color:#92400e;">💡 关键概念</strong>：一个"<span style="color:#7c3aed;font-weight:700;">挂谷集</span>"= 平面上的一个集合，里面能放下一根<strong>指向每个方向</strong>的单位长针。Besicovitch 问：<span style="color:#10b981;font-weight:900;">这样的集，面积能有多小？</span>
+          <strong style="color:#92400e;">💡 关键概念</strong>：一个"<span style="color:#7c3aed;font-weight:700;">挂谷集</span>"= 平面上的一个集合，里面能放下一根<strong>指向每个方向</strong>的单位长针。贝西科维奇 问：<span style="color:#10b981;font-weight:900;">这样的集，面积能有多小？</span>
         </div>
-        <div class="next-hint">🔍 <strong>下一站</strong>：看 Besicovitch 怎么"无中生有"地把面积缩到任意小？</div>
+        <div class="next-hint">🔍 <strong>下一站</strong>：看 贝西科维奇 怎么"无中生有"地把面积缩到任意小？</div>
       `
     },
 
@@ -12527,7 +12598,7 @@ function getStagesEX_PROVEN_01() {
       emoji: '🎚️',
       title: '佩龙树：面积 = (2/3)ⁿ 收缩',
       content: `
-        <p class="lead">Besicovitch 用"<span style="color:#7c3aed;font-weight:900;">佩龙树</span>"（Perron tree）构造挂谷集：<strong>把每个三角形劈成 3 块，把它们沿不同方向"重叠"摆放</strong>。层数 n 越大，面积 (2/3)ⁿ 越小！👇 拖动层数滑块看。</p>
+        <p class="lead">贝西科维奇 用"<span style="color:#7c3aed;font-weight:900;">佩龙树</span>"（Perron tree）构造挂谷集：<strong>把每个三角形劈成 3 块，把它们沿不同方向"重叠"摆放</strong>。层数 n 越大，面积 (2/3)ⁿ 越小！👇 拖动层数滑块看。</p>
         <div class="viz">
           <div style="display: flex; gap: 14px; align-items: flex-start; flex-wrap: wrap;">
             <div style="flex: 0 0 auto;">
@@ -12604,9 +12675,9 @@ function getStagesEX_PROVEN_01() {
             </div>
             <div style="flex: 1 1 200px; min-width: 200px;">
               <div id="exprov01s4-info" style="background: #dbeafe; padding: 12px; border-radius: 8px; font-size: 14px;">
-                <div style="font-weight: 700; color: #1e40af; margin-bottom: 6px;">🟠 圆弧 Kakeya 集</div>
+                <div style="font-weight: 700; color: #1e40af; margin-bottom: 6px;">🟠 圆弧 挂谷 集</div>
                 <p style="margin: 0 0 6px;">用一个单位圆盘里<span style="color:#7c3aed;font-weight:700;">绕一圈</span>的"摆线"，可以塞下指向每个方向的针。</p>
-                <p style="margin: 0; font-size: 12px; color: #6b7280;">面积 = π/2 ≈ 1.57（原始版本，不是 Besicovitch 的"任意小"）</p>
+                <p style="margin: 0; font-size: 12px; color: #6b7280;">面积 = π/2 ≈ 1.57（原始版本，不是 贝西科维奇 的"任意小"）</p>
               </div>
             </div>
           </div>
@@ -12842,7 +12913,7 @@ function initStage_EX_PROVEN_01_s4() {
         ln.setAttribute('stroke', '#ef4444'); ln.setAttribute('stroke-width', '3'); ln.setAttribute('stroke-linecap', 'round');
         svg.appendChild(ln);
       }
-      info.innerHTML = '<div style="font-weight: 700; color: #92400e; margin-bottom: 6px;">🟠 圆弧 Kakeya 集</div><p style="margin: 0 0 6px;">一个单位圆里<span style="color:#7c3aed;font-weight:700;">沿圆周走一圈</span>的细弧，可以塞下指向每个方向的针。</p><p style="margin: 0; font-size: 12px; color: #6b7280;">面积 = π/2 ≈ 1.57（原始版本，不是 Besicovitch 的"任意小"）</p>';
+      info.innerHTML = '<div style="font-weight: 700; color: #92400e; margin-bottom: 6px;">🟠 圆弧 挂谷 集</div><p style="margin: 0 0 6px;">一个单位圆里<span style="color:#7c3aed;font-weight:700;">沿圆周走一圈</span>的细弧，可以塞下指向每个方向的针。</p><p style="margin: 0; font-size: 12px; color: #6b7280;">面积 = π/2 ≈ 1.57（原始版本，不是 贝西科维奇 的"任意小"）</p>';
     } else if (mode === 'tri') {
       // 画一个等边三角形 + 3 个方向的针
       const R = 90;
@@ -12905,7 +12976,7 @@ function initStage_EX_PROVEN_01_s5() {
     { y: '1886', t: '挂谷宗一生于日本', d: '日本东北大学数学教授，1909 东京帝大毕业' },
     { y: '1917', t: '挂谷提出"小厕所转棒"问题', d: '刊登在《Tohoku Math J》——挂谷猜想诞生' },
     { y: '1921', t: 'J. Pál 构造面积 1/2 的凸集', d: '匈牙利数学家，用折叠等边三角形达到凸形下界' },
-    { y: '1928', t: 'A.S. Besicovitch 突破', d: '英国俄裔数学家，证明面积可<strong>任意小</strong>——用佩龙树！' },
+    { y: '1928', t: 'A.S. 贝西科维奇 突破', d: '英国俄裔数学家，证明面积可<strong>任意小</strong>——用佩龙树！' },
     { y: '1971', t: 'R.O. Davies 证明 2D 维数 = 2', d: '见 EX_PROVEN_02：Hausdorff 维数完整证明' },
     { y: '1999', t: 'T. Wolff 3D 维数 ≥ 2.5', d: '见 EX_PROVEN_04：突破性的"烧饼估计"' },
     { y: '2022', t: '王虹 (Hong Wang) 简化 Wolff 证明', d: '与 J. Zahl 合作，重写 Wolff 论证' },
@@ -12977,7 +13048,7 @@ function getStagesEX_PROVEN_02() {
       emoji: '🎚️',
       title: '覆盖实验：数 N(ε) 球数',
       content: `
-        <p class="lead">对一个<strong style="color:#7c3aed;">挂谷集样本</strong>（取 n=3 的 Besicovitch 构造），用半径 ε 的小球去盖。数出最少需要几个球 N(ε)。👇 拖滑块改 ε，看 N(ε) 怎么变。</p>
+        <p class="lead">对一个<strong style="color:#7c3aed;">挂谷集样本</strong>（取 n=3 的 贝西科维奇 构造），用半径 ε 的小球去盖。数出最少需要几个球 N(ε)。👇 拖滑块改 ε，看 N(ε) 怎么变。</p>
         <div class="viz">
           <div style="display: flex; gap: 14px; align-items: flex-start; flex-wrap: wrap;">
             <div style="flex: 0 0 auto;">
@@ -13305,9 +13376,9 @@ function initStage_EX_PROVEN_02_s5() {
   const events = [
     { y: '1917', t: '挂谷宗一提出"小厕所转棒"问题', d: '刊登在《Tohoku Math J》' },
     { y: '1921', t: 'J. Pál 证明凸挂谷集面积 ≥ 1/2', d: '匈牙利数学家，凸情形面积下界' },
-    { y: '1928', t: 'A.S. Besicovitch 构造面积任意小', d: '俄裔英国数学家，佩龙树方法' },
-    { y: '1957', t: 'A.S. Besicovitch 猜想维数 = 2', d: '他本人先猜，10 年后被证明' },
-    { y: '1960s', t: '部分进展', d: 'Besicovitch, Rado, 多人研究维数下界' },
+    { y: '1928', t: 'A.S. 贝西科维奇 构造面积任意小', d: '俄裔英国数学家，佩龙树方法' },
+    { y: '1957', t: 'A.S. 贝西科维奇 猜想维数 = 2', d: '他本人先猜，10 年后被证明' },
+    { y: '1960s', t: '部分进展', d: '贝西科维奇, Rado, 多人研究维数下界' },
     { y: '1971', t: 'R.O. Davies 完整证明 2D = 2', d: '英国数学家，巧妙"夹"出 dim=2' },
     { y: '1975', t: '推广到所有有限维', d: 'Davies 进一步：任何 Rⁿ 中挂谷集维数 = n' },
     { y: '现在', t: '3D 情形刚被王虹+Zahl 攻克', d: '见 EX_PROVEN_04' },
@@ -13350,11 +13421,11 @@ function getStagesEX_PROVEN_03() {
         <p class="lead">普通的挂谷集允许针朝<strong>任意方向</strong>散布。如果加上"<span style="color:#7c3aed;font-weight:900;">黏性</span>"约束——相似方向的针<strong>抱团黏在一起</strong>——会怎样？</p>
         <div class="viz" style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;">
           <div style="flex: 1 1 200px; padding: 14px; background: #faf5ff; border-radius: 10px; min-width: 200px;">
-            <div style="font-size: 12px; color: #6b21a8; font-weight: 700; margin-bottom: 4px;">🌀 普通 Kakeya 集</div>
+            <div style="font-size: 12px; color: #6b21a8; font-weight: 700; margin-bottom: 4px;">🌀 普通 挂谷 集</div>
             <div style="font-size: 13px; line-height: 1.5;">针朝所有方向，<span style="color:#7c3aed;font-weight:700;">彼此独立</span>。dim = 2（Davies 1971）</div>
           </div>
           <div style="flex: 1 1 200px; padding: 14px; background: #f0fdf4; border-radius: 10px; min-width: 200px;">
-            <div style="font-size: 12px; color: #15803d; font-weight: 700; margin-bottom: 4px;">🍯 黏性 Kakeya 集</div>
+            <div style="font-size: 12px; color: #15803d; font-weight: 700; margin-bottom: 4px;">🍯 黏性 挂谷 集</div>
             <div style="font-size: 13px; line-height: 1.5;">相似方向的针<strong style="color:#10b981;">抱团成"细管"</strong>，dim 仍 = 2（王虹 2022）</div>
           </div>
         </div>
@@ -13458,7 +13529,7 @@ function getStagesEX_PROVEN_03() {
     // === Stage 5: 历史时间线 ===
     {
       emoji: '📜',
-      title: '黏性 Kakeya：从物理到数学',
+      title: '黏性 挂谷：从物理到数学',
       content: `
         <p class="lead">"黏性"概念源于物理（液体的表面张力），被数学家 Wolff 一九九九年首次形式化，到王虹二零二二年大幅简化证明。👇 看时间线。</p>
         <div class="viz" id="exprov03s5-timeline" style="padding: 12px; background: #faf5ff; border-radius: 8px;"></div>
@@ -13643,13 +13714,13 @@ function initStage_EX_PROVEN_03_s5() {
   if (!tl) return;
   const events = [
     { y: '1900s', t: '物理直觉：液体丝流的"黏性"', d: '蜂蜜、聚合物溶液自然形成"细管"——方向相近的部分抱团' },
-    { y: '1999', t: 'T. Wolff 首次形式化"黏性 Kakeya"', d: '在研究 3D 维数下界时引入"sticky"概念' },
-    { y: '2000s', t: '黏性 Kakeya 成为活跃方向', d: '多个团队研究；Wolff、Laba、Tao 等' },
-    { y: '2010s', t: 'Bourgain, Guth 简化方法', d: '用"多线性 Kakeya 估计"绕过部分技术困难' },
-    { y: '2019', t: 'D. Du 简化部分步骤', d: '粘性 Kakeya 估计的几何化' },
+    { y: '1999', t: 'T. Wolff 首次形式化"黏性 挂谷"', d: '在研究 3D 维数下界时引入"sticky"概念' },
+    { y: '2000s', t: '黏性 挂谷 成为活跃方向', d: '多个团队研究；Wolff、Laba、陶 等' },
+    { y: '2010s', t: 'Bourgain, Guth 简化方法', d: '用"多线性 挂谷 估计"绕过部分技术困难' },
+    { y: '2019', t: 'D. Du 简化部分步骤', d: '粘性 挂谷 估计的几何化' },
     { y: '2022', t: '王虹 大幅简化证明', d: '芝加哥大学教授，重写 Wolff 论证，<strong style="color:#10b981;">论文仅 6 页</strong>' },
     { y: '2023', t: '王虹 + Zahl 完成 3D 完整证明', d: '见 EX_PROVEN_04：粘性是关键工具' },
-    { y: '意义', t: '粘性 Kakeya 已成为 PDE / 调和分析的桥梁', d: '从几何到分析的"翻译器"' },
+    { y: '意义', t: '粘性 挂谷 已成为 PDE / 调和分析的桥梁', d: '从几何到分析的"翻译器"' },
   ];
   const colors = ['#7c3aed', '#3b82f6', '#10b981', '#f59e0b', '#a855f7', '#ec4899', '#06b6d4', '#ef4444'];
   let html = '<div style="position: relative; padding-left: 20px;">';
@@ -14022,10 +14093,10 @@ function initStage_EX_PROVEN_04_s5() {
     { y: '1917', t: '挂谷猜想诞生', d: '2D 情形率先被研究' },
     { y: '1971', t: 'Davies 证 2D 完整维数 = 2', d: '见 EX_PROVEN_02' },
     { y: '1995', t: 'T. Wolff 首次提出 3D 思路', d: '烧饼估计雏形' },
-    { y: '1999', t: 'T. Wolff 证明 3D ≥ 2.5', d: '关键突破！论文《Recent work connected with the Kakeya problem》' },
-    { y: '2000', t: 'Katz-Łaba-Tao 改进', d: '用"多线性估计"绕过部分困难' },
+    { y: '1999', t: 'T. Wolff 证明 3D ≥ 2.5', d: '关键突破！论文《Recent work connected with the 挂谷 problem》' },
+    { y: '2000', t: 'Katz-Łaba-陶 改进', d: '用"多线性估计"绕过部分困难' },
     { y: '2017', t: 'Katz-Zahl 改进到 ≥ 2.5+ε', d: '微小但重要的提升' },
-    { y: '2022', t: '王虹 简化 Wolff 证明', d: '见 EX_PROVEN_03：粘性 Kakeya 简化' },
+    { y: '2022', t: '王虹 简化 Wolff 证明', d: '见 EX_PROVEN_03：粘性 挂谷 简化' },
     { y: '2025', t: '王虹 + Zahl 完成 3D = 3', d: '3D 挂谷集维数完整证明，108 年猜想落幕' },
   ];
   const colors = ['#7c3aed', '#3b82f6', '#10b981', '#f59e0b', '#a855f7', '#ec4899', '#06b6d4', '#ef4444'];
@@ -14064,11 +14135,11 @@ function getStagesEX_PROVEN_05() {
       emoji: '🧲',
       title: '从"任意方向"到"黏性方向"——简化问题',
       content: `
-        <p class="lead">经典<strong style="color:#7c3aed;">挂谷猜想 (Kakeya)</strong>：一根针能在 3D 朝<strong>所有方向</strong>摆——问占空间最小的集合是什么？</p>
+        <p class="lead">经典<strong style="color:#7c3aed;">挂谷猜想 (挂谷)</strong>：一根针能在 3D 朝<strong>所有方向</strong>摆——问占空间最小的集合是什么？</p>
         <p>答案是维数 <strong style="color:#ef4444;">= 3</strong>（一八一七年挂谷宗一提出）。但"所有方向"太难证——</p>
         <div class="viz" style="display: flex; gap: 14px; flex-wrap: wrap; justify-content: center;">
           <div style="flex: 1 1 200px; padding: 14px; background: linear-gradient(135deg, #fee2e2, #fee2e2); border: 2px solid #ef4444; border-radius: 12px;">
-            <div style="font-size: 18px; font-weight: 900; color: #991b1b;">❌ 经典 Kakeya</div>
+            <div style="font-size: 18px; font-weight: 900; color: #991b1b;">❌ 经典 挂谷</div>
             <div style="font-size: 13px; color: #7f1d1d; margin-top: 6px; line-height: 1.6;">
               针朝 <strong>所有方向</strong> 摆<br>
               自由度太多 → 100 年没解
@@ -14076,7 +14147,7 @@ function getStagesEX_PROVEN_05() {
           </div>
           <div style="flex: 1 1 60px; text-align: center; font-size: 32px; line-height: 1.5; color: #7c3aed;">→</div>
           <div style="flex: 1 1 200px; padding: 14px; background: linear-gradient(135deg, #dcfce7, #dcfce7); border: 2px solid #10b981; border-radius: 12px;">
-            <div style="font-size: 18px; font-weight: 900; color: #14532d;">✅ 黏性 Kakeya (2022)</div>
+            <div style="font-size: 18px; font-weight: 900; color: #14532d;">✅ 黏性 挂谷 (2022)</div>
             <div style="font-size: 13px; color: #166534; margin-top: 6px; line-height: 1.6;">
               针只朝<strong>一组相似方向</strong>摆<br>
               王虹 + Zahl：维数 = 3 ✓
@@ -14086,7 +14157,7 @@ function getStagesEX_PROVEN_05() {
         <p style="font-size: 13px; color: #374151; margin-top: 10px;">
           <strong style="color:#7c3aed;">"黏性"是什么意思？</strong>把方向想象成磁针——磁针的"头"都朝同一片"磁区"（一团相近方向）。磁区内的针<strong>抱团</strong>，方向不再任意——这就是"黏性"。
         </p>
-        <div class="next-hint">🧲 <strong>思路</strong>：先证"局部抱团"（黏性）→ 再缝合 → 完整 3D Kakeya。这是王虹与 Zahl 二零二二→二零二五的<strong>三步走战略</strong>。</div>
+        <div class="next-hint">🧲 <strong>思路</strong>：先证"局部抱团"（黏性）→ 再缝合 → 完整 3D 挂谷。这是王虹与 Zahl 二零二二→二零二五的<strong>三步走战略</strong>。</div>
       `
     },
 
@@ -14189,7 +14260,7 @@ function getStagesEX_PROVEN_05() {
           <strong style="color:#7c3aed;">🎓 王虹 (Hong Wang)</strong> 1986 年生于中国，纽约大学 (NYU) 副教授。2022 年起与 Joshua Zahl (UBC) 合作攻 3D 挂谷猜想。<br>
           <strong style="color:#7c3aed;">🎓 Joshua Zahl</strong> 加拿大英属哥伦比亚大学 (UBC) 数学教授，堆叠/几何测度论专家。
         </div>
-        <div class="next-hint">🏆 <strong>展望</strong>：王虹凭借挂谷三步走 + Falconer 距离集 (EX_PROVEN_08)，荣获<strong>二零二六年菲尔兹奖</strong>（数学界诺贝尔）。</div>
+        <div class="next-hint">🏆 <strong>展望</strong>：王虹凭借挂谷三步走 + 法尔科纳 距离集 (EX_PROVEN_08)，荣获<strong>二零二六年菲尔兹奖</strong>（数学界诺贝尔）。</div>
       `
     },
   ];
@@ -14197,7 +14268,7 @@ function getStagesEX_PROVEN_05() {
 
 /* ===================== EX_PROVEN_05 init ===================== */
 function initStage_EX_PROVEN_05_s1() {
-  // 概念卡：3 张对比卡（经典 Kakeya → 黏性 挂谷）由纯 HTML/CSS 渲染
+  // 概念卡：3 张对比卡（经典 挂谷 → 黏性 挂谷）由纯 HTML/CSS 渲染
   // 不需要 JS 动态初始化，但加一个 hover 效果增强可玩性
   document.querySelectorAll('.viz .next-hint').forEach(el => {
     if (!el.dataset.hover) {
@@ -14455,10 +14526,10 @@ function initStage_EX_PROVEN_05_s5() {
   const tl = document.getElementById('exprov05s5-timeline');
   if (!tl) return;
   const events = [
-    { year: '一八一七年', text: '挂谷宗一 (Sōichi Kakeya) 在日本提出挂谷问题', color: '#7c3aed' },
+    { year: '一八一七年', text: '挂谷宗一 (Sōichi 挂谷) 在日本提出挂谷问题', color: '#7c3aed' },
     { year: '一九九五年', text: 'Wolff 证明 3D 维数 ≥ 2.5（首次正面突破）', color: '#3b82f6' },
     { year: '二零一七年', text: 'Katz-Zahl 改进到 ≥ 2.5+δ（δ 未公开具体值）', color: '#f59e0b' },
-    { year: '二零二二年', text: '★ 王虹 + Zahl 证明"黏性 Kakeya 维数 = 3"（arXiv:2201.03544）', color: '#ef4444' },
+    { year: '二零二二年', text: '★ 王虹 + Zahl 证明"黏性 挂谷 维数 = 3"（arXiv:2201.03544）', color: '#ef4444' },
     { year: '二零二四年', text: '王虹 + Zahl 证明 Assouad 维数 = 3（更强结论）', color: '#10b981' },
     { year: '二零二五年', text: '王虹 + Zahl 完整证明 3D 挂谷猜想（127 页）', color: '#8b5cf6' },
   ];
@@ -14522,7 +14593,7 @@ function getStagesEX_PROVEN_06() {
           <strong style="color:#ec4899;">Assouad 维数</strong> 看的是：把集合<strong style="color:#ec4899;">任意点局部放大 r 倍</strong>，需要多少个 <strong style="color:#7c3aed;">r^d 小球</strong> 覆盖？最大的 d 就是 Assouad 维数。
         </p>
         <p style="font-size: 13px; color: #374151; line-height: 1.7;">
-          对 Kakeya 集这种"细管子集合"，Assouad 维数特别有意义——因为它<strong style="color:#7c3aed;">精确刻画了"细管交叠"的复杂度</strong>。王虹 + Zahl 在二零二四年证明：3D 挂谷集的 Assouad 维数也 = 3。
+          对 挂谷 集这种"细管子集合"，Assouad 维数特别有意义——因为它<strong style="color:#7c3aed;">精确刻画了"细管交叠"的复杂度</strong>。王虹 + Zahl 在二零二四年证明：3D 挂谷集的 Assouad 维数也 = 3。
         </p>
         <div class="next-hint">🔍 <strong>记忆口诀</strong>："Hausdorff 数盒子，Minkowski 数球，Assouad 数球+问最大点"——一个比一个刁钻！</div>
       `
@@ -14636,7 +14707,7 @@ function getStagesEX_PROVEN_06() {
           <div id="exprov06s5-timeline"></div>
         </div>
         <div style="margin-top: 12px; padding: 14px; background: linear-gradient(135deg, #fdf2f8, #fef3c7); border-radius: 10px; font-size: 13px; line-height: 1.7;">
-          <strong style="color:#7c3aed;">🔑 关键洞察</strong>：Assouad 维数一开始是分析学家用来刻画"嵌入空间"的工具——但王虹 + Zahl 证明，对 Kakeya 集来说，<strong style="color:#ec4899;">Assouad 维数 = 傅里叶 维数 = Minkowski 维数 = 3</strong>，三者罕见地"打成平手"！
+          <strong style="color:#7c3aed;">🔑 关键洞察</strong>：Assouad 维数一开始是分析学家用来刻画"嵌入空间"的工具——但王虹 + Zahl 证明，对 挂谷 集来说，<strong style="color:#ec4899;">Assouad 维数 = 傅里叶 维数 = Minkowski 维数 = 3</strong>，三者罕见地"打成平手"！
         </div>
         <div class="next-hint">🏆 <strong>下集预告</strong>：EX_PROVEN_07 看王虹 + Zahl 如何把"黏性"+"Assouad"两把锤子合起来，<strong>砸开</strong>整个 3D 挂谷猜想。</div>
       `
@@ -14892,7 +14963,7 @@ function initStage_EX_PROVEN_06_s5() {
   const events = [
     { year: '一九七九年', text: 'Patrice Assouad 提出 Assouad 维数（嵌入理论）', color: '#7c3aed' },
     { year: '一九八〇s', text: 'Assouad 维数成为分形几何标准工具', color: '#3b82f6' },
-    { year: '二零二二年', text: '王虹 + Zahl 证明"黏性 Kakeya 维数 = 3"', color: '#f59e0b' },
+    { year: '二零二二年', text: '王虹 + Zahl 证明"黏性 挂谷 维数 = 3"', color: '#f59e0b' },
     { year: '二零二四年', text: '★ 王虹 + Zahl 证明 Assouad 维数 = 3（arXiv:2403.02144）', color: '#ec4899' },
     { year: '二零二五年', text: 'Assouad 工具被纳入完整 3D 挂谷证明（127 页）', color: '#8b5cf6' },
     { year: '二零二六年', text: '王虹获菲尔兹奖（含 Assouad 工作）', color: '#10b981' },
@@ -14933,7 +15004,7 @@ function getStagesEX_PROVEN_07() {
       emoji: '🌌',
       title: '百年问题："针在 3D 怎么转最省空间"',
       content: `
-        <p class="lead"><strong style="color:#7c3aed;">挂谷猜想 (Kakeya 1917)</strong>：3D 空间中，<strong>一根针能朝所有方向摆一遍</strong>，最小"占空间"的几何对象是什么？</p>
+        <p class="lead"><strong style="color:#7c3aed;">挂谷猜想 (挂谷 1917)</strong>：3D 空间中，<strong>一根针能朝所有方向摆一遍</strong>，最小"占空间"的几何对象是什么？</p>
         <div class="viz" style="display: flex; gap: 14px; align-items: center; flex-wrap: wrap; justify-content: center;">
           <div style="flex: 1 1 200px; padding: 14px; background: linear-gradient(135deg, #dbeafe, #dbeafe); border: 2px solid #3b82f6; border-radius: 12px;">
             <div style="font-size: 18px; font-weight: 900; color: #1e3a8a;">🎯 一维</div>
@@ -14942,7 +15013,7 @@ function getStagesEX_PROVEN_07() {
           </div>
           <div style="flex: 1 1 200px; padding: 14px; background: linear-gradient(135deg, #fef3c7, #fef3c7); border: 2px solid #f59e0b; border-radius: 12px;">
             <div style="font-size: 18px; font-weight: 900; color: #92400e;">🎯 二维</div>
-            <div style="font-size: 12px; color: #92400e; margin-top: 6px;">佩龙树 (Besicovitch 1928)</div>
+            <div style="font-size: 12px; color: #92400e; margin-top: 6px;">佩龙树 (贝西科维奇 1928)</div>
             <div style="font-size: 11px; color: #6b7280; margin-top: 4px;">dim<sub>H</sub> = 2 ✓</div>
           </div>
           <div style="flex: 1 1 200px; padding: 14px; background: linear-gradient(135deg, #fce7f3, #fce7f3); border: 2px solid #ec4899; border-radius: 12px;">
@@ -14952,12 +15023,12 @@ function getStagesEX_PROVEN_07() {
           </div>
         </div>
         <p style="font-size: 14px; color: #1f2937; margin-top: 14px; line-height: 1.7;">
-          <strong style="color:#7c3aed;">直觉悖论</strong>：3D 中如果用"粗管子"拼成集合让针转，需要占满 3D 空间（平凡上界）。但 Besicovitch 一九二八年发现——用<strong>极细管子</strong> + <strong>分形排列</strong>，能让面积（2D 测度）任意小！于是问题变成"到底是不是真的<strong style="color:#ec4899;">需要 3D 维度</strong>"？
+          <strong style="color:#7c3aed;">直觉悖论</strong>：3D 中如果用"粗管子"拼成集合让针转，需要占满 3D 空间（平凡上界）。但 贝西科维奇 一九二八年发现——用<strong>极细管子</strong> + <strong>分形排列</strong>，能让面积（2D 测度）任意小！于是问题变成"到底是不是真的<strong style="color:#ec4899;">需要 3D 维度</strong>"？
         </p>
         <p style="font-size: 13px; color: #1f2937; line-height: 1.7;">
           答案是<strong style="color:#10b981;">是</strong>——但证明用了<strong>100 年</strong>。王虹与 Zahl 在<strong>公元二零二五年二月</strong>公布了 <strong style="color:#7c3aed;">127 页</strong>的完整证明，论文编号 arXiv:2502.17655。
         </p>
-        <div class="next-hint">🌌 <strong>百年磨一剑</strong>：从 Besicovitch 一九二八的构造，到王虹+Zahl 二零二五的证明——整整 <strong style="color:#ec4899;">97 年</strong> 接力！</div>
+        <div class="next-hint">🌌 <strong>百年磨一剑</strong>：从 贝西科维奇 一九二八的构造，到王虹+Zahl 二零二五的证明——整整 <strong style="color:#ec4899;">97 年</strong> 接力！</div>
       `
     },
 
@@ -15056,10 +15127,10 @@ function getStagesEX_PROVEN_07() {
         <div style="margin-top: 16px; padding: 16px; background: linear-gradient(135deg, #faf5ff, #fef3c7, #fce7f3); border-radius: 12px; border: 2px solid #ec4899;">
           <div style="font-size: 16px; font-weight: 900; color: #831843; margin-bottom: 8px;">🏆 王虹 (Hong Wang) 完整成就</div>
           <div style="font-size: 13px; color: #1f2937; line-height: 1.7;">
-            <strong>公元二零二二年</strong>：与 Zahl 证明<strong>黏性 Kakeya 维数 = 3</strong>（独立工作）<br>
+            <strong>公元二零二二年</strong>：与 Zahl 证明<strong>黏性 挂谷 维数 = 3</strong>（独立工作）<br>
             <strong>公元二零二四年</strong>：与 Zahl 证明<strong>Assouad 维数 = 3</strong>（更强结论）<br>
             <strong>公元二零二五年二月</strong>：与 Zahl 发表 <strong style="color:#7c3aed;">127 页</strong> 完整证明 (arXiv:2502.17655)<br>
-            <strong>公元二零二五年</strong>：与 Guth、Du 合作突破 <strong>Falconer 距离集</strong>（EX_PROVEN_08）<br>
+            <strong>公元二零二五年</strong>：与 Guth、Du 合作突破 <strong>法尔科纳 距离集</strong>（EX_PROVEN_08）<br>
             <strong>公元二零二六年</strong>：荣获 <strong style="color:#ef4444;">菲尔兹奖</strong>（Fields Medal）
           </div>
         </div>
@@ -15285,13 +15356,13 @@ function initStage_EX_PROVEN_07_s5() {
   if (!tl) return;
   // ★最重磅★ 10 节点时间线
   const events = [
-    { year: '一八一七年', text: '日本挂谷宗一 (Sōichi Kakeya) 提出挂谷问题', color: '#7c3aed' },
-    { year: '一九二八年', text: 'Besicovitch 提出"佩龙树"构造（细管拼面积可任意小）', color: '#3b82f6' },
+    { year: '一八一七年', text: '日本挂谷宗一 (Sōichi 挂谷) 提出挂谷问题', color: '#7c3aed' },
+    { year: '一九二八年', text: '贝西科维奇 提出"佩龙树"构造（细管拼面积可任意小）', color: '#3b82f6' },
     { year: '一九七一年', text: 'Davies 完整证明 2D 情形（dim<sub>H</sub> = 2）', color: '#f59e0b' },
     { year: '一九九五年', text: 'Wolff 证明 3D 维数 ≥ 2.5（首次正面突破）', color: '#ef4444' },
-    { year: '二零零零年', text: 'Katz-Łaba-Tao 改进到 ≥ 2.5 + ε（任意小修正）', color: '#ec4899' },
+    { year: '二零零零年', text: 'Katz-Łaba-陶 改进到 ≥ 2.5 + ε（任意小修正）', color: '#ec4899' },
     { year: '二零一七年', text: 'Katz-Zahl 进一步到 ≥ 2.5 + δ（δ 具体值未公开）', color: '#8b5cf6' },
-    { year: '二零二二年', text: '★ 王虹 + Zahl 证明"黏性 Kakeya 维数 = 3"（arXiv:2201.03544）', color: '#10b981' },
+    { year: '二零二二年', text: '★ 王虹 + Zahl 证明"黏性 挂谷 维数 = 3"（arXiv:2201.03544）', color: '#10b981' },
     { year: '二零二四年', text: '王虹 + Zahl 证明 Assouad 维数 = 3（arXiv:2403.02144）', color: '#06b6d4' },
     { year: '二零二五年二月', text: '🏆 王虹 + Zahl 完整证明 3D 挂谷猜想（127 页，arXiv:2502.17655）', color: '#dc2626' },
     { year: '二零二六年', text: '🎖️ 王虹获菲尔兹奖 (Fields Medal) —— 100 年问题的最终回响', color: '#facc15' },
@@ -15325,16 +15396,16 @@ function initStage_EX_PROVEN_07_initAll() { initStage_EX_PROVEN_07(); }
 
 
 // ========== EX_PROVEN_08 5 步 ==========
-/* ===================== EX_PROVEN_08：Falconer 距离集 2D 突破（王虹+Guth+Du 2024） ===================== */
+/* ===================== EX_PROVEN_08：法尔科纳 距离集 2D 突破（王虹+Guth+Du 2024） ===================== */
 
 function getStagesEX_PROVEN_08() {
   return [
-    // === Stage 1: 概念卡：Falconer 距离猜想（1985）===
+    // === Stage 1: 概念卡：法尔科纳 距离猜想（1985）===
     {
       emoji: '📏',
-      title: 'Falconer 距离猜想 (1985)：距离集有没有"长度"？',
+      title: '法尔科纳 距离猜想 (1985)：距离集有没有"长度"？',
       content: `
-        <p class="lead"><strong style="color:#7c3aed;">Falconer 距离猜想 (1985)</strong>：平面上一个点集 E，如果<strong>直径</strong> d(E) &gt; 1，那么 E 中所有点对的<strong>距离</strong>组成的集合 Δ(E) 一定有<strong>正测度</strong>。</p>
+        <p class="lead"><strong style="color:#7c3aed;">法尔科纳 距离猜想 (1985)</strong>：平面上一个点集 E，如果<strong>直径</strong> d(E) &gt; 1，那么 E 中所有点对的<strong>距离</strong>组成的集合 Δ(E) 一定有<strong>正测度</strong>。</p>
         <div class="viz" style="display: flex; gap: 14px; align-items: center; flex-wrap: wrap; justify-content: center;">
           <div style="flex: 1 1 200px; padding: 14px; background: linear-gradient(135deg, #dbeafe, #dbeafe); border: 2px solid #3b82f6; border-radius: 12px;">
             <div style="font-size: 18px; font-weight: 900; color: #1e3a8a;">📍 点集 E</div>
@@ -15350,12 +15421,12 @@ function getStagesEX_PROVEN_08() {
           <div style="flex: 0 0 60px; text-align: center; font-size: 32px; line-height: 1.4; color: #7c3aed;">→</div>
           <div style="flex: 1 1 200px; padding: 14px; background: linear-gradient(135deg, #dcfce7, #dcfce7); border: 2px solid #10b981; border-radius: 12px;">
             <div style="font-size: 18px; font-weight: 900; color: #14532d;">✅ 测度 &gt; 0</div>
-            <div style="font-size: 12px; color: #166534; margin-top: 6px;">1985 Falconer 猜想</div>
+            <div style="font-size: 12px; color: #166534; margin-top: 6px;">1985 法尔科纳 猜想</div>
             <div style="font-size: 11px; color: #6b7280; margin-top: 4px;">2024 王虹+Guth+Du ✓</div>
           </div>
         </div>
         <p style="font-size: 13px; color: #1f2937; margin-top: 14px; line-height: 1.7;">
-          <strong style="color:#7c3aed;">直觉</strong>：100 个点，理论上有 100×99/2 = 4950 个距离。如果这些距离都挤在几个数字上（比如 1, 2, 3 三个值）——距离集就"退化"，测度为 0。Falconer 猜想：<strong>如果点足够"散"（直径 &gt; 1），这种退化不可能</strong>！
+          <strong style="color:#7c3aed;">直觉</strong>：100 个点，理论上有 100×99/2 = 4950 个距离。如果这些距离都挤在几个数字上（比如 1, 2, 3 三个值）——距离集就"退化"，测度为 0。法尔科纳 猜想：<strong>如果点足够"散"（直径 &gt; 1），这种退化不可能</strong>！
         </p>
         <div class="next-hint">📏 <strong>记忆</strong>："点够散 → 距离够多"——这是一个看似简单，但极难证明的<strong style="color:#ec4899;">覆盖猜想</strong>！</div>
       `
@@ -15387,7 +15458,7 @@ function getStagesEX_PROVEN_08() {
             <div style="margin-top: 12px; padding: 12px; background: #fce7f3; border-radius: 8px; font-size: 13px;">
               <div>不同距离数：<strong id="exprov08s2-distinct" style="color:#7c3aed;">—</strong></div>
               <div>距离集测度估计：<strong id="exprov08s2-measure" style="color:#10b981;">—</strong></div>
-              <div>Falconer 判定：<strong id="exprov08s2-fc" style="color:#ec4899;">—</strong></div>
+              <div>法尔科纳 判定：<strong id="exprov08s2-fc" style="color:#ec4899;">—</strong></div>
             </div>
             <p style="font-size: 11px; color: #6b7280; margin-top: 6px;">
               👆 散度 σ 小 = 点聚成一团。σ 大 = 点尽量散开。
@@ -15403,7 +15474,7 @@ function getStagesEX_PROVEN_08() {
       emoji: '📐',
       title: '临界指数：不同维度的"开/关"边界',
       content: `
-        <p class="lead">Falconer 猜想在不同维度 d 下有不同的<strong style="color:#7c3aed;">临界指数</strong>——画出来：</p>
+        <p class="lead">法尔科纳 猜想在不同维度 d 下有不同的<strong style="color:#7c3aed;">临界指数</strong>——画出来：</p>
         <div class="viz">
           <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 8px;">
             <span style="font-size: 13px; font-weight: 700;">📐 维度范围：</span>
@@ -15429,7 +15500,7 @@ function getStagesEX_PROVEN_08() {
       emoji: '🌊',
       title: '工具：傅里叶 限制猜想在 2D 的突破',
       content: `
-        <p class="lead">王虹+Guth+Du 证明 Falconer 2D 的关键工具是<strong style="color:#7c3aed;">傅里叶 限制猜想 (Restriction Conjecture)</strong> 在 2D 的突破：</p>
+        <p class="lead">王虹+Guth+Du 证明 法尔科纳 2D 的关键工具是<strong style="color:#7c3aed;">傅里叶 限制猜想 (Restriction Conjecture)</strong> 在 2D 的突破：</p>
         <div class="viz" style="display: flex; gap: 12px; align-items: stretch; flex-wrap: wrap;">
           <div style="flex: 1 1 220px; padding: 14px; background: #dbeafe; border: 2px solid #3b82f6; border-radius: 10px;">
             <div style="font-size: 16px; font-weight: 900; color: #1e3a8a; margin-bottom: 8px;">🌊 傅里叶 限制</div>
@@ -15458,7 +15529,7 @@ function getStagesEX_PROVEN_08() {
           </div>
         </div>
         <p style="font-size: 13px; color: #1f2937; margin-top: 12px; line-height: 1.7;">
-          <strong style="color:#7c3aed;">关键洞察</strong>：王虹+Guth+Du 把 Falconer 距离问题<strong>化归为 傅里叶 限制问题</strong>，再用 2D 限制猜想的突破解决它——两个猜想<strong>互相支撑</strong>！
+          <strong style="color:#7c3aed;">关键洞察</strong>：王虹+Guth+Du 把 法尔科纳 距离问题<strong>化归为 傅里叶 限制问题</strong>，再用 2D 限制猜想的突破解决它——两个猜想<strong>互相支撑</strong>！
         </p>
         <div class="next-hint">🌊 <strong>妙手</strong>：王虹的<strong style="color:#ec4899;">两项菲尔兹级工作</strong>（挂谷 + 距离集）都用了 傅里叶 分析的硬工具——这说明 傅里叶 分析是<strong style="color:#7c3aed;">现代几何的核心语言</strong>。</div>
       `
@@ -15467,16 +15538,16 @@ function getStagesEX_PROVEN_08() {
     // === Stage 5: 历史时间线：1985 → 2015 → 2019 → 2024 ===
     {
       emoji: '📅',
-      title: '历史：Falconer 距离猜想 40 年',
+      title: '历史：法尔科纳 距离猜想 40 年',
       content: `
-        <p class="lead">从 Falconer 一九八五年提出到王虹+Guth+Du 二零二四突破——<strong style="color:#7c3aed;">39 年</strong>的接力：</p>
+        <p class="lead">从 法尔科纳 一九八五年提出到王虹+Guth+Du 二零二四突破——<strong style="color:#7c3aed;">39 年</strong>的接力：</p>
         <div class="viz">
           <div id="exprov08s5-timeline"></div>
         </div>
         <div style="margin-top: 12px; padding: 14px; background: linear-gradient(135deg, #fce7f3, #faf5ff); border: 14px; border-radius: 10px; font-size: 13px; line-height: 1.7;">
           <strong style="color:#ec4899;">🎓 团队</strong>：王虹 (Hong Wang, NYU) + Larry Guth (MIT, 沃尔夫奖 2024) + Du (杜亚楠, 北大 → MIT 博后)——三个<strong>调和分析</strong>的顶尖大脑<strong>合作发力</strong>。
         </div>
-        <div class="next-hint">🏆 <strong>荣誉</strong>：王虹凭借<strong style="color:#7c3aed;">挂谷 + Falconer</strong> 双突破，荣获<strong>二零二六年菲尔兹奖</strong>——中国数学的里程碑！</div>
+        <div class="next-hint">🏆 <strong>荣誉</strong>：王虹凭借<strong style="color:#7c3aed;">挂谷 + 法尔科纳</strong> 双突破，荣获<strong>二零二六年菲尔兹奖</strong>——中国数学的里程碑！</div>
       `
     },
   ];
@@ -15566,9 +15637,9 @@ function initStage_EX_PROVEN_08_s2() {
     // 测度估计：粗略 = distinct / (max * 100) — 只是演示
     const measureEst = dists.size > 0 ? (dists.size / 1000).toFixed(3) : '0.000';
     measureEl.textContent = measureEst;
-    // Falconer 判定：直径 > 0.5 视为"够散"
+    // 法尔科纳 判定：直径 > 0.5 视为"够散"
     const ok = maxD > 0.5 && dists.size > N;
-    fcEl.textContent = ok ? '✅ 测度 > 0（符合 Falconer）' : '⚠️ 直径太小';
+    fcEl.textContent = ok ? '✅ 测度 > 0（符合 法尔科纳）' : '⚠️ 直径太小';
     fcEl.style.color = ok ? '#10b981' : '#f59e0b';
     draw();
   };
@@ -15650,7 +15721,7 @@ function initStage_EX_PROVEN_08_s3() {
     ctx.fillStyle = '#7c3aed';
     ctx.font = 'bold 12px sans-serif';
     ctx.textAlign = 'left';
-    ctx.fillText('Falconer 距离猜想：各维度进展', padL, 18);
+    ctx.fillText('法尔科纳 距离猜想：各维度进展', padL, 18);
     // verdict
     const d2status = dmax >= 2 ? 'd=2 临界维数下界 ≥ 1 (王虹+Guth+Du 2024 突破)' : '';
     verdict.innerHTML = `<strong style="color:#10b981;">高维 d ≥ 3</strong>：完全成立。<br>${d2status ? '<strong style="color:#ec4899;">d=2 (关键)</strong>：' + d2status + '<br>' : ''}<strong style="color:#f59e0b;">d=1</strong>：平凡。`;
@@ -15674,13 +15745,13 @@ function initStage_EX_PROVEN_08_s5() {
   const tl = document.getElementById('exprov08s5-timeline');
   if (!tl) return;
   const events = [
-    { year: '一九八五年', text: 'Kenneth Falconer (英国) 提出距离猜想 (d=3 维)', color: '#7c3aed' },
+    { year: '一九八五年', text: 'Kenneth 法尔科纳 (英国) 提出距离猜想 (d=3 维)', color: '#7c3aed' },
     { year: '二零零三年', text: 'Bourgain 把 d=2 上的临界指数改进到 1.5+ε', color: '#3b82f6' },
     { year: '二零一五年', text: 'Guth-Iosevich-Ou 2D：临界指数 → 5/4', color: '#f59e0b' },
     { year: '二零一九年', text: 'Guth-Iosevich-Ou 进一步到 1 + 临界', color: '#ec4899' },
     { year: '二零二三年', text: 'Du-Zhang 在平面几何方向的重要准备工作', color: '#8b5cf6' },
     { year: '二零二四年', text: '★ 王虹 + Guth + Du 三人合作突破 d=2 临界 (arXiv:2401.06728)', color: '#10b981' },
-    { year: '二零二六年', text: '王虹获菲尔兹奖（挂谷 + Falconer 双贡献）', color: '#facc15' },
+    { year: '二零二六年', text: '王虹获菲尔兹奖（挂谷 + 法尔科纳 双贡献）', color: '#facc15' },
   ];
   tl.innerHTML = events.map((e, i) => {
     const isLeft = i % 2 === 0;
@@ -15709,15 +15780,15 @@ function initStage_EX_PROVEN_08_initAll() { initStage_EX_PROVEN_08(); }
 
 
 // ========== EX_PROVEN_09 5 步 ==========
-// EX_PROVEN_09 — Furstenberg 集合猜想完整证明（王虹 2024）
+// EX_PROVEN_09 — 弗斯滕伯格 集合猜想完整证明（王虹 2024）
 // 5 步直观讲解：加法表 / 交互 / 扫描 / Szemerédi 关联 / 时间线
 
 function getStagesEX_PROVEN_09() {
   return [
     // ============== s1 概念卡 ==============
     {
-      emoji: '🧮', title: 'Furstenberg 1970 的"加法表"思想', content: `
-        <p class="lead">把自然数子集 A 的<strong style="color:#7c3aed;">"加法表"</strong>定义为 A+A = { a+b : a,b ∈ A }。<strong style="color:#10b981;">Furstenberg 1970 问：</strong>如果 A 在自然数中"上密度为正"，那 A+A 里是否一定含任意长的等差数列？</p>
+      emoji: '🧮', title: '弗斯滕伯格 1970 的"加法表"思想', content: `
+        <p class="lead">把自然数子集 A 的<strong style="color:#7c3aed;">"加法表"</strong>定义为 A+A = { a+b : a,b ∈ A }。<strong style="color:#10b981;">弗斯滕伯格 1970 问：</strong>如果 A 在自然数中"上密度为正"，那 A+A 里是否一定含任意长的等差数列？</p>
         <div class="viz" style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;">
           <div style="flex: 1 1 200px; padding: 14px; background: linear-gradient(135deg, #ede9fe, #ddd6fe); border: 2px solid #7c3aed; border-radius: 12px; text-align: center;">
             <div style="font-size: 22px; font-weight: 900; color: #5b21b6;">A + A</div>
@@ -15772,7 +15843,7 @@ function getStagesEX_PROVEN_09() {
     // ============== s3 大范围扫描 ==============
     {
       emoji: '📊', title: '不同子集的"稠密度" vs 加法表', content: `
-        <p class="lead">选一个 A 的"密度 d"，看 A+A 覆盖的密度是多少——Furstenberg 问的就是 d > 0 时 A+A 是否总含任意长 AP：</p>
+        <p class="lead">选一个 A 的"密度 d"，看 A+A 覆盖的密度是多少——弗斯滕伯格 问的就是 d > 0 时 A+A 是否总含任意长 AP：</p>
         <div class="viz" style="display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap;">
           <div style="flex: 1 1 200px;">
             <label>A 的密度 d =
@@ -15786,14 +15857,14 @@ function getStagesEX_PROVEN_09() {
             <div id="exprov09s3-svg" style="padding: 12px; background: #f0fdf4; border-radius: 8px; text-align: center;"></div>
           </div>
         </div>
-        <p style="margin-top: 10px; font-size: 13px; line-height: 1.7; color: #1f2937;">拖动滑块改变 A 的密度 d，看 A+A 的密度如何变化。一个直观的规律：d(A+A) 至少 ≥ 1 - (1-d)²（来自容斥），当 d > 1/2 时 d(A+A) = 1（全偶数）。Furstenberg 猜想说的是：在 d > 0 的<strong style="color:#7c3aed;">任何</strong>密度下，A+A 都有"等差数列结构"——这比单纯密度本身更深。</p>
+        <p style="margin-top: 10px; font-size: 13px; line-height: 1.7; color: #1f2937;">拖动滑块改变 A 的密度 d，看 A+A 的密度如何变化。一个直观的规律：d(A+A) 至少 ≥ 1 - (1-d)²（来自容斥），当 d > 1/2 时 d(A+A) = 1（全偶数）。弗斯滕伯格 猜想说的是：在 d > 0 的<strong style="color:#7c3aed;">任何</strong>密度下，A+A 都有"等差数列结构"——这比单纯密度本身更深。</p>
         <div class="next-hint">📊 <strong>规律</strong>：d(A+A) 至少 ≥ 1 - (1-d)²；当 d > 1/2 时 d(A+A) = 1</div>
       `
     },
     // ============== s4 进阶观察 ==============
     {
       emoji: '🔗', title: '与 Szemerédi 定理的关联', content: `
-        <p class="lead"><strong style="color:#7c3aed;">Szemerédi 1975</strong>：上密度正 → 含任意长 AP。<strong style="color:#10b981;">Furstenberg 1970</strong>：上密度正 → 加法表含任意长 AP。<strong style="color:#ef4444;">Furstenberg 的命题更强</strong>（加法表是"更大的集合"）。</p>
+        <p class="lead"><strong style="color:#7c3aed;">Szemerédi 1975</strong>：上密度正 → 含任意长 AP。<strong style="color:#10b981;">弗斯滕伯格 1970</strong>：上密度正 → 加法表含任意长 AP。<strong style="color:#ef4444;">弗斯滕伯格 的命题更强</strong>（加法表是"更大的集合"）。</p>
         <div class="viz" style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;">
           <div style="flex: 1 1 280px; padding: 14px; background: linear-gradient(135deg, #dbeafe, #bfdbfe); border: 2px solid #3b82f6; border-radius: 12px;">
             <div style="font-size: 18px; font-weight: 900; color: #1e3a8a;">Szemerédi 1975</div>
@@ -15803,7 +15874,7 @@ function getStagesEX_PROVEN_09() {
             </div>
           </div>
           <div style="flex: 1 1 280px; padding: 14px; background: linear-gradient(135deg, #d1fae5, #a7f3d0); border: 2px solid #10b981; border-radius: 12px;">
-            <div style="font-size: 18px; font-weight: 900; color: #065f46;">Furstenberg 1970</div>
+            <div style="font-size: 18px; font-weight: 900; color: #065f46;">弗斯滕伯格 1970</div>
             <div style="font-size: 13px; color: #047857; margin-top: 8px; line-height: 1.6;">
               A 上密度正<br>⇒ A+A 含任意长 AP<br>
               <span style="color:#6b7280;">（用 A+A 更大集合）</span>
@@ -15812,9 +15883,9 @@ function getStagesEX_PROVEN_09() {
         </div>
         <div style="margin-top: 14px; padding: 12px; background: #fef3c7; border-radius: 8px; font-size: 13px; line-height: 1.7;">
           <strong style="color:#92400e;">💡 关键差别</strong>：A+A 才是命题的对象。这意味着即使 A 本身"洞很多"（如素数集，密度 0），只要 A+A 还"够稠"，结论就成立。<br>
-          <strong style="color:#7c3aed;">Furstenberg 1970 的深刻洞察</strong>：组合问题可以走"算术"路径，用<strong>动力系统</strong>的遍历论方法——这就是 Host-Kra 半范数方法的种子。
+          <strong style="color:#7c3aed;">弗斯滕伯格 1970 的深刻洞察</strong>：组合问题可以走"算术"路径，用<strong>动力系统</strong>的遍历论方法——这就是 Host-Kra 半范数方法的种子。
         </div>
-        <div class="next-hint">🔗 <strong>2024 王虹的工作</strong>：完整解决 Furstenberg 命题，结合了动力系统 + 加法组合 + 数论</div>
+        <div class="next-hint">🔗 <strong>2024 王虹的工作</strong>：完整解决 弗斯滕伯格 命题，结合了动力系统 + 加法组合 + 数论</div>
       `
     },
     // ============== s5 历史时间线 ==============
@@ -15825,7 +15896,7 @@ function getStagesEX_PROVEN_09() {
           <div id="exprov09s5-timeline"></div>
         </div>
         <p style="margin-top: 10px; font-size: 13px; line-height: 1.7; color: #1f2937;">从 1970 年提出，到 2024 年完整证明，整整 54 年。其中关键技术节点是 2001 年 Host-Kra 把动力系统的遍历论方法引入到组合问题。这条"动力系统 → 加法组合"路径，最终在王虹手里走通。王虹本人 2022 年获菲尔兹奖，是继丘成桐之后第二位获此殊荣的华人数学家。</p>
-        <div class="next-hint">💡 <strong>重大意义</strong>：王虹是中国数学家，2022 获菲尔兹奖；Furstenberg 猜想 50 年悬案终于落地</div>
+        <div class="next-hint">💡 <strong>重大意义</strong>：王虹是中国数学家，2022 获菲尔兹奖；弗斯滕伯格 猜想 50 年悬案终于落地</div>
       `
     }
   ];
@@ -15963,9 +16034,9 @@ function initStage_EX_PROVEN_09_s5() {
   const tlEl = document.getElementById('exprov09s5-timeline');
   if (!tlEl) return;
   const events = [
-    { year: '1970', title: 'Furstenberg 提出', detail: '在《美国数学杂志》提出"加法表"猜想，动力系统思想萌芽', color: '#7c3aed' },
+    { year: '1970', title: '弗斯滕伯格 提出', detail: '在《美国数学杂志》提出"加法表"猜想，动力系统思想萌芽', color: '#7c3aed' },
     { year: '2001', title: 'Host-Kra 半范数', detail: '把动力系统走"多重回归"，建立分析框架', color: '#3b82f6' },
-    { year: '2016', title: '韩国 2d 突破', detail: '动力系统方法扩展到二维 (Green-Tao 路径)', color: '#10b981' },
+    { year: '2016', title: '韩国 2d 突破', detail: '动力系统方法扩展到二维 (Green-陶 )', color: '#10b981' },
     { year: '2024', title: '王虹 + 合作者完整证明', detail: '组合动力系统 + 加法组合，全命题落地', color: '#ef4444' }
   ];
   let cards = '';
@@ -15992,7 +16063,7 @@ function initStage_EX_PROVEN_09_initAll() { initStage_EX_PROVEN_09(); }
 
 
 // ========== EX_PROVEN_10 5 步 ==========
-// EX_PROVEN_10 — 调和分析猜想之塔（Fefferman-王虹 2025）
+// EX_PROVEN_10 — 调和分析猜想之塔（费弗曼-王虹 2025）
 // 5 步直观讲解：四层塔 / 交互展开 / 状态扫描 / 傅里叶角色 / 时间线
 
 function getStagesEX_PROVEN_10() {
@@ -16018,7 +16089,7 @@ function getStagesEX_PROVEN_10() {
           </div>
           <div style="font-size: 20px; color: #9ca3af;">▲</div>
           <div style="width: 100%; padding: 16px; background: linear-gradient(90deg, #ddd6fe, #a78bfa); border: 2px solid #7c3aed; border-radius: 12px; text-align: center;">
-            <div style="font-size: 16px; font-weight: 900; color: #5b21b6;">🟫 挂谷猜想 (Kakeya) — 底座</div>
+            <div style="font-size: 16px; font-weight: 900; color: #5b21b6;">🟫 挂谷猜想 (挂谷) — 底座</div>
             <div style="font-size: 11px; color: #6d28d9; margin-top: 4px;">"管子套管子"几何 → 王虹 2025 完整证明</div>
           </div>
         </div>
@@ -16086,12 +16157,12 @@ function getStagesEX_PROVEN_10() {
     // ============== s5 历史时间线 ==============
     {
       emoji: '📅', title: '调和分析之塔的 50 年', content: `
-        <p class="lead">1970 Fefferman 提出"四层塔"思想 → 2000s 多个部分突破 → <strong style="color:#7c3aed;">2025 王虹 + Guth + Zahl 挂谷完整</strong></p>
+        <p class="lead">1970 费弗曼 提出"四层塔"思想 → 2000s 多个部分突破 → <strong style="color:#7c3aed;">2025 王虹 + Guth + Zahl 挂谷完整</strong></p>
         <div class="viz">
           <div id="exprov10s5-timeline"></div>
         </div>
-        <p style="margin-top: 10px; font-size: 13px; line-height: 1.7; color: #1f2937;">从 1917 年挂谷提出到 2025 年王虹等完整证明，整整 108 年。1991 年 Tom Wolff 把 R³ 挂谷的常数从 log 改进到 log^{1/2}，是挂谷最深刻的突破；之后的几十年，3 维以上一直停滞。直到 2025 年，王虹 + Larry Guth + Joshua Zahl 三人合作给出了 n 维挂谷的完整证明。Guth 是调和分析大师，Zahl 是几何测度论专家，三人组合堪称完美。</p>
-        <div class="next-hint">💡 <strong>王虹第二次大动作</strong>：继 2024 Furstenberg 之后，2025 又拿下挂谷——连续两年震撼调和分析</div>
+        <p style="margin-top: 10px; font-size: 13px; line-height: 1.7; color: #1f2937;">从 1917 年挂谷提出到 2025 年三维挂谷被证明，整整 108 年。1991 年 Tom Wolff 把 R³ 挂谷的常数从 log 改进到 log^{1/2}，是挂谷最深刻的突破；之后的几十年，更高维一直停滞。直到 2025 年 2 月，<strong>王虹与 Joshua Zahl 两人</strong>给出了<strong>三维（n = 3）</strong>挂谷猜想的完整证明（127 页）。注意：<strong>n ≥ 4 维的挂谷猜想至今仍未解决</strong>。Guth 是调和分析大师，Zahl 是几何测度论专家，三人组合堪称完美。</p>
+        <div class="next-hint">💡 <strong>王虹第二次大动作</strong>：继 2024 弗斯滕伯格 之后，2025 又拿下挂谷——连续两年震撼调和分析</div>
       `
     }
   ];
@@ -16107,7 +16178,7 @@ function initStage_EX_PROVEN_10_s2() {
   if (!detailEl) return;
   const layers = [
     {
-      name: '① 挂谷猜想 (Kakeya, 1917 提出)',
+      name: '① 挂谷猜想 (挂谷, 1917 提出)',
       stmt: '在 R^n 中，所有"任意方向的细管"组成的集合，即使能塞下 n 维管子，其测度（体积）可以任意小吗？',
       diff: '几何 + 测度论结合，n ≥ 3 时 50 年未动',
       status: '✅ 2025 王虹 + Guth + Zahl 完整证明'
@@ -16165,7 +16236,7 @@ function initStage_EX_PROVEN_10_s3() {
   const statusEl = document.getElementById('exprov10s3-status');
   if (!statusEl) return;
   const items = [
-    { name: '挂谷 (Kakeya)', d2: '✅', d3: '✅', dn: '✅ 王虹 2025', color: '#7c3aed' },
+    { name: '挂谷 (挂谷)', d2: '✅', d3: '✅', dn: '✅ 王虹 2025', color: '#7c3aed' },
     { name: '限制 (Restriction)', d2: '✅', d3: '🟡', dn: '🟡', color: '#3b82f6' },
     { name: 'Bochner-Riesz', d2: '✅', d3: '🟡', dn: '🟡', color: '#10b981' },
     { name: '局部光滑化', d2: '✅', d3: '🟡', dn: '🟡', color: '#f59e0b' }
@@ -16201,10 +16272,10 @@ function initStage_EX_PROVEN_10_s5() {
   if (!tlEl) return;
   const events = [
     { year: '1917', title: '挂谷提出', detail: '日本挂谷宗一提出"管子集合"几何问题', color: '#7c3aed' },
-    { year: '1970s', title: 'Fefferman 连塔', detail: 'Charles 费弗曼 把挂谷/限制/Bochner/局部光滑串成"塔"', color: '#3b82f6' },
+    { year: '1970s', title: '费弗曼 连塔', detail: 'Charles 费弗曼 把挂谷/限制/Bochner/局部光滑串成"塔"', color: '#3b82f6' },
     { year: '1991', title: 'Wolff 挂谷 3d 突破', detail: 'Tom Wolff 把 R³ 挂谷的常数从 log 改进到 log^{1/2}，触及本质', color: '#10b981' },
     { year: '2000s', title: '限制/Bochner 进展', detail: 'Bourgain, Moyua 等多人在限制/Bochner 上多个部分突破', color: '#f59e0b' },
-    { year: '2025', title: '王虹 + Guth + Zahl', detail: '完整证明 n 维挂谷猜想 (Furstenberg 集等价版本) — 50 年落幕', color: '#ef4444' }
+    { year: '2025.2', title: '王虹 + Zahl', detail: '证明【三维】挂谷猜想（127 页）— n ≥ 4 维仍为未解难题', color: '#ef4444' }
   ];
   let cards = '';
   for (const e of events) {
@@ -16357,7 +16428,7 @@ function getStagesEX_PROVEN_11() {
           <div id="exprov11s5-timeline"></div>
         </div>
         <p style="margin-top: 10px; font-size: 13px; line-height: 1.7; color: #1f2937;">整整 125 年、8 个关键节点。其中 1975 Lanford 是"奠基性"工作，他证明了短时间内的硬球极限；但"长时间"和"原始硬球"问题一直悬而未决。Gallagher-Saint Raymond 2023 年的标量部分突破为邓煜的工作奠定了关键技术基础。2025 年邓煜 + 马骁 + Hani 的工作把整条推导链打通：硬球 → Boltzmann → Navier-Stokes，2026 年邓煜获菲尔兹奖。</p>
-        <div class="next-hint">💡 <strong>邓煜</strong>：UCLA 教授，2026 年获菲尔兹奖 — 继陶哲轩、丘成桐之后华人数学家新高峰</div>
+        <div class="next-hint">💡 <strong>邓煜</strong>：UChicago（芝加哥大学）教授，2026 年获菲尔兹奖 — 继陶哲轩、丘成桐之后华人数学家新高峰</div>
       `
     }
   ];
@@ -16600,7 +16671,7 @@ function initStage_EX_PROVEN_11_s5() {
     { year: '2019', title: 'Golse 标量问题', detail: 'F. Golse 处理标量版（简化模型）的硬球极限', color: '#ec4899' },
     { year: '2023', title: 'Gallagher-Saint Raymond', detail: '标量部分取得重大进展，奠定技术基础', color: '#8b5cf6' },
     { year: '2025', title: '邓煜+马骁+Hani', detail: '完整证明硬球 → Boltzmann → Navier-Stokes 推导链，希尔伯特第 6 问题狭义版解决', color: '#ef4444', highlight: true },
-    { year: '2026', title: '邓煜获菲尔兹奖', detail: 'UCLA 邓煜 (Yu Deng) 获菲尔兹奖，表彰其在流体动力学公理化中的贡献', color: '#dc2626', highlight: true }
+    { year: '2026', title: '邓煜获菲尔兹奖', detail: 'UChicago（芝加哥大学）邓煜 (Yu Deng) 获菲尔兹奖，表彰其在流体动力学公理化中的贡献', color: '#dc2626', highlight: true }
   ];
   let cards = '';
   for (const e of events) {
@@ -17407,7 +17478,7 @@ function getStagesEX_PROVEN_14() {
         <div style="margin-top:10px; padding:12px; background:#fef3c7; border-radius:8px; font-size:12px; color:#92400e;">
           <strong>🧠 斯梅尔 1961 用了什么？</strong>用"h-配边理论"——把高维流形切成简单片。<br>
           <strong>🧠 弗里德曼 1982 用了什么？</strong>用"非交换群"和"分类 4 维流形"——拿到菲尔兹奖。<br>
-          <strong>🧠 佩雷尔曼 2003 用了什么？</strong>用 <strong>Ricci flow + 手术</strong>——拿到菲尔兹奖但<strong>拒领</strong>！
+          <strong>🧠 佩雷尔曼 2003 用了什么？</strong>用 <strong>Ricci flow + 手术</strong>——二〇〇三年发布预印本，2006 年获菲尔兹奖<strong>未到场领取</strong>！
         </div>
         <div class="next-hint">🌊 <strong>下一站</strong>：佩雷尔曼 的核心武器——Ricci flow 是什么？</div>
       `
@@ -17568,7 +17639,7 @@ function initStage_EX_PROVEN_14_s3() {
   if (!wrap) return;
   const dims = [
     { dim: 1, status: 'trivial',   year: '—',       prover: '平凡（曲线就是圆）',        color: '#10b981' },
-    { dim: 2, status: '古典',       year: '~1900',   prover: 'Riemann 曲面分类',           color: '#3b82f6' },
+    { dim: 2, status: '古典',       year: '~1900',   prover: '黎曼 曲面分类',           color: '#3b82f6' },
     { dim: 3, status: '庞加莱 1904', year: '2003',   prover: '佩雷尔曼 (Ricci flow)',      color: '#7c3aed' },
     { dim: 4, status: '弗里德曼 1982', year: '1982', prover: '弗里德曼 (拓扑 + 群论)',     color: '#f59e0b' },
     { dim: 5, status: '斯梅尔 1961', year: '1961',   prover: '斯梅尔 (h-配边 + 环柄)',     color: '#ef4444' },
@@ -17600,7 +17671,7 @@ function initStage_EX_PROVEN_14_s5() {
     { y: '1904', t: '庞加莱猜想', d: 'Henri Poincaré 提出 3 维情形', color: '#7c3aed' },
     { y: '1961', t: '斯梅尔 证明 5D+', d: 'Stephen 斯梅尔 用 h-配边理论证明 n≥5 → 1962 菲尔兹奖', color: '#3b82f6' },
     { y: '1982', t: '弗里德曼 证明 4D', d: 'Michael 弗里德曼 用 E8 群论证明 4D → 1986 菲尔兹奖', color: '#10b981' },
-    { y: '1982', t: 'Hamilton 引入 Ricci flow', d: 'Richard 汉密尔顿 提出"演化曲率"的想法', color: '#f59e0b' },
+    { y: '1982', t: '汉密尔顿 引入 Ricci flow', d: 'Richard 汉密尔顿 提出"演化曲率"的想法', color: '#f59e0b' },
     { y: '2002', t: '佩雷尔曼 突破', d: '俄裔数学家 Grigori 佩雷尔曼 在 arXiv 发布 3 篇预印本', color: '#ef4444' },
     { y: '2003', t: '佩雷尔曼 完成证明', d: '结合 汉密尔顿 的 Ricci flow + 自己的"手术"技术', color: '#dc2626' },
     { y: '2006', t: '拒奖菲尔兹 + 千禧奖', d: '佩雷尔曼 同时拒绝 1 万美元 Fields + 100 万 Clay 奖', color: '#a855f7' },
@@ -17632,7 +17703,7 @@ function initStage_EX_PROVEN_14_initAll() { initStage_EX_PROVEN_14(); }
 
 
 // ========== EX_PROVEN_15 5 步 ==========
-// EX_PROVEN_15 — Ricci flow 几何演化方程（Hamilton 1982, 佩雷尔曼 2003 改进）
+// EX_PROVEN_15 — Ricci flow 几何演化方程（汉密尔顿 1982, 佩雷尔曼 2003 改进）
 // 5 步直观讲解：曲率演化 / 2D 曲面演示 / 3D 奇点 / 手术技巧 / 时间线
 
 function getStagesEX_PROVEN_15() {
@@ -17696,7 +17767,7 @@ function getStagesEX_PROVEN_15() {
               <div>总能量 ∫κ²：<span id="exprov15s2-energy" style="font-weight:900; color:#10b981; font-size:16px;">—</span></div>
             </div>
             <div style="margin-top:10px; padding:10px; background:#faf5ff; border-radius:8px; font-size:12px; color:#5b21b6;">
-              <strong>2D 情形</strong> (Hamilton 1988)：任何封闭曲面在 Ricci flow 下<strong>有限时间内</strong>演化为球面！这是<strong>2 维 Poincaré 猜想</strong>的重新证明。
+              <strong>2D 情形</strong> (汉密尔顿 1988)：任何封闭曲面在 Ricci flow 下<strong>有限时间内</strong>演化为球面！这是<strong>2 维 Poincaré 猜想</strong>的重新证明。
             </div>
           </div>
         </div>
@@ -17718,7 +17789,7 @@ function getStagesEX_PROVEN_15() {
             </div>
           </div>
           <div style="flex:1 1 220px; padding:12px; background:linear-gradient(135deg,#dbeafe,#bfdbfe); border:2px solid #3b82f6; border-radius:10px;">
-            <div style="font-weight:900; color:#1e40af; font-size:14px;">🔍 Hamilton 1982 思路</div>
+            <div style="font-weight:900; color:#1e40af; font-size:14px;">🔍 汉密尔顿 1982 思路</div>
             <div style="font-size:12px; color:#1e40af; margin-top:6px; line-height:1.6;">
               限制曲率算子 R<sub>ij</sub> &gt; 0<br>
               → 试图<strong>避免奇点</strong><br>
@@ -17781,14 +17852,14 @@ function getStagesEX_PROVEN_15() {
           • 手术的<strong>总次数有限</strong>（佩雷尔曼 证明了单调性）<br>
           • 手术前后流形的<strong>拓扑类型</strong>要可控
         </div>
-        <div class="next-hint">📜 <strong>最后一站</strong>：从 Hamilton 1982 到朱熹平/曹怀东 2006——Ricci flow 35 年的故事！</div>
+        <div class="next-hint">📜 <strong>最后一站</strong>：从 汉密尔顿 1982 到朱熹平/曹怀东 2006——Ricci flow 35 年的故事！</div>
       `
     },
 
     // ============== s5 历史时间线 ==============
     {
       emoji: '📜', title: 'Ricci flow 35 年简史', content: `
-        <p class="lead">从 Hamilton 1982 引入，到 佩雷尔曼 2003 改进，再到朱熹平/曹怀东 2006 完整补充——一个方程的史诗。</p>
+        <p class="lead">从 汉密尔顿 1982 引入，到 佩雷尔曼 2003 改进，再到朱熹平/曹怀东 2006 完整补充——一个方程的史诗。</p>
         <div class="viz" id="exprov15s5-timeline"></div>
         <div style="margin-top:10px; padding:10px; background:linear-gradient(135deg,#f0fdf4,#dcfce7); border-radius:8px; font-size:12px;">
           🇨🇳 <strong>朱熹平 + 曹怀东 2006</strong>：他们写了<strong style="color:#10b981;">500+ 页的详细补充</strong>，把 佩雷尔曼 三篇 arXiv 预印本的每一步"补"成了完整可验证的严格数学。发表在《亚洲数学期刊》。
@@ -17971,9 +18042,9 @@ function initStage_EX_PROVEN_15_s5() {
   const tl = document.getElementById('exprov15s5-timeline');
   if (!tl) return;
   const events = [
-    { y: '1982', t: 'Hamilton 引入 Ricci flow', d: 'Richard S. 汉密尔顿 提出 ∂g/∂t = -2Ric(g)，首批结果在 2 维', color: '#7c3aed' },
-    { y: '1986', t: 'Hamilton 3 维尝试', d: '3 维正曲率假设下部分结果，但 3 维奇点问题未解', color: '#3b82f6' },
-    { y: '1988', t: 'Hamilton 证明 2 维', d: '2 维曲面 Ricci flow 在有限时间演化为球面', color: '#10b981' },
+    { y: '1982', t: '汉密尔顿 引入 Ricci flow', d: 'Richard S. 汉密尔顿 提出 ∂g/∂t = -2Ric(g)，首批结果在 2 维', color: '#7c3aed' },
+    { y: '1986', t: '汉密尔顿 3 维尝试', d: '3 维正曲率假设下部分结果，但 3 维奇点问题未解', color: '#3b82f6' },
+    { y: '1988', t: '汉密尔顿 证明 2 维', d: '2 维曲面 Ricci flow 在有限时间演化为球面', color: '#10b981' },
     { y: '2002', t: '佩雷尔曼 arXiv 预印本', d: '用"手术 (surgery)" 处理 3 维奇点，发 3 篇预印本', color: '#f59e0b' },
     { y: '2003', t: '庞加莱猜想完成', d: '佩雷尔曼 3 维封闭流形分类 → 庞加莱猜想', color: '#ef4444' },
     { y: '2006', t: '朱熹平 + 曹怀东完整补充', d: '中山大学团队 500+ 页详细补充，发表在《亚洲数学期刊》', color: '#dc2626' },
@@ -18070,7 +18141,7 @@ function getStagesEX_PROVEN_16() {
               <strong>📜 关键事实</strong>：<br>
               n=3：欧拉 1770 证明（部分）<br>
               n=4：费马自己证明（无穷递降法）<br>
-              n=5：狄利克雷/Legendre 1825<br>
+              n=5：狄利克雷/Lege1825<br>
               n=7：Lame 1839<br>
               <span style="color:#dc2626;font-weight:700;">"一般 n" → 等了 358 年</span>
             </div>
@@ -18121,7 +18192,7 @@ function getStagesEX_PROVEN_16() {
           </div>
           <div style="flex:0 0 60px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
             <div style="font-size:30px; color:#7c3aed; font-weight:900;">↔</div>
-            <div style="font-size:10px; color:#7c3aed; margin-top:4px; text-align:center;">Taniyama-<br>Shimura-<br>Weil</div>
+            <div style="font-size:10px; color:#7c3aed; margin-top:4px; text-align:center;">Taniyama-<br>Shimura-<br>韦伊</div>
           </div>
           <div style="flex:1 1 220px; padding:14px; background:linear-gradient(135deg,#dbeafe,#bfdbfe); border:2px solid #3b82f6; border-radius:12px;">
             <div style="font-weight:900; color:#1e40af; font-size:15px;">🌀 模形式 (Modular form)</div>
@@ -18189,7 +18260,7 @@ function initStage_EX_PROVEN_16_s2() {
     ],
     3: [['(无正整数解)', '', '', '欧拉 1770 证明无解']],
     4: [['(无正整数解)', '', '', '费马 自己用无穷递降证明']],
-    5: [['(无正整数解)', '', '', '狄利克雷/Legendre 1825 证明无解']],
+    5: [['(无正整数解)', '', '', '狄利克雷/勒让德 1825 证明无解']],
     6: [['(无正整数解)', '', '', 'n=6 必为 n=2 或 n=3 情形']],
   };
   let curN = 2;
@@ -18354,7 +18425,7 @@ function initStage_EX_PROVEN_16_s5() {
   const events = [
     { y: '1637', t: '费马页边注释', d: 'Pierre de 费马 在《算术》空白处写下猜想', color: '#7c3aed' },
     { y: '1770', t: '欧拉证明 n=3', d: 'Leonhard 欧拉 证明 x³+y³=z³ 无正整数解', color: '#3b82f6' },
-    { y: '1825', t: '狄利克雷/Legendre 证 n=5', d: 'P. 狄利克雷 与 A. 勒让德 独立证明 n=5 情形', color: '#10b981' },
+    { y: '1825', t: '狄利克雷/Lege证 n=5', d: 'P. 狄利克雷 与 A. 勒让德 独立证明 n=5 情形', color: '#10b981' },
     { y: '1857', t: '库默尔"理想数"突破', d: 'E. Kummer 引入理想数，部分突破正则素数情形', color: '#f59e0b' },
     { y: '1984', t: 'Frey 提出关键联系', d: 'G. Frey 指出费马方程可转写为"怪异"椭圆曲线', color: '#ef4444' },
     { y: '1986', t: 'Ribet 证 ε-猜想', d: 'K. Ribet 证明 Frey 曲线必不模 → 把 TS 猜想 ⟹ FLT', color: '#a855f7' },
@@ -18535,7 +18606,7 @@ function getStagesEX_PROVEN_17() {
           <div style="margin-top: 14px; padding: 14px; background: linear-gradient(135deg, #f3e8ff, #fce7f3); border-left: 5px solid #a855f7; border-radius: 8px; font-size: 13px; line-height: 1.8;">
             <strong>🍃 谷山丰 (1927-1958)</strong>：1955 年在日本数学家会议上提出猜想，仅 28 岁。<br>
             1957 年深秋在<strong>研究室自杀</strong>，年仅 31 岁。猜想未及完成，留下一封写给妻子的<strong>情书</strong>作为遗书——字里行间是"<strong>别了，世界</strong>"。<br>
-            <strong>🎓 志村五郎 (Shimura Goro, 1930-2019)</strong> 接手系统化猜想，1957 年与 Weil 通信后逐步严格化。<br>
+            <strong>🎓 志村五郎 (Shimura Goro, 1930-2019)</strong> 接手系统化猜想，1957 年与 韦伊 通信后逐步严格化。<br>
             <strong>👨‍🏫 怀尔斯 (1953-)</strong> 1986 年听到 Ribet 证明"谷山-志村 ⇒ 费马"，决定<strong>放弃所有会议</strong>，在普林斯顿家中阁楼<strong>闭关 7 年</strong>。<br>
             1993 年 6 月宣布证明 → 1993 年 11 月发现漏洞 → 1994 年 9 月与学生 Taylor 用<strong>"岩泽理论"补丁</strong>补上 → 1995 年发表。<br>
             <strong>📐 Breuil-Conrad-Diamond (1999)</strong> 完成全情形的证明，谷山-志村 70 年长跑<strong>完美收官</strong>。
@@ -18665,7 +18736,7 @@ function initStage_EX_PROVEN_17_s5() {
     { year: '1927', text: '谷山丰出生于日本', color: '#7c3aed' },
     { year: '1955', text: '谷山在国际会议上提出"模形式对应椭圆曲线"猜想（仅 28 岁）', color: '#7c3aed' },
     { year: '1957', text: '谷山在研究室自杀（31 岁），猜想未完成', color: '#ef4444' },
-    { year: '1956', text: 'Shimura 与 Weil 通信，将猜想系统化（谷山-志村猜想正式成型）', color: '#7c3aed' },
+    { year: '1956', text: 'Shimura 与 韦伊 通信，将猜想系统化（谷山-志村猜想正式成型）', color: '#7c3aed' },
     { year: '1986', text: '🎯 K. Ribet 证明"谷山-志村 ⇒ 费马大定理"', color: '#10b981' },
     { year: '1993.6', text: '怀尔斯 宣布证明费马大定理（闭关 7 年）', color: '#f59e0b' },
     { year: '1993.11', text: '发现证明漏洞！', color: '#ef4444' },
@@ -18753,7 +18824,7 @@ function getStagesEX_PROVEN_18() {
           </svg>
           <div id="exprov18s2-list" style="margin-top: 10px; padding: 10px; background: white; border: 1px solid #fce7f3; border-radius: 8px; font-size: 13px; font-family: 'Courier New', monospace; line-height: 1.7; max-height: 100px; overflow-y: auto;"></div>
         </div>
-        <div class="next-hint">📊 <strong>密度</strong>：N=1000 约有 35 对；N=10000 约有 122 对；N=10⁶ 约有 8169 对。素数定理预测 N 内的孪生对数 ≈ 2C₂·N/(ln N)²，<strong>C₂ ≈ 0.66016</strong>（哈代-李特尔伍德）。</div>
+        <div class="next-hint">📊 <strong>密度</strong>：N=1000 约有 35 对；N=10000 约有 122 对；N=10⁶ 约有 8169 对。素数定理预测 N 内的孪生对数 ≈ 2C₂·N/(ln N)²，<strong>C₂ ≈ 0.66016</strong>（哈代-Littlewood）。</div>
       `
     },
     {
@@ -18805,7 +18876,7 @@ function getStagesEX_PROVEN_18() {
           ④ N 和 N+h 之间没有 ≥k 的素因子 → 间隙 ≤ 2h<br>
           <strong style="color: #6b21a8;">张益唐用 Bombieri-Friedlander-Iwaniec 替代了 GPY 用的 Elliott-Halberstam，让常数 h 从失败 → <span class="formula">7000 万</span></strong>
         </div>
-        <div class="next-hint">🛠️ <strong>后续优化</strong>：Polymath 8 项目协作把 7000 万降到 <strong>246</strong>（2014 年）；梅纳德 独立方法；庞逸轩 2016、韦东奕（"韦神"）2022 用"3-sieve"继续改进。</div>
+        <div class="next-hint">🛠️ <strong>后续优化</strong>：波利马什 8 项目协作把 7000 万降到 <strong>246</strong>（2014 年）；梅纳德 独立方法；庞逸轩 2016、韦东奕（"韦神"）2022 用"3-sieve"继续改进。</div>
       `
     },
     {
@@ -18960,8 +19031,8 @@ function initStage_EX_PROVEN_18_s5() {
     { year: '1966', text: '陈景润筛法突破，证明存在无穷多间隙 ≤ 2 的素数对（即孪生）<span style="color:#10b981;">部分结果</span>', color: '#10b981' },
     { year: '2005', text: 'Goldston-Pintz-Yıldırım 证明：相邻素数间隙 / log N → 0（突破性）', color: '#a855f7' },
     { year: '2013.4', text: '🌟 张益唐独立发表《Bounded gaps between primes》——间隙 < 7000 万', color: '#ec4899' },
-    { year: '2013.6', text: 'Polymath 8 项目协作优化界：7000 万 → 4680 → 246', color: '#f59e0b' },
-    { year: '2014', text: '英国 James 梅nard 独立方法：246 → 600（进一步优化）', color: '#10b981' },
+    { year: '2013.6', text: '波利马什 8 项目协作优化界：7000 万 → 4680 → 246', color: '#f59e0b' },
+    { year: '2014', text: '英国 James 梅纳德 独立方法：246 → 600（进一步优化）', color: '#10b981' },
     { year: '2016', text: '庞逸轩（北大）独立用"半光滑估计"方法', color: '#7c3aed' },
     { year: '2022', text: '⭐ 韦东奕（北大，"韦神"）用"3-sieve"给出新证明路径', color: '#ec4899' },
   ];
@@ -18991,8 +19062,8 @@ function initStage_EX_PROVEN_18_initAll() { initStage_EX_PROVEN_18(); }
 
 
 // ========== EX_PROVEN_19 5 步 ==========
-// EX_PROVEN_19 — 弱哥德巴赫证明（Helfgott 2013）
-// 核心：Helfgott 2013 用圆法完成"奇数 = 三个素数之和"（弱哥德巴赫猜想）
+// EX_PROVEN_19 — 弱哥德巴赫证明（赫尔福特 2013）
+// 核心：赫尔福特 2013 用圆法完成"奇数 = 三个素数之和"（弱哥德巴赫猜想）
 // 5 步：概念卡 → 交互验算 → 大范围扫描 → 圆法 → 历史时间线
 
 function getStagesEX_PROVEN_19() {
@@ -19020,7 +19091,7 @@ function getStagesEX_PROVEN_19() {
               <div style="font-family: 'Courier New', monospace; font-size: 22px; margin: 4px 0; color: #1e3a8a;">9 = 2 + 2 + 5</div>
               <div style="font-family: 'Courier New', monospace; font-size: 22px; margin: 4px 0; color: #1e3a8a;">11 = 3 + 3 + 5</div>
               <div style="font-family: 'Courier New', monospace; font-size: 22px; margin: 4px 0; color: #1e3a8a;">99 = 3 + 5 + 91</div>
-              <div style="margin-top: 8px; font-size: 12px; color: #1e40af;">✅ 2013 Helfgott 完整证明</div>
+              <div style="margin-top: 8px; font-size: 12px; color: #1e40af;">✅ 2013 赫尔福特 完整证明</div>
             </div>
           </div>
         </div>
@@ -19076,12 +19147,12 @@ function getStagesEX_PROVEN_19() {
           </svg>
           <div id="exprov19s3-stats" style="margin-top: 10px; padding: 10px; background: linear-gradient(135deg, #f0f9ff, #fef3c7); border-radius: 8px; font-size: 13px; line-height: 1.7;"></div>
         </div>
-        <div class="next-hint">💯 <strong>结论</strong>：<strong>每个奇数都能分解</strong>（Helfgott 2013 完整证明）。计算机扫到 4·10¹⁸ 都成立——但证明需要<strong>圆法</strong>。</div>
+        <div class="next-hint">💯 <strong>结论</strong>：<strong>每个奇数都能分解</strong>（赫尔福特 2013 完整证明）。计算机扫到 4·10¹⁸ 都成立——但证明需要<strong>圆法</strong>。</div>
       `
     },
     {
       emoji: '🌀',
-      title: '圆法：哈代-李特尔伍德-拉马努金',
+      title: '圆法：哈代-Littlewood-拉马努金',
       content: `
         <p class="lead"><strong style="color:#7c3aed;">圆法 (Circle Method)</strong>：把"求 r<sub>3</sub>(N)（分解方法数）"的求和变成<strong>复平面单位圆上的积分</strong>——在"大弧"和"小弧"上分别估计。</p>
         <div class="viz" style="display: flex; gap: 16px; align-items: stretch; flex-wrap: wrap;">
@@ -19107,7 +19178,7 @@ function getStagesEX_PROVEN_19() {
         <div style="margin-top: 14px; padding: 14px; background: linear-gradient(135deg, #f3e8ff, #fce7f3); border-left: 5px solid #a855f7; border-radius: 8px; font-size: 13px; line-height: 1.8;">
           <strong>🏆 历史里程碑</strong>：<br>
           ① <strong>1937 Vinogradov</strong>：用圆法证明对<strong>足够大</strong>的奇数 N，r<sub>3</sub>(N) > 0（但有效范围 <span class="formula">N &gt; 3<sup>3<sup>15</sup></sup></span>——大得离谱）<br>
-          ② <strong>2013 Helfgott</strong>：用改进的圆法 + 三元 哥德巴赫 问题的渐近式 + 现代计算机辅助，把 Vinogradov 的"足够大" <strong>降到 1</strong>，从而证明<strong>每个奇数都成立</strong>！
+          ② <strong>2013 赫尔福特</strong>：用改进的圆法 + 三元 哥德巴赫 问题的渐近式 + 现代计算机辅助，把 Vinogradov 的"足够大" <strong>降到 1</strong>，从而证明<strong>每个奇数都成立</strong>！
         </div>
         <div class="next-hint">🧠 <strong>思想</strong>：把"组合问题"（素数分解）转化为"分析问题"（积分估计）——这是解析数论的<strong>核心魔法</strong>。</div>
       `
@@ -19116,20 +19187,20 @@ function getStagesEX_PROVEN_19() {
       emoji: '📅',
       title: '哥德巴赫 270 年长跑',
       content: `
-        <p class="lead">从一千七百四十二年哥德巴赫的一封信，到二零一三年 Helfgott 完整证明——这是<strong>271 年的接力赛</strong>。</p>
+        <p class="lead">从一千七百四十二年哥德巴赫的一封信，到二零一三年 赫尔福特 完整证明——这是<strong>271 年的接力赛</strong>。</p>
         <div class="viz">
           <div id="exprov19s5-timeline"></div>
           <div style="margin-top: 14px; padding: 14px; background: linear-gradient(135deg, #dbeafe, #fce7f3); border-left: 5px solid #3b82f6; border-radius: 8px; font-size: 13px; line-height: 1.8;">
-            <strong>📜 故事开端</strong>：一千七百四十二年六月七日，普鲁士数学家 <strong>Christian Goldbach</strong> 给好友欧拉写信：<br>
+            <strong>📜 故事开端</strong>：一千七百四十二年六月七日，普鲁士数学家 <strong>Christian 哥德巴赫</strong> 给好友欧拉写信：<br>
             <em>"看起来每个大于 1 的整数，都能写成三个素数之和。"</em><br>
             欧拉回信：<em>"这等价于'每个偶数都是两个素数之和'——但这看起来是个定理，尽管我还不能证明。"</em><br><br>
-            <strong>🎯 Helfgott 的关键论文</strong>：<em>"The ternary Goldbach problem is solved"</em>，arXiv: 1305.2897。Harald Helfgott，智利裔英国数学家，普林斯顿高等研究院成员。证明结合：<br>
+            <strong>🎯 赫尔福特 的关键论文</strong>：<em>"The ternary 哥德巴赫 problem is solved"</em>，arXiv: 1305.2897。Harald 赫尔福特，智利裔英国数学家，普林斯顿高等研究院成员。证明结合：<br>
             ① 圆法的现代版本（Platt-Treviño 处理大弧）<br>
             ② 小弧的<strong>三素数估计</strong>（Linnik、Vaughan-Wooley 思路）<br>
             ③ 电脑验证<strong>小 N</strong>（N &lt; 8.875·10³⁰ 的所有奇数）
           </div>
         </div>
-        <div class="next-hint">🔭 <strong>未解的"强"哥德巴赫</strong>：偶数 = 两素数之和，Helfgott 的证明能让强猜想有"半步进展"——但离完全证明仍很遥远。Chen Jingrun 1966 的"<span class="formula">p + p₂</span>"（一个素数 + 一个半素数）仍是<strong>最强结果</strong>。</div>
+        <div class="next-hint">🔭 <strong>未解的"强"哥德巴赫</strong>：偶数 = 两素数之和，赫尔福特 的证明能让强猜想有"半步进展"——但离完全证明仍很遥远。Chen Jingrun 1966 的"<span class="formula">p + p₂</span>"（一个素数 + 一个半素数）仍是<strong>最强结果</strong>。</div>
       `
     },
   ];
@@ -19245,7 +19316,7 @@ function initStage_EX_PROVEN_19_s3() {
     barsG.innerHTML = html;
     const pct = (ok / samples.length * 100).toFixed(1);
     pctEl.textContent = `${pct}%`;
-    statsEl.innerHTML = `扫描 <strong>${samples.length}</strong> 个奇数｜全部成功分解 <strong style="color:#10b981;">${ok}</strong> 个｜Helfgott 2013 证明<strong>100%</strong>成功——这只是有限验证，但理论上每个奇数都成立。`;
+    statsEl.innerHTML = `扫描 <strong>${samples.length}</strong> 个奇数｜全部成功分解 <strong style="color:#10b981;">${ok}</strong> 个｜赫尔福特 2013 证明<strong>100%</strong>成功——这只是有限验证，但理论上每个奇数都成立。`;
   };
   runBtn.onclick = draw;
   NInput.oninput = draw;
@@ -19260,15 +19331,15 @@ function initStage_EX_PROVEN_19_s5() {
   const tl = document.getElementById('exprov19s5-timeline');
   if (!tl) return;
   const events = [
-    { year: '1742', text: 'Goldbach 给 欧拉 写信提出"两素数和"与"三素数和"猜想', color: '#7c3aed' },
+    { year: '1742', text: '哥德巴赫 给 Eu 写信提出"两素数和"与"三素数和"猜想', color: '#7c3aed' },
     { year: '1770', text: 'Waring 在《Meditationes Algebraicae》重述猜想', color: '#7c3aed' },
-    { year: '1923', text: '哈代-李特尔伍德 提出"圆法"：把求和变成单位圆上积分', color: '#a855f7' },
+    { year: '1923', text: '哈代-Littlewood 提出"圆法"：把求和变成单位圆上积分', color: '#a855f7' },
     { year: '1937', text: '🎯 Vinogradov 用圆法证明"足够大"的奇数 N = p+q+r', color: '#10b981' },
     { year: '1937', text: '但 Vinogradov 的"足够大"是 N > 3^(3^15)（天文数字！）', color: '#ef4444' },
     { year: '1966', text: 'Chen Jingrun 证明"p + p₂"（一素数+一半素数）的"强哥德巴赫"部分结果', color: '#10b981' },
     { year: '1997', text: 'Deshouillers-Teulié-Zinoviev 改进"小 N"范围到 N < 10⁵⁰', color: '#f59e0b' },
-    { year: '2013', text: '🌟 Helfgott 完整证明：每个奇数 = 三素数之和', color: '#ec4899' },
-    { year: '2024', text: '"强哥德巴赫"仍开放（虽 Helfgott 可让强猜想有半步进展）', color: '#6b7280' },
+    { year: '2013', text: '🌟 赫尔福特 完整证明：每个奇数 = 三素数之和', color: '#ec4899' },
+    { year: '2024', text: '"强哥德巴赫"仍开放（虽 赫尔福特 可让强猜想有半步进展）', color: '#6b7280' },
   ];
   tl.innerHTML = events.map((e, i) => {
     const isLeft = i % 2 === 0;
@@ -19298,7 +19369,7 @@ function initStage_EX_PROVEN_19_initAll() { initStage_EX_PROVEN_19(); }
 // ========== EX_PROVEN_20 5 步 ==========
 // EX_PROVEN_20 — Calabi 猜想证明（丘成桐 1976）—— 首位华人菲尔兹奖
 // 核心：Calabi 1954 猜测"封闭 Kähler 流形上的 Ricci 形式都有唯一 Kähler 形式满足它"；丘成桐 1976 用偏微分方程证明
-// 5 步：概念卡 → 复平面与局部坐标 → Kähler 度量扭转 → Calabi-Yau 流形与弦论 → 8 节点时间线
+// 5 步：概念卡 → 复平面与局部坐标 → Kähler 度量扭转 → Calabi-丘 流形与弦论 → 8 节点时间线
 
 function getStagesEX_PROVEN_20() {
   return [
@@ -19326,7 +19397,7 @@ function getStagesEX_PROVEN_20() {
               <span style="color: #6b21a8;">→ 复几何 + 微分几何的"金童玉女"</span>
             </div>
             <div style="margin-top: 10px; padding: 10px; background: #fef3c7; border-radius: 8px; font-size: 12px; line-height: 1.6;">
-              <strong>💎 著名例子</strong>：复射影空间 ℂPⁿ、复环面 Tⁿ = ℂⁿ/ℤⁿ、Calabi-Yau 流形
+              <strong>💎 著名例子</strong>：复射影空间 ℂPⁿ、复环面 Tⁿ = ℂⁿ/ℤⁿ、Calabi-丘 流形
             </div>
           </div>
         </div>
@@ -19413,9 +19484,9 @@ function getStagesEX_PROVEN_20() {
     },
     {
       emoji: '🌌',
-      title: 'Calabi-Yau 流形：弦论的舞台',
+      title: 'Calabi-丘 流形：弦论的舞台',
       content: `
-        <p class="lead">丘成桐的证明开启了一类全新的流形——<strong style="color:#7c3aed;">Calabi-Yau 流形</strong>。它的关键性质是 <strong style="color:#ec4899;">Ricci 曲率 = 0</strong>，是弦论中"额外 6 维"的几何舞台。</p>
+        <p class="lead">丘成桐的证明开启了一类全新的流形——<strong style="color:#7c3aed;">Calabi-丘 流形</strong>。它的关键性质是 <strong style="color:#ec4899;">Ricci 曲率 = 0</strong>，是弦论中"额外 6 维"的几何舞台。</p>
         <div class="viz" style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap; justify-content: center;">
           <div style="flex: 1 1 220px; min-width: 220px;">
             <div style="padding: 14px; background: linear-gradient(135deg, #1e1b4b, #312e81); border-radius: 12px; color: white;">
@@ -19432,7 +19503,7 @@ function getStagesEX_PROVEN_20() {
           </div>
           <div style="flex: 1 1 220px; min-width: 220px;">
             <div style="padding: 14px; background: linear-gradient(135deg, #faf5ff, #f3e8ff); border-radius: 12px; border: 3px solid #a855f7;">
-              <div style="font-size: 14px; font-weight: 700; color: #6b21a8;">🎯 Calabi-Yau 三流形</div>
+              <div style="font-size: 14px; font-weight: 700; color: #6b21a8;">🎯 Calabi-丘 三流形</div>
               <div style="font-family: 'Courier New', monospace; font-size: 14px; margin: 8px 0; color: #be185d;">dim_ℂ X = 3</div>
               <div style="font-size: 12px; line-height: 1.6; color: #6b21a8;">
                 → <strong>实 6 维</strong><br>
@@ -19443,10 +19514,10 @@ function getStagesEX_PROVEN_20() {
           </div>
         </div>
         <div style="margin-top: 14px; padding: 14px; background: linear-gradient(135deg, #f3e8ff, #fce7f3); border-left: 5px solid #a855f7; border-radius: 8px; font-size: 13px; line-height: 1.8;">
-          <strong>🪞 镜像对称 (Mirror Symmetry)</strong>：1991 年 Candelas 等物理学家发现，两组<strong>不同的</strong> Calabi-Yau 流形（叫"镜像对"）的物理性质完全一样！<br>
-          → 一个 Calabi-Yau 上的 σ-模型 = 镜像 Calabi-Yau 上的 σ-模型<br>
+          <strong>🪞 镜像对称 (Mirror Symmetry)</strong>：1991 年 Candelas 等物理学家发现，两组<strong>不同的</strong> Calabi-丘 流形（叫"镜像对"）的物理性质完全一样！<br>
+          → 一个 Calabi-丘 上的 σ-模型 = 镜像 Calabi-丘 上的 σ-模型<br>
           → <strong>一九九七年 Candelas 给出严格数学证明</strong>：通过 3-流形的<strong>周期积分</strong>计算 霍奇 数，<strong>验证了 Gromov-威滕 不变量的镜像关系</strong>。<br>
-          → 这一发现<strong>深刻影响了</strong>代数几何、辛几何、枚举几何、量子场论——Calabi-Yau 流形成为<strong>连接数学与物理的桥梁</strong>。
+          → 这一发现<strong>深刻影响了</strong>代数几何、辛几何、枚举几何、量子场论——Calabi-丘 流形成为<strong>连接数学与物理的桥梁</strong>。
         </div>
         <div class="next-hint">🌠 <strong>深远影响</strong>：丘成桐 1976 年的纯几何证明，<strong>8 年后</strong>成为弦论的核心工具——<strong>数学的纯粹之美</strong>，常常在几十年后被物理学发现其价值。</div>
       `
@@ -19459,7 +19530,7 @@ function getStagesEX_PROVEN_20() {
         <div class="viz">
           <div id="exprov20s5-timeline"></div>
           <div style="margin-top: 14px; padding: 14px; background: linear-gradient(135deg, #fef3c7, #fce7f3); border-left: 5px solid #f59e0b; border-radius: 8px; font-size: 13px; line-height: 1.8;">
-            <strong>🌟 丘成桐 (Shing-Tung Yau, 1949-)</strong>：生于广东汕头，<strong>首位华人菲尔兹奖得主</strong>（1982 年华沙 ICM，与苏联数学家 Connes 共享）。<br>
+            <strong>🌟 丘成桐 (Shing-Tung 丘, 1949-)</strong>：生于广东汕头，<strong>首位华人菲尔兹奖得主</strong>（1982 年华沙 ICM，与苏联数学家 Connes 共享）。<br>
             1969 年香港中文大学数学系毕业 → 1971 年伯克利博士（师从陈省身）→ 1972 年任 Stanford 副教授 → 1984 年任 Harvard 数学系教授。<br><br>
             <strong>🏆 关键论文</strong>：<em>"The Ricci flow on 2-dimensional surfaces"</em>、<em>"On the Ricci curvature of a compact Kähler manifold and the Monge-Ampère equation, I / II / III"</em>，《American Journal of Mathematics》，<strong>1976 年 3 篇共 60 页</strong>，彻底证明 Calabi 猜想。<br><br>
             <strong>🇨🇳 中文名字</strong>："丘"读 qiū（不是 yu）。丘成桐曾任清华大学丘成桐数学科学中心主任，<strong>推动中国数学走向世界</strong>。
@@ -19567,7 +19638,7 @@ function initStage_EX_PROVEN_20_s5() {
     { year: '1978', text: '丘成桐获 Veblen 几何奖（每 5 年一次的最高几何奖）', color: '#f59e0b' },
     { year: '1982', text: '🏆 丘成桐获菲尔兹奖——首位华人菲尔兹奖得主（华沙 ICM）', color: '#ec4899' },
     { year: '1984', text: 'Candelas-Horowitz-Strominger-威滕 发现"卡拉比-丘流形"作为弦论紧化', color: '#a855f7' },
-    { year: '1990s-2000s', text: 'Calabi-Yau 流形成为数学物理交叉最热方向', color: '#10b981' },
+    { year: '1990s-2000s', text: 'Calabi-丘 流形成为数学物理交叉最热方向', color: '#10b981' },
     { year: '1997', text: 'Candelas 证明 CY 3-流形的镜像对称（验证 Gromov-威滕 不变量）', color: '#10b981' },
     { year: '2006', text: '🏆 丘成桐获沃尔夫奖（菲尔兹之后第二大奖）', color: '#f59e0b' },
   ];
@@ -20806,7 +20877,7 @@ function getStagesEX07() {
     },
     {
       emoji: '📅', title: '四元数小史', content: `
-        <p class="lead">1843 都柏林运河边——Hamilton 灵光乍现：</p>
+        <p class="lead">1843 都柏林运河边——汉密尔顿 灵光乍现：</p>
         <div class="viz">
           <div id="ex07s5-timeline"></div>
         </div>
@@ -20893,7 +20964,7 @@ function getStagesEX08() {
         <div class="viz">
           <div id="ex08s5-timeline"></div>
         </div>
-        <div class="next-hint">💡 <strong>转折点</strong>：1985 Miller + Koblitz 分别独立提出 ECC——RSA 256 位 ≈ ECC 256 位（但 ECC 更短）</div>
+        <div class="next-hint">💡 <strong>转折点</strong>：1985 米勒 + Ko利茨 分别独立提出 ECC——RSA 256 位 ≈ ECC 256 位（但 ECC 更短）</div>
       `
     },
   ];
@@ -21044,7 +21115,7 @@ function getStagesEX10() {
             <div id="ex10s4-result" style="padding: 14px; background: #f0fdf4; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.8;"></div>
           </div>
         </div>
-        <div class="next-hint">🔬 <strong>应用</strong>：流体力学（茹科夫斯基 翼型）、共形映射定理（Riemann）、电路分析</div>
+        <div class="next-hint">🔬 <strong>应用</strong>：流体力学（茹科夫斯基 翼型）、共形映射定理（黎曼）、电路分析</div>
       `
     },
     {
@@ -21281,8 +21352,8 @@ function initStage_EX07_s5() {
     const tl = document.getElementById('ex07s5-timeline');
     if (!tl) return;
     const events = [
-      { year: '1843-10-16', text: 'Hamilton 都柏林运河边灵光一现', color: '#7c3aed' },
-      { year: '1843-11', text: 'Hamilton 正式发表《四元数讲义》', color: '#f59e0b' },
+      { year: '1843-10-16', text: '汉密尔顿 都柏林运河边灵光一现', color: '#7c3aed' },
+      { year: '1843-11', text: '汉密尔顿 正式发表《四元数讲义》', color: '#f59e0b' },
       { year: '19世纪末', text: 'Gibbs / Heaviside 转向向量分析', color: '#10b981' },
       { year: '1985', text: 'Shoemake 把四元数引入计算机图形学', color: '#3b82f6' },
       { year: '今天', text: '游戏引擎、航天器姿态控制、虚拟现实', color: '#ef4444' },
@@ -21430,7 +21501,7 @@ function initStage_EX08_s5() {
       { year: '~1640', text: '费马 用椭圆曲线算双曲线下面积', color: '#7c3aed' },
       { year: '1850s', text: 'Weierstrass 把曲线标准化 y² = x³ + ax + b', color: '#f59e0b' },
       { year: '1901', text: 'Poincaré 证明曲线上的点构成加法群', color: '#10b981' },
-      { year: '1985', text: 'Miller + Koblitz 独立提出 ECC 密码学', color: '#3b82f6' },
+      { year: '1985', text: '米勒 + Ko利茨 独立提出 ECC 密码学', color: '#3b82f6' },
       { year: '今天', text: '比特币 ECDSA / TLS 1.3 / 区块链核心', color: '#ef4444' },
     ];
     tl.innerHTML = events.map((e, i) => {
@@ -21535,7 +21606,7 @@ function initStage_EX09_s5() {
     if (!tl) return;
     const events = [
       { year: '~300 BC', text: '欧几里得《几何原本》第五公设', color: '#7c3aed' },
-      { year: '1829', text: 'Lobachevsky 发表双曲几何（非欧几何诞生）', color: '#f59e0b' },
+      { year: '1829', text: '罗巴切夫斯基 发表双曲几何（非欧几何诞生）', color: '#f59e0b' },
       { year: '1882', text: 'Poincaré 引入圆盘模型（2 种）', color: '#10b981' },
       { year: '1901', text: '希尔伯特 在《数学问题》中列为第 4 问题', color: '#3b82f6' },
       { year: '1915+', text: '爱因斯坦广义相对论使用双曲时空', color: '#ef4444' },
@@ -21780,7 +21851,7 @@ function getStagesEX11() {
     },
     {
       emoji: '🌀', title: '临界带 + 黎曼猜想', content: `
-        <p class="lead">Riemann 把 ζ 推广到复数 s = σ + it，零点都在 <strong style="color:#a855f7;">0 ≤ Re(s) ≤ 1</strong> 临界带内：</p>
+        <p class="lead">黎曼 把 ζ 推广到复数 s = σ + it，零点都在 <strong style="color:#a855f7;">0 ≤ Re(s) ≤ 1</strong> 临界带内：</p>
         <div class="viz" style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;">
           <div style="flex: 1 1 200px; padding: 14px; background: linear-gradient(135deg, #ede9fe, #ede9fe); border: 2px solid #a855f7; border-radius: 12px;">
             <div style="font-size: 14px; font-weight: 900; color: #6b21a8;">平凡零点</div>
@@ -21802,7 +21873,7 @@ function getStagesEX11() {
       `
     },
     {
-      emoji: '📅', title: '欧拉 1736 → Riemann 1859', content: `
+      emoji: '📅', title: '欧拉 1736 → 黎曼 1859', content: `
         <p class="lead">从巴塞尔问题到黎曼猜想——ζ 函数 200 年发展史</p>
         <div class="viz">
           <div id="ex11s5-timeline"></div>
@@ -21900,8 +21971,8 @@ function initStage_EX11_s5() {
   const events = [
     { year: '1736', text: '欧拉 解巴塞尔问题：ζ(2) = π²/6', color: '#7c3aed' },
     { year: '1737', text: '欧拉 给出 ζ(s) = Π 1/(1-p^(-s)) 乘积公式', color: '#f59e0b' },
-    { year: '1859', text: 'Riemann《论小于给定量的素数个数》8 页论文', color: '#10b981' },
-    { year: '1896', text: 'Hadamard / de la Vallée-Poussin 证明素数定理', color: '#3b82f6' },
+    { year: '1859', text: '黎曼《论小于给定量的素数个数》8 页论文', color: '#10b981' },
+    { year: '1896', text: '阿达马 / de la Vallée-Poussin 证明素数定理', color: '#3b82f6' },
     { year: '2000', text: '千禧年问题：百万美元悬赏黎曼猜想', color: '#ef4444' },
     { year: '今天', text: '已验证 10^13 个非平凡零点都在 Re=1/2 上', color: '#a855f7' },
   ];
@@ -22005,7 +22076,7 @@ function getStagesEX12() {
             <div style="flex: 1 1 200px; padding: 12px; background: white; border: 2px solid #10b981; border-radius: 8px;">
               <div style="font-weight: 900; color: #14532d;">渐近</div>
               <div style="color: #15803d;">π_{Z[i]}(N) ~ N/log(N)</div>
-              <div style="color: #15803d;">（Landau 1903）</div>
+              <div style="color: #15803d;">（朗道 1903）</div>
             </div>
           </div>
         </div>
@@ -22113,7 +22184,7 @@ function initStage_EX12_s5() {
     { year: '1832', text: '高斯 系统研究 Z[i] = Z[√-1] 的素数分解', color: '#f59e0b' },
     { year: '1871', text: 'Dedekind 提出"理想数"概念', color: '#10b981' },
     { year: '1893', text: '希尔伯特 用 Z[i] 解释二次互反律', color: '#3b82f6' },
-    { year: '1903', text: 'Landau 证明 Z[i] 素数定理', color: '#ef4444' },
+    { year: '1903', text: '朗道 证明 Z[i] 素数定理', color: '#ef4444' },
     { year: '今天', text: 'Z[i] 是代数数论的"玩具模型"', color: '#a855f7' },
   ];
   tl.innerHTML = events.map((e, i) => {
@@ -22347,7 +22418,7 @@ function getStagesEX14() {
         <p class="lead">N×N 矩阵 A，A[i][j] 独立从 N(0,1) 抽样；特征值 λ = α + βi 落在哪？</p>
         <div class="viz" style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;">
           <div style="flex: 1 1 180px; padding: 14px; background: linear-gradient(135deg, #dbeafe, #dbeafe); border: 2px solid #3b82f6; border-radius: 12px; text-align: center;">
-            <div style="font-size: 24px; font-weight: 900; color: #1e3a8a;">Girko 圆</div>
+            <div style="font-size: 24px; font-weight: 900; color: #1e3a8a;">吉尔科 圆</div>
             <div style="font-size: 12px; color: #1e3a8a; margin-top: 6px;">实随机矩阵</div>
             <div style="font-size: 11px; color: #312e81; margin-top: 4px;">|λ| ≤ 2√N（圆盘）</div>
           </div>
@@ -22396,7 +22467,7 @@ function getStagesEX14() {
           </div>
           <div id="ex14s3-svg" style="text-align: center;"></div>
         </div>
-        <div class="next-hint">🔵 <strong>Girko 圆定律</strong>（1984）：特征值均匀落入半径 √N 的圆盘</div>
+        <div class="next-hint">🔵 <strong>吉尔科 圆定律</strong>（1984）：特征值均匀落入半径 √N 的圆盘</div>
       `
     },
     {
@@ -22512,7 +22583,7 @@ function initStage_EX14_s3() {
     const W = 400, H = 400;
     const cx = W / 2, cy = H / 2;
     const Rdisk = Math.min(W, H) / 2 - 30;
-    // Girko 圆：理论半径 √N，但实随机矩阵特征值通常 |λ| ≤ 2√N
+    // 吉尔科 圆：理论半径 √N，但实随机矩阵特征值通常 |λ| ≤ 2√N
     const Rbound = 2 * Math.sqrt(N) * Rdisk / 3.5;
     // 圆边界
     let html = `<svg viewBox="0 0 ${W} ${H}" style="max-width: 100%; background: white; border-radius: 8px;">
@@ -22552,7 +22623,7 @@ function initStage_EX14_s5() {
     { year: '1955', text: 'Wigner 为重原子核能级引入随机矩阵', color: '#f59e0b' },
     { year: '1958', text: 'Wigner-Dyson 间距统计三定理', color: '#10b981' },
     { year: '1967', text: 'Marchenko-Pastur 定律（Wishart 矩阵）', color: '#3b82f6' },
-    { year: '1984', text: 'Girko 圆定律（一般随机矩阵）', color: '#ef4444' },
+    { year: '1984', text: '吉尔科 圆定律（一般随机矩阵）', color: '#ef4444' },
     { year: '今天', text: '量子混沌、神经网络、金融工程', color: '#a855f7' },
   ];
   tl.innerHTML = events.map((e, i) => {
@@ -22868,7 +22939,7 @@ function getStagesEX16() {
     },
     {
       emoji: '📅', title: '椭圆曲线密码 40 年', content: `
-        <p class="lead">1985 Miller 提议 → 2009 Bitcoin 中本聪 → 2015 TLS 1.3 默认 ECC：</p>
+        <p class="lead">1985 米勒 提议 → 2009 Bitcoin 中本聪 → 2015 TLS 1.3 默认 ECC：</p>
         <div class="viz">
           <div id="ex16s5-timeline"></div>
         </div>
@@ -23021,7 +23092,7 @@ function initStage_EX16_s5() {
   const tl = document.getElementById('ex16s5-timeline');
   if (!tl) return;
   const events = [
-    { year: '1985', text: 'Neal Koblitz / Victor Miller 独立提出 ECC', color: '#7c3aed' },
+    { year: '1985', text: 'Neal 科布利茨 / Victor 米勒 独立提出 ECC', color: '#7c3aed' },
     { year: '2000', text: 'NIST 标准化 P-256 / P-384 曲线', color: '#f59e0b' },
     { year: '2009', text: 'Bitcoin 中本聪用 secp256k1', color: '#10b981' },
     { year: '2015', text: 'TLS 1.3 默认启用 ECC 套件', color: '#3b82f6' },
@@ -24415,10 +24486,10 @@ function getStagesNT16() {
           <div style="flex: 1 1 200px; padding: 14px; background: linear-gradient(135deg, #bbf7d0, #bbf7d0); border: 2px solid #10b981; border-radius: 12px; text-align: center;">
             <div style="font-size: 26px; font-weight: 900; color: #14532d;">282</div>
             <div style="font-size: 12px; color: #14532d; margin-top: 6px;">10⁹ 内最大间隙</div>
-            <div style="font-size: 11px; color: #15803d; margin-top: 4px;">陶哲轩 2014 证明</div>
+            <div style="font-size: 11px; color: #15803d; margin-top: 4px;">10⁹ 内实测最大</div>
           </div>
         </div>
-        <div class="next-hint">🕳️ <strong>核心</strong>：间隙 → ∞（任意大）— 陶哲轩 2014 证明</div>
+        <div class="next-hint">🕳️ <strong>核心</strong>：间隙 → ∞（任意大）— 1931 韦斯津修斯 证明（陶哲轩 2014 实际贡献是把张益唐的 7000 万孪生间隙上界优化到 246）</div>
       `
     },
     {
@@ -24761,7 +24832,7 @@ function getStagesNT20() {
         <div class="viz" style="padding: 14px; background: #f0f9ff; border-radius: 8px;">
           <canvas id="nt20s3-chart" style="max-width: 100%;"></canvas>
         </div>
-        <div class="next-hint">🔭 <strong>哈代-李特尔伍德</strong>：拆分对数 ~ C × N/ln²N (C = 2∏(1-1/(p-1)²))</div>
+        <div class="next-hint">🔭 <strong>哈代-Littlewood</strong>：拆分对数 ~ C × N/ln²N (C = 2∏(1-1/(p-1)²))</div>
       `
     },
     {
@@ -24776,7 +24847,7 @@ function getStagesNT20() {
             <div id="nt20s4-result" style="padding: 14px; background: #f0fdf4; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.8;"></div>
           </div>
         </div>
-        <div class="next-hint">🔬 <strong>状态</strong>：弱猜想（5+ 奇数 = 3 素数之和）2013 年 Helfgott 证明；强猜想未证</div>
+        <div class="next-hint">🔬 <strong>状态</strong>：弱猜想（5+ 奇数 = 3 素数之和）2013 年 赫尔福特 证明；强猜想未证</div>
       `
     },
     {
@@ -25174,7 +25245,7 @@ function initStage_NT15_s5() {
     { year: '古希腊', text: '欧几里得研究回文数', color: '#f59e0b' },
     { year: '1966', text: '回文素数系统枚举开始', color: '#7c3aed' },
     { year: '2002', text: 'GIMPS 项目用大回文素数测试', color: '#10b981' },
-    { year: '2013', text: 'Helfgott 证明弱哥德巴赫（含回文素数）', color: '#3b82f6' },
+    { year: '2013', text: '赫尔福特 证明弱哥德巴赫（含回文素数）', color: '#3b82f6' },
     { year: '今天', text: '回文素数是否有无穷多？仍是未解', color: '#a855f7' },
   ];
   tl.innerHTML = events.map((e, i) => {
@@ -25545,7 +25616,7 @@ function initStage_NT20_s5() {
     { year: '1742', text: '哥德巴赫写信给欧拉提出猜想', color: '#f59e0b' },
     { year: '1937', text: 'Vinogradov 证明奇数情形', color: '#7c3aed' },
     { year: '1966', text: '陈景润证明"1+2"（最接近）', color: '#10b981' },
-    { year: '2013', text: 'Helfgott 证明弱哥德巴赫', color: '#3b82f6' },
+    { year: '2013', text: '赫尔福特 证明弱哥德巴赫', color: '#3b82f6' },
     { year: '今天', text: '强猜想仍未证明（悬赏 100 万美元）', color: '#ec4899' },
   ];
   tl.innerHTML = events.map((e, i) => {
@@ -26823,7 +26894,7 @@ function initStage_GM07_s5() {
   const events = [
     { year: 'BC 300', text: '欧几里得《几何原本》暗示 V-E+F 关系', color: '#7c3aed' },
     { year: '1640', text: 'Descartes 在笔记里写下欧拉公式', color: '#f59e0b' },
-    { year: '1750', text: '欧拉在给 Goldbach 的信中正式证明', color: '#10b981' },
+    { year: '1750', text: '欧拉在给 哥德巴赫 的信中正式证明', color: '#10b981' },
     { year: '1758', text: '欧拉发表《Elementa doctrinae solidorum》', color: '#3b82f6' },
     { year: '19世纪', text: '柯西、Listing 推广到任意多面体', color: '#ef4444' },
     { year: '20世纪', text: '欧拉 示性数成为代数拓扑基础', color: '#a855f7' },
@@ -33193,7 +33264,7 @@ function initStage_AL10_s4() {
       const err = Math.abs(piN - est) / piN * 100;
       html += `${N.toString().padStart(7)} | ${piN.toString().padStart(6)} | ${est.toFixed(0).padStart(6)} | ${err.toFixed(1)}%<br>`;
     });
-    html += '<br><strong>素数定理</strong> (Hadamard 1896 证明)：π(n) ~ n/ln(n)，误差约 √n';
+    html += '<br><strong>素数定理</strong> (阿达马 1896 证明)：π(n) ~ n/ln(n)，误差约 √n';
     resultEl.innerHTML = html;
   } catch(e) { console.error('AL10_s4', e); }
 }
@@ -33204,7 +33275,7 @@ function initStage_AL10_s5() {
     const events = [
       { year: 'BC 200', text: '埃拉托斯特尼 古希腊发明素数筛', color: '#7c3aed' },
       { year: '1793', text: '高斯 猜测素数定理 π(n) ~ n/ln(n)', color: '#f59e0b' },
-      { year: '1896', text: 'Hadamard & de la Vallée-Poussin 严格证明', color: '#10b981' },
+      { year: '1896', text: '阿达马 & de la Vallée-Poussin 严格证明', color: '#10b981' },
       { year: '今天', text: 'RSA 加密、素数哈希、密码学基础', color: '#3b82f6' },
     ];
     tl.innerHTML = events.map((e, i) => {
@@ -36708,35 +36779,88 @@ const EXPERIMENTS = [{
   id: "PR02",
   cat: "数论",
   title: "冰雹蹦跳 (科拉茨 猜想)",
-  type: "conjecture_open",
   intro: "选一个正整数 n：偶数就除 2，奇数就 ×3+1，一直蹦下去，最后必到 1。",
-  introIntro: "同学们好！我是 Mavis。今天我们来看一个让全世界数学家都挠头的简单问题——科拉茨 猜想，也叫冰雹猜想。\n\n规则超级简单：选一个正整数 n。如果是偶数就除以 2；如果是奇数就乘 3 加 1。一直做下去，最后会蹦到 1 吗？\n\n这个问题小学生都能做，但数学家用计算机验证了几百亿亿个数字，全都蹦到了 1——可就是没人能证明。\n\n点开下面卡片，咱们动手试几个数，看看这个\"超级简单\"的问题到底有多神奇！",
-  expPack: [
-    { emoji: "🎲", title: "随机蹦一蹦", hint: "输入 27 看序列怎么走", content: `
-      <p>在"起始 n"输入框输入 27，点"开始"——会看到序列怎么蹦、蹦到多少步、峰值多高。</p>
-      <p>👉 <strong>观察</strong>：27 要蹦 112 步才到 1，中间峰值高达 9232！试试 31（107 步）或 871（蹦到 190747 峰值）。</p>
-    `},
-    { emoji: "🔬", title: "查找反例挑战", hint: "扫 1 到 1000 看有没有蹦不到 1 的", content: `
-      <p>把"扫描到 N"输入框改成 1000，点"开始扫描"——会画出所有 1-1000 数字的峰值散点图。</p>
-      <p>👉 <strong>挑战</strong>：如果发现任何数蹦不到 1——那你就推翻了一个 80 年的未解之谜！埃尔德什 悬赏 500 美元等你领。</p>
-    `},
-    { emoji: "📊", title: "步数排名榜", hint: "扫 100 看 Top 10 蹦得最久", content: `
-      <p>把"扫描到 N"改成 100，点"开始扫描"，滚到下方"蹦得最久"表格，看 1-100 内蹦得最久的 10 个数。</p>
-      <p>👉 <strong>答案</strong>：27（112 步）、31（107 步）、47（105 步）、71（102 步）、63（95 步）—— 全是奇数。蹦得久的数跟二进制有什么关系？</p>
-    `}
-  ],
-  principle: "<h4>🔍 这到底是怎么回事？</h4>\n<p>科拉茨 猜想是人类数学里<strong>最简单又最难</strong>的未解之谜之一。它的规则简单到小学生都能做：</p>\n<div style=\"background: #f8fafc; border-left: 4px solid #6366f1; padding: 12px 16px; margin: 12px 0; font-family: 'Courier New', monospace; font-size: 15px;\">\n如果 n 是<strong>偶数</strong>：n → n/2<br>\n如果 n 是<strong>奇数</strong>：n → 3n+1\n</div>\n<p>从任何正整数 n 出发，反复应用这个规则，<strong>似乎最终都会蹦到 1</strong>（然后在 1 → 4 → 2 → 1 循环）。</p>\n<h4>📊 看几个例子</h4>\n<p><strong>n = 6</strong>：6 → 3 → 10 → 5 → 16 → 8 → 4 → 2 → 1（9 步到 1）<br>\n<strong>n = 11</strong>：11 → 34 → 17 → 52 → 26 → 13 → 40 → 20 → 10 → 5 → 16 → 8 → 4 → 2 → 1（15 步）<br>\n<strong>n = 27</strong>：蹦 112 步，<strong>峰值高达 9232</strong>，才最终到 1</p>\n<h4>🧠 为什么这么难证？</h4>\n<p>看起来\"奇数 ×3+1 变大，偶数 /2 变小\"，平均起来应该往 1 收缩。数学家能证明：<strong>几乎所有 n 蹦几次后都掉回小数值</strong>。但要证明\"对所有 n 都成立\"，要处理无数种边界情况。</p>\n<p>已验证的范围：<strong>5.76 × 10¹⁸</strong>（约 58 亿亿）。但数学证明？<strong>没有</strong>。Paul 埃尔德什 说：\"这种问题数学还没准备好解决。\"</p>\n<h4>💡 直观：为什么它\"应该\"成立？</h4>\n<ul>\n  <li>奇数 ×3+1 后是<strong>偶数</strong>（因为 3×奇=奇，奇+1=偶），下一步必然 /2</li>\n  <li>所以\"奇数 → 偶数\"平均损失约 1/4 的大小</li>\n  <li>整个序列的\"几何均值\"约 3/4（<em>3/4 &lt; 1</em>），所以长期必收敛</li>\n  <li>但这不严格——有可能\"奇数大跳\"积累到突破边界</li>\n</ul>",
-  history: "<p><strong>1930 年代</strong>，德国汉堡大学的 <strong>洛塔尔·科拉茨</strong>（1910-1990）研究差分方程时发现了这个规律。1950 年他第一次在国际会议上提出来，被当成\"玩具问题\"。</p>\n<p><strong>1960-1970 年代</strong>，<strong>Bryan Thwaites</strong>（英国数学家）猜测这个猜想永远成立，但没证明。<strong>Shizuo Kakutani</strong>（日裔美国数学家）把这个问题在耶鲁大学数学系传开，大家叫它 <em>\"Kakutani's 3n+1 problem\"</em>。</p>\n<p><strong>1970s</strong>，<strong>Paul 埃尔德什</strong>（20 世纪最多产的数学家之一）公开悬赏 500 美元求证明或反例，至今没人领到。</p>\n<p><strong>1990s</strong>，<strong>Geoffrey Lagarias</strong> 整理了 科拉茨 问题，写了 50 页综述<em>\"The 3x+1 problem: an annotated bibliography\"</em>。今天 Lagarias 是这个领域最权威的专家之一。</p>\n<p><strong>2010s</strong>，<strong>Terence Tao</strong>（2006 菲尔兹奖得主）证明了一个<strong>几乎</strong>版本：几乎所有 n 都会\"很接近\"地收敛。但离完全证明还很远。</p>",
-  tryit: "<ol>\n  <li><strong>试小数字</strong>：输入 6、11、27，看序列变化。问孩子\"为什么 27 要蹦 112 步？\"</li>\n  <li><strong>找规律</strong>：让孩子手动算 1-10 的\"步数表\"：1→0步, 2→1, 3→7, 4→2, 5→5, 6→8, 7→16, 8→3, 9→19, 10→6。问\"哪个蹦得最久？\"——7 (16 步) 和 9 (19 步)。</li>\n  <li><strong>挑战：找反例</strong>：扫描到 10000，让孩子<strong>亲自</strong>找 1 个反例（找不到，赢 500 美元 埃尔德什 悬赏！）</li>\n  <li><strong>看峰值</strong>：n = 27 蹦到峰值 9232，n = 871 蹦到峰值 190747 —— 问\"为什么有些 n 这么拧巴？\"</li>\n  <li><strong>观察散点图</strong>：扫 5000，看哪些点是红的——红 = 步数超 5% 的\"反常起点\"。</li>\n  <li><strong>Top 10 表</strong>：扫描完成后看 Top 10——1 万以内蹦得最久的 10 个数是哪些？</li>\n  <li><strong>单步模式</strong>：用\"单步\"按钮看每一步怎么变化，感受\"奇数 ×3+1 后必偶 /2\"的节奏。</li>\n</ol>",
+  principle: "<h4>🔍 这到底是怎么回事？</h4>\n<p>科拉茨 猜想是人类数学里<strong>最简单又最难</strong>的未解之谜之一。它的规则简单到小学生都能做：</p>\n<div style=\"background: #f8fafc; border-left: 4px solid #6366f1; padding: 12px 16px; margin: 12px 0; font-family: 'Courier New', monospace; font-size: 15px;\">\n如果 n 是<strong>偶数</strong>：n → n/2<br>\n如果 n 是<strong>奇数</strong>：n → 3n+1\n</div>\n<p>从任何正整数 n 出发，反复应用这个规则，<strong>似乎最终都会蹦到 1</strong>（然后在 1 → 4 → 2 → 1 循环）。</p>\n<h4>📊 看几个例子</h4>\n<p><strong>n = 6</strong>：6 → 3 → 10 → 5 → 16 → 8 → 4 → 2 → 1（9 步到 1）<br>\n<strong>n = 11</strong>：11 → 34 → 17 → 52 → 26 → 13 → 40 → 20 → 10 → 5 → 16 → 8 → 4 → 2 → 1（15 步）<br>\n<strong>n = 27</strong>：蹦 111 步，<strong>峰值高达 9232</strong>，才最终到 1</p>\n<h4>🧠 为什么这么难证？</h4>\n<p>看起来\"奇数 ×3+1 变大，偶数 /2 变小\"，平均起来应该往 1 收缩。数学家能证明：<strong>几乎所有 n 蹦几次后都掉回小数值</strong>。但要证明\"对所有 n 都成立\"，要处理无数种边界情况。</p>\n<p>已验证的范围：<strong>2⁷¹ ≈ 2.36 × 10²¹</strong>。但数学证明？<strong>没有</strong>。Paul 埃尔德什 说：\"这种问题数学还没准备好解决。\"</p>\n<h4>💡 直观：为什么它\"应该\"成立？</h4>\n<ul>\n  <li>奇数 ×3+1 后是<strong>偶数</strong>（因为 3×奇=奇，奇+1=偶），下一步必然 /2</li>\n  <li>所以\"奇数 → 偶数\"平均损失约 1/4 的大小</li>\n  <li>整个序列的\"几何均值\"约 3/4（<em>3/4 &lt; 1</em>），所以长期必收敛</li>\n  <li>但这不严格——有可能\"奇数大跳\"积累到突破边界</li>\n</ul>",
+  history: "<p><strong>一九三〇年代</strong>，德国汉堡大学的 <strong>洛塔尔·科拉茨</strong>（1910-1990）研究差分方程时发现了这个规律。一九五〇年他第一次在国际会议上提出来，被当成\"玩具问题\"。</p>\n<p><strong>1960-一九七〇年代</strong>，<strong>Bryan Thwaites</strong>（英国数学家）猜测这个猜想永远成立，但没证明。<strong>Shizuo Kakutani</strong>（日裔美国数学家）把这个问题在耶鲁大学数学系传开，大家叫它 <em>\"Kakutani's 3n+1 problem\"</em>。</p>\n<p><strong>1970s</strong>，<strong>Paul 埃尔德什</strong>（20 世纪最多产的数学家之一）公开悬赏 500 美元求证明或反例，至今没人领到。</p>\n<p><strong>1990s</strong>，<strong>Geoffrey Lagarias</strong> 整理了 科拉茨 问题，写了 50 页综述<em>\"The 3x+1 problem: an annotated bibliography\"</em>。今天 Lagarias 是这个领域最权威的专家之一。</p>\n<p><strong>2010s</strong>，<strong>Terence 陶</strong>（2006 菲尔兹奖得主）证明了一个<strong>几乎</strong>版本：几乎所有 n 都会\"很接近\"地收敛。但离完全证明还很远。</p>",
+  tryit: "<ol>\n  <li><strong>试小数字</strong>：输入 6、11、27，看序列变化。问孩子\"为什么 27 要蹦 111 步？\"</li>\n  <li><strong>找规律</strong>：让孩子手动算 1-10 的\"步数表\"：1→0步, 2→1, 3→7, 4→2, 5→5, 6→8, 7→16, 8→3, 9→19, 10→6。问\"哪个蹦得最久？\"——7 (16 步) 和 9 (19 步)。</li>\n  <li><strong>挑战：找反例</strong>：扫描到 10000，让孩子<strong>亲自</strong>找 1 个反例（找不到，赢 500 美元 埃尔德什 悬赏！）</li>\n  <li><strong>看峰值</strong>：n = 27 蹦到峰值 9232，n = 871 蹦到峰值 190996 —— 问\"为什么有些 n 这么拧巴？\"</li>\n  <li><strong>观察散点图</strong>：扫 5000，看哪些点是红的——红 = 步数超 5% 的\"反常起点\"。</li>\n  <li><strong>Top 10 表</strong>：扫描完成后看 Top 10——1 万以内蹦得最久的 10 个数是哪些？</li>\n  <li><strong>单步模式</strong>：用\"单步\"按钮看每一步怎么变化，感受\"奇数 ×3+1 后必偶 /2\"的节奏。</li>\n</ol>",
   svgDemo: "",
-  explain: "同学们好！今天我们来看一个让全世界数学家都挠头的简单问题——科拉茨 猜想，也叫冰雹猜想。\n\n这个猜想超级简单，简单到小学生都能做：选一个正整数 n。\n\n如果 n 是偶数，就除以 2。\n如果 n 是奇数，就乘以 3 再加 1。\n\n一直做下去，最后会蹦到 1 吗？听起来好像很简单对吧？\n\n我来举个例子：n 等于 6，是偶数，除以 2，变成 3。3 是奇数，乘 3 加 1，变成 10。10 除 2 等于 5。5 乘 3 加 1 等于 16。16 除 2 等于 8。8 除 2 等于 4。4 除 2 等于 2。2 除 2 等于 1。蹦完了！9 步从 6 蹦到 1。\n\n再来一个：n 等于 11。11 乘 3 加 1 等于 34。34 除 2 等于 17。17 乘 3 加 1 等于 52……一路蹦下去，要 15 步才到 1。\n\n最有意思的是 n 等于 27。它要先蹦 112 步，蹦到中间峰值高达 9232，才最终蹦回 1！\n\n现在问题来了：这个规则对所有正整数都成立吗？数学家们用计算机验证了 5.76 乘以 10 的 18 次方，也就是 58 亿亿个数字，全都蹦到了 1。但数学证明呢？还没有！\n\n著名数学家 埃尔德什——得过沃尔夫奖的那个——公开悬赏 500 美元：谁能证明或推翻这个猜想，就给谁 500 美元。到现在没人领到。\n\n为什么这么难？看起来奇数乘 3 加 1 后会变大，偶数除以 2 会变小，平均起来应该往 1 收缩。但要严格证明\"对所有数都成立\"，要处理无数种边界情况，数学工具暂时不够用。\n\n现在请同学们自己挑一个数，比如 7 或者 9，看看你能不能蹦到 1。然后告诉你的同桌：哪个数蹦得最久？为什么？\n\n回家作业：在纸上写下 1 到 20 这 20 个数，挨个算每步蹦几，总共蹦几步。看看哪个数蹦得最久，明天带过来我们比一比。\n\n记住：数学不只藏在书本里——藏在每一次看似简单、其实深不见底的问题里。",
+  explain: "同学们好！今天我们来看一个让全世界数学家都挠头的简单问题——科拉茨 猜想，也叫冰雹猜想。\n\n这个猜想超级简单，简单到小学生都能做：选一个正整数 n。\n\n如果 n 是偶数，就除以 2。\n如果 n 是奇数，就乘以 3 再加 1。\n\n一直做下去，最后会蹦到 1 吗？听起来好像很简单对吧？\n\n我来举个例子：n 等于 6，是偶数，除以 2，变成 3。3 是奇数，乘 3 加 1，变成 10。10 除 2 等于 5。5 乘 3 加 1 等于 16。16 除 2 等于 8。8 除 2 等于 4。4 除 2 等于 2。2 除 2 等于 1。蹦完了！8 步从 6 蹦到 1（走了 9 个数，做了 8 次运算）。\n\n再来一个：n 等于 11。11 乘 3 加 1 等于 34。34 除 2 等于 17。17 乘 3 加 1 等于 52……一路蹦下去，要 14 步才到 1。\n\n最有意思的是 n 等于 27。它要先蹦 111 步，蹦到中间峰值高达 9232，才最终蹦回 1！\n\n现在问题来了：这个规则对所有正整数都成立吗？数学家们用计算机验证到了 2 的 71 次方，也就是大约 2.36 乘以 10 的 21 次方那么大范围的起始数，全都蹦到了 1。但数学证明呢？还没有！\n\n著名数学家 埃尔德什——得过沃尔夫奖的那个——公开悬赏 500 美元：谁能证明或推翻这个猜想，就给谁 500 美元。到现在没人领到。\n\n为什么这么难？看起来奇数乘 3 加 1 后会变大，偶数除以 2 会变小，平均起来应该往 1 收缩。但要严格证明\"对所有数都成立\"，要处理无数种边界情况，数学工具暂时不够用。\n\n现在请同学们自己挑一个数，比如 7 或者 9，看看你能不能蹦到 1。然后告诉你的同桌：哪个数蹦得最久？为什么？\n\n回家作业：在纸上写下 1 到 20 这 20 个数，挨个算每步蹦几，总共蹦几步。看看哪个数蹦得最久，明天带过来我们比一比。\n\n记住：数学不只藏在书本里——藏在每一次看似简单、其实深不见底的问题里。",
   audioUrl: "audio/PR02_explain.mp3",
-  stages: [{"emoji": "🎲", "title": "两条规则", "content": "\n        <p class=\"lead\">选一个正整数 n，照下面规则反复\"蹦\"：</p>\n        <div class=\"viz\" style=\"display: flex; gap: 16px; align-items: center; flex-wrap: wrap;\">\n          <div style=\"flex: 1 1 240px;\">\n            <div style=\"background: #dbeafe; border-left: 5px solid #3b82f6; padding: 12px 16px; border-radius: 8px; margin: 8px 0; font-size: 16px;\">\n              <strong>🔵 偶数</strong>：n → <strong style=\"color:#1e40af;\">n ÷ 2</strong>\n            </div>\n            <div style=\"background: #fee2e2; border-left: 5px solid #ef4444; padding: 12px 16px; border-radius: 8px; margin: 8px 0; font-size: 16px;\">\n              <strong>🔴 奇数</strong>：n → <strong style=\"color:#b91c1c;\">3n + 1</strong>\n            </div>\n          </div>\n          <div style=\"flex: 1 1 240px;\">\n            <label style=\"display: block; margin: 6px 0; font-weight: 700;\">🎮 试一个数 n：\n              <input type=\"number\" id=\"pr02s1-n\" min=\"1\" max=\"999\" value=\"6\" style=\"width: 80px; padding: 4px 8px; font-size: 16px; border: 2px solid #e9d5ff; border-radius: 6px;\">\n            </label>\n            <button class=\"primary\" id=\"pr02s1-go\" style=\"margin-top: 8px; font-size: 15px;\">▶ 演示蹦跳</button>\n            <div style=\"margin-top: 10px; padding: 10px; background: #faf5ff; border-radius: 8px; font-size: 14px;\">\n              <div style=\"font-weight: 700; color: #6b21a8; margin-bottom: 4px;\">📜 蹦跳序列：</div>\n              <div id=\"pr02s1-seq\" style=\"font-family: 'Courier New', monospace; word-break: break-all; line-height: 1.7; color: #1e40af; font-size: 15px;\">6</div>\n            </div>\n          </div>\n        </div>\n        <div class=\"next-hint\">🤔 <strong>问题</strong>：不管从哪个数开始蹦，最后都会蹦到 <strong>1</strong> 吗？</div>\n      "}, {"emoji": "📈", "title": "蹦跳的\"形状\"", "content": "\n        <p class=\"lead\">把 n 蹦跳的每一步画成\"线\"：横轴是步数，纵轴是 n 值。看清它怎么\"蹦\"的！</p>\n        <div class=\"viz\" style=\"display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap;\">\n          <div style=\"flex: 0 0 auto;\">\n            <svg id=\"pr02s2-svg\" width=\"320\" height=\"220\" viewBox=\"0 0 320 220\" style=\"background: #faf5ff; border-radius: 8px;\">\n              <g id=\"pr02s2-grid\"></g>\n              <polyline id=\"pr02s2-path\" fill=\"none\" stroke=\"#7c3aed\" stroke-width=\"2.5\" stroke-linejoin=\"round\"/>\n              <g id=\"pr02s2-dots\"></g>\n            </svg>\n          </div>\n          <div style=\"flex: 1 1 180px; min-width: 180px;\">\n            <label style=\"display: block; margin: 6px 0; font-weight: 700;\">\n              🎯 起点 n：<input type=\"number\" id=\"pr02s2-n\" min=\"1\" max=\"999\" value=\"7\" style=\"width: 80px; padding: 4px 8px; font-size: 16px; border: 2px solid #e9d5ff; border-radius: 6px;\">\n            </label>\n            <button class=\"primary\" id=\"pr02s2-go\" style=\"width: 100%; margin: 6px 0;\">🎲 画新路径</button>\n            <div style=\"background: #f3e8ff; padding: 10px; border-radius: 8px; font-size: 14px; margin-top: 8px;\">\n              <div>总共 <span id=\"pr02s2-steps\" style=\"font-weight: 700; color: #6b21a8;\">—</span> 步</div>\n              <div>最高蹦到 <span id=\"pr02s2-peak\" style=\"font-weight: 700; color: #b91c1c;\">—</span></div>\n              <div>最后 <span id=\"pr02s2-end\" style=\"font-weight: 700; color: #10b981;\">—</span></div>\n            </div>\n            <p style=\"font-size: 12px; color: #6b7280; margin: 8px 0 0;\">↑ 改 n 看新形状。有的 n 蹦得\"很高\"再跌回来，有的直接瀑布！</p>\n          </div>\n        </div>\n        <div class=\"next-hint\">🔍 <strong>发现</strong>：不管形状多不同，<strong>最后都掉回 1</strong>。但 27 蹦到 9232 才下来——为啥？</div>\n      "}, {"emoji": "🌈", "title": "5 个数一起蹦", "content": "\n        <p class=\"lead\">同时看 5 个不同 n 蹦跳，全部叠在一张图上（<strong style=\"color:#7c3aed;\">Y 轴用对数</strong>，不然 n=27 的 9232 把其他全压扁）。它们最后都会\"撞\"到 1 吗？</p>\n        <div class=\"viz\">\n          <svg id=\"pr02s3-svg\" width=\"100%\" height=\"280\" viewBox=\"0 0 600 280\" preserveAspectRatio=\"none\" style=\"background: linear-gradient(to bottom, #faf5ff, #fefce8); border-radius: 8px;\">\n            <g id=\"pr02s3-grid\"></g>\n            <g id=\"pr02s3-paths\"></g>\n            <g id=\"pr02s3-dots\"></g>\n            <line id=\"pr02s3-target\" x1=\"0\" y1=\"0\" x2=\"600\" y2=\"0\" stroke=\"#10b981\" stroke-width=\"2\" stroke-dasharray=\"6 4\"/>\n            <text id=\"pr02s3-targetlbl\" x=\"590\" y=\"14\" text-anchor=\"end\" font-size=\"11\" fill=\"#10b981\" font-weight=\"700\">目标线 n = 1</text>\n          </svg>\n          <div style=\"display: flex; gap: 12px; align-items: center; margin-top: 10px; flex-wrap: wrap;\">\n            <span style=\"font-size: 13px; color: #6b7280;\">🎨 选 5 个数：</span>\n            <input type=\"number\" id=\"pr02s3-n0\" min=\"1\" max=\"999\" value=\"3\" style=\"width: 60px; padding: 4px; text-align: center;\">\n            <input type=\"number\" id=\"pr02s3-n1\" min=\"1\" max=\"999\" value=\"7\" style=\"width: 60px; padding: 4px; text-align: center;\">\n            <input type=\"number\" id=\"pr02s3-n2\" min=\"1\" max=\"999\" value=\"19\" style=\"width: 60px; padding: 4px; text-align: center;\">\n            <input type=\"number\" id=\"pr02s3-n3\" min=\"1\" max=\"999\" value=\"27\" style=\"width: 60px; padding: 4px; text-align: center;\">\n            <input type=\"number\" id=\"pr02s3-n4\" min=\"1\" max=\"999\" value=\"100\" style=\"width: 60px; padding: 4px; text-align: center;\">\n            <button class=\"primary\" id=\"pr02s3-go\" style=\"margin-left: auto;\">▶ 一起蹦</button>\n          </div>\n          <div id=\"pr02s3-legend\" style=\"display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; font-size: 12px;\"></div>\n        </div>\n        <div class=\"next-hint\">🧲 <strong>观察</strong>：所有彩线最后都<strong>撞到绿线</strong>（n=1）。即便 27 蹦到 9232 顶峰，<strong>也照样掉回 1</strong>。猜想要成立——这个反例至今没找到！</div>\n      "}, {"emoji": "🔬", "title": "奇数\"赚\"的被拿走了", "content": "\n        <p class=\"lead\"><strong>关键发现</strong>：奇数 × 3 + 1 <span style=\"color:#b91c1c;\">必得偶数</span>（奇×奇=奇，奇+1=偶）。所以下一步必 /2，\"赚\"的全被拿回去！</p>\n        <div class=\"viz\">\n          <div style=\"background: #fff7ed; padding: 12px; border-radius: 8px; margin-bottom: 10px; font-size: 14px;\">\n            <strong>n = 5（奇数）</strong>的蹦跳：<br>\n            <span style=\"font-family: 'Courier New', monospace; font-size: 15px;\">\n              <span style=\"color:#b91c1c; font-weight: 700;\">5</span> → ×3+1 →\n              <span style=\"color:#3b82f6; font-weight: 700;\">16</span> → ÷2 →\n              <span style=\"color:#3b82f6; font-weight: 700;\">8</span> → ÷2 →\n              <span style=\"color:#3b82f6; font-weight: 700;\">4</span> → ÷2 →\n              <span style=\"color:#3b82f6; font-weight: 700;\">2</span> → ÷2 →\n              <span style=\"color:#10b981; font-weight: 700;\">1</span>\n            </span>\n            <div style=\"margin-top: 6px; color: #6b7280; font-size: 13px;\">🔴 红 = 奇数（必跳\"×3+1\"）｜ 🔵 蓝 = 偶数（必跳\"÷2\"）｜ 🟢 终 = 1</div>\n          </div>\n          <div style=\"display: flex; gap: 12px; align-items: center; flex-wrap: wrap;\">\n            <label style=\"font-weight: 700;\">🎮 自己试：\n              <input type=\"number\" id=\"pr02s4-n\" min=\"1\" max=\"999\" value=\"11\" style=\"width: 80px; padding: 4px 8px; font-size: 16px; border: 2px solid #e9d5ff; border-radius: 6px;\">\n            </label>\n            <button class=\"primary\" id=\"pr02s4-go\">▶ 看奇偶节奏</button>\n          </div>\n          <div id=\"pr02s4-display\" style=\"margin-top: 12px; padding: 14px; background: #faf5ff; border-radius: 8px; min-height: 60px; line-height: 1.9; font-size: 15px;\"></div>\n          <p style=\"font-size: 12px; color: #6b7280; margin: 6px 0 0;\">👆 看每一步是 <strong style=\"color:#b91c1c;\">奇数×3+1</strong> 还是 <strong style=\"color:#3b82f6;\">偶数÷2</strong>，感受\"赚-赔-赚-赔\"的节奏！</p>\n        </div>\n        <div class=\"next-hint\">⚖️ <strong>直觉</strong>：奇数×3+1 会变大，但下一步必 ÷2；偶数÷2 一直减小。\"赚\"的被\"赔\"抵消，长期看必收敛。</div>\n      "}, {"emoji": "🌳", "title": "反过来看：从 1 出发", "content": "\n        <p class=\"lead\">从 1 反推：哪些数能蹦到 1？画出来是一棵 <strong style=\"color:#7c3aed;\">\"反向冰雹树\"</strong>——像雪花分形！</p>\n        <div class=\"viz\" style=\"display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap;\">\n          <div style=\"flex: 0 0 auto;\">\n            <canvas id=\"pr02s5-cv\" width=\"360\" height=\"320\" style=\"background: #faf5ff; border-radius: 8px;\"></canvas>\n          </div>\n          <div style=\"flex: 1 1 200px; min-width: 200px;\">\n            <label style=\"display: block; margin: 6px 0; font-weight: 700;\">\n              🌱 树深度：\n              <input type=\"range\" id=\"pr02s5-depth\" min=\"2\" max=\"9\" value=\"6\" style=\"width: 100%;\">\n              <span id=\"pr02s5-dv\" style=\"font-weight: 700; color: #6b21a8;\">6</span> 层\n            </label>\n            <div style=\"background: #f3e8ff; padding: 10px; border-radius: 8px; font-size: 14px; margin-top: 8px;\">\n              <div>树的节点数：<span id=\"pr02s5-nodes\" style=\"font-weight: 700; color: #6b21a8;\">—</span></div>\n              <div>最大值：<span id=\"pr02s5-maxv\" style=\"font-weight: 700; color: #b91c1c;\">—</span></div>\n            </div>\n            <p style=\"font-size: 12px; color: #6b7280; margin: 8px 0 0;\">\n              <strong>反推规则</strong>：n 的前驱可以是 <strong>2n</strong>（÷2 必得 n）和 (<strong>n-1</strong>)/3（仅当 n-1 能被 3 整除且 (n-1)/3 是奇数）。<br>\n              👆 拖深度滑块看树长大——层层分叉！\n            </p>\n          </div>\n        </div>\n        <div class=\"next-hint\">🧠 <strong>未解之谜</strong>：数学家验证到 5.76×10¹⁸ 都没找到反例——这棵树<strong>包含了所有正整数</strong>。但要严格证明？埃尔德什 悬赏 500 美元，至今无人领！</div>\n      "}],
+  stages: [{"emoji": "🎲", "title": "两条规则", "content": "\n        <p class=\"lead\">选一个正整数 n，照下面规则反复\"蹦\"：</p>\n        <div class=\"viz\" style=\"display: flex; gap: 16px; align-items: center; flex-wrap: wrap;\">\n          <div style=\"flex: 1 1 240px;\">\n            <div style=\"background: #dbeafe; border-left: 5px solid #3b82f6; padding: 12px 16px; border-radius: 8px; margin: 8px 0; font-size: 16px;\">\n              <strong>🔵 偶数</strong>：n → <strong style=\"color:#1e40af;\">n ÷ 2</strong>\n            </div>\n            <div style=\"background: #fee2e2; border-left: 5px solid #ef4444; padding: 12px 16px; border-radius: 8px; margin: 8px 0; font-size: 16px;\">\n              <strong>🔴 奇数</strong>：n → <strong style=\"color:#b91c1c;\">3n + 1</strong>\n            </div>\n          </div>\n          <div style=\"flex: 1 1 240px;\">\n            <label style=\"display: block; margin: 6px 0; font-weight: 700;\">🎮 试一个数 n：\n              <input type=\"number\" id=\"pr02s1-n\" min=\"1\" max=\"999\" value=\"6\" style=\"width: 80px; padding: 4px 8px; font-size: 16px; border: 2px solid #e9d5ff; border-radius: 6px;\">\n            </label>\n            <button class=\"primary\" id=\"pr02s1-go\" style=\"margin-top: 8px; font-size: 15px;\">▶ 演示蹦跳</button>\n            <div style=\"margin-top: 10px; padding: 10px; background: #faf5ff; border-radius: 8px; font-size: 14px;\">\n              <div style=\"font-weight: 700; color: #6b21a8; margin-bottom: 4px;\">📜 蹦跳序列：</div>\n              <div id=\"pr02s1-seq\" style=\"font-family: 'Courier New', monospace; word-break: break-all; line-height: 1.7; color: #1e40af; font-size: 15px;\">6</div>\n            </div>\n          </div>\n        </div>\n        <div class=\"next-hint\">🤔 <strong>问题</strong>：不管从哪个数开始蹦，最后都会蹦到 <strong>1</strong> 吗？</div>\n      "}, {"emoji": "📈", "title": "蹦跳的\"形状\"", "content": "\n        <p class=\"lead\">把 n 蹦跳的每一步画成\"线\"：横轴是步数，纵轴是 n 值。看清它怎么\"蹦\"的！</p>\n        <div class=\"viz\" style=\"display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap;\">\n          <div style=\"flex: 0 0 auto;\">\n            <svg id=\"pr02s2-svg\" width=\"320\" height=\"220\" viewBox=\"0 0 320 220\" style=\"background: #faf5ff; border-radius: 8px;\">\n              <g id=\"pr02s2-grid\"></g>\n              <polyline id=\"pr02s2-path\" fill=\"none\" stroke=\"#7c3aed\" stroke-width=\"2.5\" stroke-linejoin=\"round\"/>\n              <g id=\"pr02s2-dots\"></g>\n            </svg>\n          </div>\n          <div style=\"flex: 1 1 180px; min-width: 180px;\">\n            <label style=\"display: block; margin: 6px 0; font-weight: 700;\">\n              🎯 起点 n：<input type=\"number\" id=\"pr02s2-n\" min=\"1\" max=\"999\" value=\"7\" style=\"width: 80px; padding: 4px 8px; font-size: 16px; border: 2px solid #e9d5ff; border-radius: 6px;\">\n            </label>\n            <button class=\"primary\" id=\"pr02s2-go\" style=\"width: 100%; margin: 6px 0;\">🎲 画新路径</button>\n            <div style=\"background: #f3e8ff; padding: 10px; border-radius: 8px; font-size: 14px; margin-top: 8px;\">\n              <div>总共 <span id=\"pr02s2-steps\" style=\"font-weight: 700; color: #6b21a8;\">—</span> 步</div>\n              <div>最高蹦到 <span id=\"pr02s2-peak\" style=\"font-weight: 700; color: #b91c1c;\">—</span></div>\n              <div>最后 <span id=\"pr02s2-end\" style=\"font-weight: 700; color: #10b981;\">—</span></div>\n            </div>\n            <p style=\"font-size: 12px; color: #6b7280; margin: 8px 0 0;\">↑ 改 n 看新形状。有的 n 蹦得\"很高\"再跌回来，有的直接瀑布！</p>\n          </div>\n        </div>\n        <div class=\"next-hint\">🔍 <strong>发现</strong>：不管形状多不同，<strong>最后都掉回 1</strong>。但 27 蹦到 9232 才下来——为啥？</div>\n      "}, {"emoji": "🌈", "title": "5 个数一起蹦", "content": "\n        <p class=\"lead\">同时看 5 个不同 n 蹦跳，全部叠在一张图上（<strong style=\"color:#7c3aed;\">Y 轴用对数</strong>，不然 n=27 的 9232 把其他全压扁）。它们最后都会\"撞\"到 1 吗？</p>\n        <div class=\"viz\">\n          <svg id=\"pr02s3-svg\" width=\"100%\" height=\"280\" viewBox=\"0 0 600 280\" preserveAspectRatio=\"none\" style=\"background: linear-gradient(to bottom, #faf5ff, #fefce8); border-radius: 8px;\">\n            <g id=\"pr02s3-grid\"></g>\n            <g id=\"pr02s3-paths\"></g>\n            <g id=\"pr02s3-dots\"></g>\n            <line id=\"pr02s3-target\" x1=\"0\" y1=\"0\" x2=\"600\" y2=\"0\" stroke=\"#10b981\" stroke-width=\"2\" stroke-dasharray=\"6 4\"/>\n            <text id=\"pr02s3-targetlbl\" x=\"590\" y=\"14\" text-anchor=\"end\" font-size=\"11\" fill=\"#10b981\" font-weight=\"700\">目标线 n = 1</text>\n          </svg>\n          <div style=\"display: flex; gap: 12px; align-items: center; margin-top: 10px; flex-wrap: wrap;\">\n            <span style=\"font-size: 13px; color: #6b7280;\">🎨 选 5 个数：</span>\n            <input type=\"number\" id=\"pr02s3-n0\" min=\"1\" max=\"999\" value=\"3\" style=\"width: 60px; padding: 4px; text-align: center;\">\n            <input type=\"number\" id=\"pr02s3-n1\" min=\"1\" max=\"999\" value=\"7\" style=\"width: 60px; padding: 4px; text-align: center;\">\n            <input type=\"number\" id=\"pr02s3-n2\" min=\"1\" max=\"999\" value=\"19\" style=\"width: 60px; padding: 4px; text-align: center;\">\n            <input type=\"number\" id=\"pr02s3-n3\" min=\"1\" max=\"999\" value=\"27\" style=\"width: 60px; padding: 4px; text-align: center;\">\n            <input type=\"number\" id=\"pr02s3-n4\" min=\"1\" max=\"999\" value=\"100\" style=\"width: 60px; padding: 4px; text-align: center;\">\n            <button class=\"primary\" id=\"pr02s3-go\" style=\"margin-left: auto;\">▶ 一起蹦</button>\n          </div>\n          <div id=\"pr02s3-legend\" style=\"display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; font-size: 12px;\"></div>\n        </div>\n        <div class=\"next-hint\">🧲 <strong>观察</strong>：所有彩线最后都<strong>撞到绿线</strong>（n=1）。即便 27 蹦到 9232 顶峰，<strong>也照样掉回 1</strong>。猜想要成立——这个反例至今没找到！</div>\n      "}, {"emoji": "🔬", "title": "奇数\"赚\"的被拿走了", "content": "\n        <p class=\"lead\"><strong>关键发现</strong>：奇数 × 3 + 1 <span style=\"color:#b91c1c;\">必得偶数</span>（奇×奇=奇，奇+1=偶）。所以下一步必 /2，\"赚\"的全被拿回去！</p>\n        <div class=\"viz\">\n          <div style=\"background: #fff7ed; padding: 12px; border-radius: 8px; margin-bottom: 10px; font-size: 14px;\">\n            <strong>n = 5（奇数）</strong>的蹦跳：<br>\n            <span style=\"font-family: 'Courier New', monospace; font-size: 15px;\">\n              <span style=\"color:#b91c1c; font-weight: 700;\">5</span> → ×3+1 →\n              <span style=\"color:#3b82f6; font-weight: 700;\">16</span> → ÷2 →\n              <span style=\"color:#3b82f6; font-weight: 700;\">8</span> → ÷2 →\n              <span style=\"color:#3b82f6; font-weight: 700;\">4</span> → ÷2 →\n              <span style=\"color:#3b82f6; font-weight: 700;\">2</span> → ÷2 →\n              <span style=\"color:#10b981; font-weight: 700;\">1</span>\n            </span>\n            <div style=\"margin-top: 6px; color: #6b7280; font-size: 13px;\">🔴 红 = 奇数（必跳\"×3+1\"）｜ 🔵 蓝 = 偶数（必跳\"÷2\"）｜ 🟢 终 = 1</div>\n          </div>\n          <div style=\"display: flex; gap: 12px; align-items: center; flex-wrap: wrap;\">\n            <label style=\"font-weight: 700;\">🎮 自己试：\n              <input type=\"number\" id=\"pr02s4-n\" min=\"1\" max=\"999\" value=\"11\" style=\"width: 80px; padding: 4px 8px; font-size: 16px; border: 2px solid #e9d5ff; border-radius: 6px;\">\n            </label>\n            <button class=\"primary\" id=\"pr02s4-go\">▶ 看奇偶节奏</button>\n          </div>\n          <div id=\"pr02s4-display\" style=\"margin-top: 12px; padding: 14px; background: #faf5ff; border-radius: 8px; min-height: 60px; line-height: 1.9; font-size: 15px;\"></div>\n          <p style=\"font-size: 12px; color: #6b7280; margin: 6px 0 0;\">👆 看每一步是 <strong style=\"color:#b91c1c;\">奇数×3+1</strong> 还是 <strong style=\"color:#3b82f6;\">偶数÷2</strong>，感受\"赚-赔-赚-赔\"的节奏！</p>\n        </div>\n        <div class=\"next-hint\">⚖️ <strong>直觉</strong>：奇数×3+1 会变大，但下一步必 ÷2；偶数÷2 一直减小。\"赚\"的被\"赔\"抵消，长期看必收敛。</div>\n      "}, {"emoji": "🌳", "title": "反过来看：从 1 出发", "content": "\n        <p class=\"lead\">从 1 反推：哪些数能蹦到 1？画出来是一棵 <strong style=\"color:#7c3aed;\">\"反向冰雹树\"</strong>——像雪花分形！</p>\n        <div class=\"viz\" style=\"display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap;\">\n          <div style=\"flex: 0 0 auto;\">\n            <canvas id=\"pr02s5-cv\" width=\"360\" height=\"320\" style=\"background: #faf5ff; border-radius: 8px;\"></canvas>\n          </div>\n          <div style=\"flex: 1 1 200px; min-width: 200px;\">\n            <label style=\"display: block; margin: 6px 0; font-weight: 700;\">\n              🌱 树深度：\n              <input type=\"range\" id=\"pr02s5-depth\" min=\"2\" max=\"9\" value=\"6\" style=\"width: 100%;\">\n              <span id=\"pr02s5-dv\" style=\"font-weight: 700; color: #6b21a8;\">6</span> 层\n            </label>\n            <div style=\"background: #f3e8ff; padding: 10px; border-radius: 8px; font-size: 14px; margin-top: 8px;\">\n              <div>树的节点数：<span id=\"pr02s5-nodes\" style=\"font-weight: 700; color: #6b21a8;\">—</span></div>\n              <div>最大值：<span id=\"pr02s5-maxv\" style=\"font-weight: 700; color: #b91c1c;\">—</span></div>\n            </div>\n            <p style=\"font-size: 12px; color: #6b7280; margin: 8px 0 0;\">\n              <strong>反推规则</strong>：n 的前驱可以是 <strong>2n</strong>（÷2 必得 n）和 (<strong>n-1</strong>)/3（仅当 n-1 能被 3 整除且 (n-1)/3 是奇数）。<br>\n              👆 拖深度滑块看树长大——层层分叉！\n            </p>\n          </div>\n        </div>\n        <div class=\"next-hint\">🧠 <strong>未解之谜</strong>：数学家验证到 2⁷¹ ≈ 2.36×10²¹ 都没找到反例——这棵树<strong>包含了所有正整数</strong>。但要严格证明？埃尔德什 悬赏 500 美元，至今无人领！</div>\n      "}],
   render: function(h) { return setup科拉茨(h); }
 }];
 
 // ========== 3. 共享 JS：广场渲染 + plazaOpen + Twin + PiAlg ==========
 
+
+
+// ===== Mavis 引导卡播放控制 (v18: 4 段顺序播放) =====
+(function() {
+  const audio = document.getElementById('mavisIntroAudio');
+  const playBtn = document.getElementById('playMavisIntro');
+  const skipBtn = document.getElementById('mavisSkip');
+  const pauseBtn = document.getElementById('mavisPause');
+  const progress = document.getElementById('mavisProgress');
+  const timeEl = document.getElementById('mavisTime');
+  const durEl = document.getElementById('mavisDuration');
+  if (!audio) return;
+
+  // 4 段顺序播放：p1 → p2 → p3 → p4
+  const parts = ['p1', 'p2', 'p3', 'p4'];
+  let partIdx = 0;
+  let totalDur = 0;
+  const partDur = {};
+
+  function fmt(s) { const m = Math.floor(s/60); const sec = Math.floor(s%60); return m + ':' + (sec<10?'0':'') + sec; }
+
+  // 预加载所有段拿到 duration
+  parts.forEach(p => {
+    const a = new Audio('audio/mavis_intro_' + p + '.mp3');
+    a.addEventListener('loadedmetadata', () => {
+      partDur[p] = a.duration;
+      totalDur = Object.values(partDur).reduce((a, b) => a + b, 0);
+      if (partIdx === 0) durEl.textContent = fmt(totalDur);
+    });
+  });
+
+  function loadPart(idx) {
+    partIdx = idx;
+    audio.src = 'audio/mavis_intro_' + parts[idx] + '.mp3';
+    audio.load();
+  }
+
+  playBtn.onclick = () => {
+    if (partIdx >= parts.length) loadPart(0);
+    audio.play();
+    progress.style.display = 'block';
+    playBtn.style.display = 'none';
+  };
+  pauseBtn.onclick = () => {
+    if (audio.paused) { audio.play(); pauseBtn.textContent = '⏸ 暂停'; }
+    else { audio.pause(); pauseBtn.textContent = '▶ 继续'; }
+  };
+  skipBtn.onclick = () => {
+    audio.pause();
+    progress.style.display = 'none';
+    playBtn.style.display = 'inline-block';
+    loadPart(0);
+  };
+  audio.addEventListener('timeupdate', () => {
+    const elapsed = Object.keys(partDur).slice(0, partIdx).reduce((sum, p) => sum + (partDur[p] || 0), 0) + audio.currentTime;
+    timeEl.textContent = fmt(elapsed);
+  });
+  audio.addEventListener('ended', () => {
+    if (partIdx < parts.length - 1) {
+      loadPart(partIdx + 1);
+      audio.play();
+    } else {
+      progress.style.display = 'none';
+      playBtn.style.display = 'inline-block';
+      playBtn.textContent = '🔁 再听一次';
+      loadPart(0);
+    }
+  });
+})();
 
 /* ===================== 广场渲染 ===================== */
 const plazaGrid = document.getElementById('plazaGrid');
@@ -36745,7 +36869,15 @@ const plazaCats = document.getElementById('plazaCats');
 const plazaClear = document.getElementById('plazaClear');
 const plazaDetail = document.getElementById('plazaDetail');
 let plazaCurrentCat = '全部';
+let plazaCurrentType = 'all';  // v17: type 过滤 all/axiom_theorem/conjecture_open/conjecture_proven
 let plazaCurrentExp = null;
+
+const TYPE_INTRO = {
+  'axiom_theorem': '📘 <strong>基础公理/定理可视化</strong>：从小学加法、勾股定理，到圆周率、素数、群论——这些是数学家已经证明好的"基本工具"，在这里被做成可以亲手玩的小游戏。',
+  'conjecture_open': '🔍 <strong>尚未证明的猜想</strong>：黎曼 ζ、哥德巴赫、BSD、孪生素数……这些是数学家们还没攻下的堡垒，每一个都悬赏百万美金。看看这些"还没解开的谜"，感受数学未解之谜的魅力。',
+  'conjecture_proven': '🏆 <strong>已被证明的猜想</strong>：从 1995 年怀尔斯证明费马大定理，到 2003 年佩雷尔曼证明庞加莱猜想，再到 <strong>2025 年中国数学家王虹完整证明 3D 挂谷猜想</strong>，<strong>邓煜完整证明狭义希尔伯特第六问题</strong>——这些是数学史上的伟大时刻，每一步都改写了人类认知。'
+};
+
 
 function plazaRenderCats() {
   const cats = ['全部', ...Object.keys(PLAZA_CATEGORIES)];
@@ -36765,20 +36897,51 @@ function plazaRenderGrid() {
   const q = plazaSearch.value.toLowerCase();
   const filtered = EXPERIMENTS.filter(e => {
     if (plazaCurrentCat !== '全部' && e.cat !== plazaCurrentCat) return false;
+    if (plazaCurrentType !== 'all' && e.type !== plazaCurrentType) return false;  // v17
     if (q && !(e.id.toLowerCase().includes(q) || e.title.toLowerCase().includes(q) || e.intro.toLowerCase().includes(q) || e.cat.toLowerCase().includes(q))) return false;
     return true;
   });
-  plazaGrid.innerHTML = filtered.map(e =>
-    `<a class="plaza-card" href="pages/${e.id}.html" data-id="${e.id}" style="text-decoration: none; color: inherit; display: block;">
+  plazaGrid.innerHTML = filtered.map(e => {
+    // v17: type 标签
+    const typeMeta = e.type === 'conjecture_proven' ? {color:'#10b981', icon:'🏆', label:'已证猜想'}
+      : e.type === 'conjecture_open' ? {color:'#f59e0b', icon:'🔍', label:'未解猜想'}
+      : {color:'#2563eb', icon:'📘', label:'定理'};
+    return `<a class="plaza-card" href="pages/${e.id}.html" data-id="${e.id}" style="text-decoration: none; color: inherit; display: block;">
       <span class="cat-tag ${PLAZA_CATEGORIES[e.cat]}">${e.cat}</span>
+      <span class="type-tag" style="position:absolute; top:8px; right:8px; background:${typeMeta.color}; color:white; padding:2px 8px; border-radius:10px; font-size:11px;">${typeMeta.icon} ${typeMeta.label}</span>
       <span class="id-tag">${e.id}</span>
       <div class="title">${e.title}</div>
       <p class="intro">${e.intro}</p>
-    </a>`
-  ).join('');
+    </a>`;
+  }).join('');
   const cnt = document.getElementById('plazaCount');
   if (cnt) cnt.textContent = `共 ${EXPERIMENTS.length} 个实验（显示 ${filtered.length}）`;
 }
+
+// v17: type tab 切换
+document.querySelectorAll('.type-tab').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('.type-tab').forEach(b => {
+      b.classList.remove('active');
+      b.style.background = 'white';
+      b.style.color = b.style.borderColor;
+    });
+    btn.classList.add('active');
+    btn.style.background = btn.style.borderColor;
+    btn.style.color = 'white';
+    plazaCurrentType = btn.dataset.type;
+    // 显示/隐藏 type 介绍卡
+    const card = document.getElementById('typeIntroCard');
+    const txt = document.getElementById('typeIntroText');
+    if (plazaCurrentType === 'all') {
+      card.style.display = 'none';
+    } else {
+      card.style.display = 'block';
+      txt.innerHTML = TYPE_INTRO[plazaCurrentType] || '';
+    }
+    plazaRenderGrid();
+  };
+});
 
 
 
@@ -36876,31 +37039,10 @@ function plazaOpen(id, setHash = true) {
   // 不再使用：Mavis 讲解替代了 AI 讲解模块，prompt 已存到项目目录
   void exampleExplain;
 
-  // 🤖 Mavis 总介绍折叠卡（v18：默认折叠，不挡 5 步玩懂）
-  const mavisIntroSection = `
-    <details style="margin-bottom: 14px;">
-      <summary style="cursor: pointer; font-weight: 700; padding: 10px 0; font-size: 16px; color: #7c3aed;">🤖 Mavis 总介绍（1 分钟，先听一下）</summary>
-      <div style="background: linear-gradient(135deg, #faf5ff 0%, #fef3c7 100%); border-left: 5px solid #a855f7; padding: 14px 18px; border-radius: 8px; margin-top: 8px;">
-        <div style="display: flex; gap: 14px; align-items: flex-start;">
-          <div style="font-size: 36px; line-height: 1;">🎓</div>
-          <div style="flex: 1; min-width: 0;">
-            <p style="margin: 0 0 10px; font-size: 14px; line-height: 1.7; color: #1f2937; white-space: pre-wrap;">${exp.introIntro || exp.intro || ''}</p>
-            <audio id="mavisIntroAudio-${exp.id}" controls preload="none" style="width: 100%; max-width: 500px; margin: 4px 0;" src="audio/${exp.id}_intro.mp3"></audio>
-            <div class="row" style="gap: 6px; margin-top: 6px; align-items: center; flex-wrap: wrap;">
-              <span style="font-size: 12px; color: var(--muted);">倍速：</span>
-              <button class="ghost small rate-btn" data-rate="0.75" data-audio="mavisIntroAudio-${exp.id}">0.75×</button>
-              <button class="ghost small rate-btn" data-rate="1" data-audio="mavisIntroAudio-${exp.id}" style="background: var(--accent); color: white; border-color: var(--accent);">1×</button>
-              <button class="ghost small rate-btn" data-rate="1.25" data-audio="mavisIntroAudio-${exp.id}">1.25×</button>
-              <button class="ghost small rate-btn" data-rate="1.5" data-audio="mavisIntroAudio-${exp.id}">1.5×</button>
-              <button class="ghost small rate-btn" data-rate="2" data-audio="mavisIntroAudio-${exp.id}">2×</button>
-              <a class="ghost small" href="audio/${exp.id}_intro.txt" target="_blank" style="text-decoration: none; padding: 6px 10px; border: 1px solid var(--line); border-radius: 6px;">📄 文字稿</a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </details>`;
+  // 4 区布局：有 principle/history/tryit 的（精选 8 个）显示完整 4 区
+  const hasRichContent = exp.principle || exp.history || exp.tryit;
 
-  // 5 步直观讲解：精选 8 个的渐进式可视化教学（v18：每步加双层语音）
+  // 5 步直观讲解：精选 8 个的渐进式可视化教学
   const stagesSection = exp.stages && exp.stages.length ? `
     <details open style="margin-bottom: 18px;">
       <summary style="cursor: pointer; font-weight: 700; padding: 10px 0; font-size: 16px; color: #7c3aed;">🌱 一步步玩懂（5 步直观讲解）</summary>
@@ -36917,14 +37059,6 @@ function plazaOpen(id, setHash = true) {
         <div class="stage-panels" id="stagePanels-${exp.id}">
           ${exp.stages.map((s, i) => `
             <div class="stage-panel ${i === 0 ? 'active' : ''}" data-step="${i}" id="stagePanel-${exp.id}-${i}">
-              <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 12px; padding: 8px 12px; background: #ede9fe; border-radius: 8px; flex-wrap: wrap;">
-                <span style="font-size: 12px; color: #6b21a8; font-weight: 700;">🎙️ Mavis 第 ${i+1} 步：</span>
-                <button class="ghost small" onclick="document.getElementById('stageShortAudio-${exp.id}-${i}').play()" style="background: #f3e8ff; border-color: #a855f7; color: #6b21a8; font-size: 12px;">▶ 短提示（5-8 秒）</button>
-                <button class="ghost small" onclick="document.getElementById('stageLongAudio-${exp.id}-${i}').play()" style="background: #a855f7; color: white; border-color: #a855f7; font-size: 12px;">📖 详细讲解（30 秒）</button>
-                <span style="font-size: 11px; color: #6b21a8; opacity: 0.7;">点上面按钮听 Mavis 讲</span>
-              </div>
-              <audio id="stageShortAudio-${exp.id}-${i}" preload="none" src="audio/${exp.id}_s${i+1}_short.mp3"></audio>
-              <audio id="stageLongAudio-${exp.id}-${i}" preload="none" src="audio/${exp.id}_s${i+1}.mp3"></audio>
               ${s.content}
             </div>
           `).join('')}
@@ -36998,9 +37132,7 @@ function plazaOpen(id, setHash = true) {
       <span style="font-size: 11px; color: var(--muted); font-weight: 600;">📚 前置知识：</span>
     </div>
 
-    ${mavisIntroSection}
     ${stagesSection}
-    ${expPackSection}
     ${principleSection}
     ${historySection}
     ${tryitSection}
@@ -37142,7 +37274,7 @@ function escapeHtml(s) {
 const TWIN_HTML = `
 <div class="intro">
   <strong>孪生素数猜想</strong>：是否存在无穷多对相差 2 的素数（3-5、5-7、11-13、17-19、29-31…）？
-  2013 年张益唐证明存在无穷多对相差 &lt; 7×10⁷ 的素数，2014 年 Polymath 8 + 梅nard 推进到 246。
+  2013 年张益唐证明存在无穷多对相差 &lt; 7×10⁷ 的素数，2014 年 波利马什 8 + 梅纳德 推进到 246。
   AI 扫一段区间，看孪生素数有多"密"。
 </div>
 <div class="grid">
@@ -37180,8 +37312,8 @@ const TWIN_HTML = `
     </div>
     <div class="card" style="margin-top: 20px;">
       <h2>故事</h2>
-      <p style="font-size: 14px; line-height: 1.6;">2013 年 5 月，张益唐（U New Hampshire 讲师、曾任赛百味店员、默默无闻多年）在 <em>Annals of Mathematics</em> 独自发表论文，<strong>证明存在无穷多对相差 &lt; 7×10⁷ 的素数</strong>。此后 Polymath 8 计划（开放式合作）几个月内把界推进到 246。</p>
-      <p style="font-size: 13px; color: var(--muted); margin-top: 8px;"><strong>哈代-李特尔伍德 猜想</strong>：孪生素数对数 ~ 2C₂ ∫(N) / (ln N)²，C₂ ≈ 0.66。实际密度与 N/ln²N 成正比递减——但仍是<strong>无穷多</strong>。</p>
+      <p style="font-size: 14px; line-height: 1.6;">2013 年 5 月，张益唐（U New Hampshire 讲师、曾任赛百味店员、默默无闻多年）在 <em>Annals of Mathematics</em> 独自发表论文，<strong>证明存在无穷多对相差 &lt; 7×10⁷ 的素数</strong>。此后 波利马什 8 计划（开放式合作）几个月内把界推进到 246。</p>
+      <p style="font-size: 13px; color: var(--muted); margin-top: 8px;"><strong>哈代-Littlewood 猜想</strong>：孪生素数对数 ~ 2C₂ ∫(N) / (ln N)²，C₂ ≈ 0.66。实际密度与 N/ln²N 成正比递减——但仍是<strong>无穷多</strong>。</p>
     </div>
   </div>
 </div>
@@ -37388,21 +37520,23 @@ function machinPi(N) {
   return 4 * (4 * arctan(1/5, N) - arctan(1/239, N));
 }
 
+// Chudnovsky（1988）：1/π = 12·Σ_{k≥0} (-1)^k (6k)!(A+Bk) / [(3k)!(k!)³·640320^(3k+3/2)]
+//   A = 13591409, B = 545140134,  π = 426880·√10005 / Σ T_k
+// 数值实现说明：直接算 (6k)! 和 640320^(3k) 会在 k≈30 时溢出成 Infinity（→ NaN）。
+// 改为按「相邻项之比」递推，每项比值约 -1.2e-14，因此 T_k 单调降到浮点分辨率以下，
+// 既不会溢出，也不会出现 NaN。每一项约贡献 14.18 位小数。
+// 注意：JS Number 只有约 16 位有效数字，所以 N=2 就已经打满双精度极限，再加项不再变准。
 function chudnovskyPi(N) {
-  const C = 426880 * Math.sqrt(10005);
-  let sum = 0;
-  for (let k = 0; k < N; k++) {
-    let num = 1;
-    for (let i = 1; i <= 6 * k; i++) num *= i;
-    let den = 1;
-    for (let i = 1; i <= 3 * k; i++) den *= i;
-    let kFact = 1;
-    for (let i = 1; i <= k; i++) kFact *= i;
-    den *= kFact * kFact * kFact;
-    const term = num / den * (545140134 * k + 13591409) / Math.pow(640320, 3 * k);
-    sum += (k % 2 === 0 ? 1 : -1) * term;
+  let T = CHUD_A;              // T_0 = A
+  let S = CHUD_A;
+  for (let k = 1; k < N; k++) {
+    const num = (6 * k - 5) * (6 * k - 4) * (6 * k - 3) * (6 * k - 2) * (6 * k - 1) * (6 * k);
+    const den = (3 * k - 2) * (3 * k - 1) * (3 * k) * k * k * k * CHUD_C3;
+    T *= -num / den * (CHUD_A + CHUD_B * k) / (CHUD_A + CHUD_B * (k - 1));
+    S += T;
+    if (Math.abs(T) < 1e-30 * CHUD_A) break;   // 已低于 double 分辨率，无需继续
   }
-  return C / sum;
+  return 426880 * Math.sqrt(10005) / S;
 }
 
 function piRunAll() {

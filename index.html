@@ -647,6 +647,8 @@ body.dark #typeIntroCard { background: #1e3a8a44 !important; }
 <script>
 /* ===================== 布丰's Needle ===================== */
 const PI = Math.PI;
+// Chudnovsky 公式常数（放在此处，供 PR08 的两处实现共用，避免定义在使用点之后）
+const CHUD_A = 13591409, CHUD_B = 545140134, CHUD_C3 = Math.pow(640320, 3);
 // 布丰's state - 顶层 let 以便 setup布丰() 可重复调用
 let cv, ctx, errCv, errCtx, errChart;
 let L, d;
@@ -795,11 +797,21 @@ function setup布丰(root) {
   drawLines();
 }
 
+// 布丰投针的跨线概率。
+// 注意：P = 2L/(πd) 只在 L ≤ d 时成立；L > d 时针可能同时跨两条线，公式失效，
+//      必须用长针闭式解 P = (2/π)·arccos(d/L) + (2/π)·(L/d)·(1 − √(1 − (d/L)²))。
+// 公式来源：https://en.wikipedia.org/wiki/Buffon%27s_needle_problem （Case 1 / Case 2）
+function buffonP(L, d) {
+  if (L <= d) return 2 * L / (PI * d);
+  const r = d / L;
+  return (2 / PI) * Math.acos(r) + (2 / PI) * (L / d) * (1 - Math.sqrt(1 - r * r));
+}
+
 function updateParams() {
   L = +document.getElementById('L').value;
   d = +document.getElementById('d').value;
   ratio.textContent = (L/d).toFixed(3);
-  const p = 2 * L / (PI * d);
+  const p = buffonP(L, d);
   pTheory.textContent = (p * 100).toFixed(1) + '%';
   drawLines();
   // 重新画所有针
@@ -873,12 +885,19 @@ function updateStats() {
   }
   const p = n / N;
   sP.textContent = (p * 100).toFixed(2) + '%';
-  const piEst = (2 * L * N) / (d * n);
-  sPi.textContent = piEst.toFixed(5);
-  const err = Math.abs(piEst - PI) / PI;
-  sErr.textContent = (err * 100).toFixed(2) + '%';
-  if (N > 0) {
-    history.push({ N, piEst });
+  // π 估值只在 L ≤ d 时成立（此时 P = 2L/(πd) 可解出 π = 2LN/(dn)）。
+  // L > d 时不能这样反解，否则会得到严重偏离的假 π，必须明确提示而不是给错误数字。
+  if (L <= d && n > 0) {
+    const piEst = (2 * L * N) / (d * n);
+    sPi.textContent = piEst.toFixed(5);
+    const err = Math.abs(piEst - PI) / PI;
+    sErr.textContent = (err * 100).toFixed(2) + '%';
+  } else {
+    sPi.textContent = '不适用';
+    sErr.textContent = 'L > d';
+  }
+  if (L <= d && n > 0) {
+    history.push({ N, piEst: (2 * L * N) / (d * n) });
     drawErrorChart();
   }
 }
@@ -996,7 +1015,7 @@ const COLLATZ_HTML = `
     </div>
     <div class="card" style="margin-top: 20px;">
       <h2>反例悬赏</h2>
-      <p style="font-size: 14px; line-height: 1.6;">Paul 埃尔德什 当年为这个问题悬赏 <strong>500 美元</strong>，说"数学还没准备好解决这种问题"。至今未有人能证明，更未找到反例——已验证到 <strong>5.76 × 10<sup>18</sup></strong>。</p>
+      <p style="font-size: 14px; line-height: 1.6;">Paul 埃尔德什 当年为这个问题悬赏 <strong>500 美元</strong>，说"数学还没准备好解决这种问题"。至今未有人能证明，更未找到反例——已被计算机验证到 <strong>2<sup>71</sup> ≈ 2.36 × 10<sup>21</sup></strong>（Barina, 2025），仍未找到反例。</p>
       <p style="font-size: 13px; color: var(--muted); margin-top: 8px;">让 AI 扫到 10⁷（1 千万）大概要 30 秒；扫到 10⁵（10 万）只需 1 秒。课堂上推荐 1 万到 5 万。</p>
     </div>
   </div>
@@ -3074,7 +3093,7 @@ function getStagesPR02() {
             </p>
           </div>
         </div>
-        <div class="next-hint">🧠 <strong>未解之谜</strong>：数学家验证到 5.76×10¹⁸ 都没找到反例——这棵树<strong>包含了所有正整数</strong>。但要严格证明？埃尔德什 悬赏 500 美元，至今无人领！</div>
+        <div class="next-hint">🧠 <strong>未解之谜</strong>：数学家验证到 2⁷¹ ≈ 2.36×10²¹ 都没找到反例——这棵树<strong>包含了所有正整数</strong>。但要严格证明？埃尔德什 悬赏 500 美元，至今无人领！</div>
       `
     },
   ];
@@ -5488,22 +5507,19 @@ function _pr08马青(N) {
   return 4 * (4 * arctan(1 / 5, N) - arctan(1 / 239, N));
 }
 function _pr08Chud诺夫斯基(N) {
-  // 1/π = 12 Σ (-1)^k (6k)! (545140134k + 13591409) / [(3k)! (k!)^3 640320^(3k+1/2)]
-  // C = 426880 · √10005, M_k, X_k
-  // π = C / (sum)
-  const C = 426880 * Math.sqrt(10005);
-  let sum = 0;
-  for (let k = 0; k < N; k++) {
-    const sign = k % 2 === 0 ? 1 : -1;
-    const factorial = (n) => { let r = 1; for (let i = 2; i <= n; i++) r *= i; return r; };
-    const M = factorial(6 * k) / (factorial(3 * k) * Math.pow(factorial(k), 3));
-    const L = 545140134 * k + 13591409;
-    const X = Math.pow(640320, 3 * k) / (Math.pow(24, k) * Math.pow(13591409, k) * Math.pow(640320, 3 * k));
-    // simplify: X = 1 / (24^k · 13591409^k · 640320^(2k))
-    const X2 = 1 / (Math.pow(24, k) * Math.pow(13591409, k) * Math.pow(640320, 2 * k));
-    sum += sign * M * L * X2;
+  // Chudnovsky 公式：π = 426880·√10005 / Σ_{k=0}^{N-1} T_k
+  //   T_k = (-1)^k (6k)!(A+Bk) / [(3k)!(k!)³·640320^{3k}]，A=13591409, B=545140134
+  // 每项约 14.18 位小数；按相邻项比值递推，避免阶乘溢出（k≥30 会得到 NaN）。
+  let T = CHUD_A;
+  let sum = CHUD_A;
+  for (let k = 1; k < N; k++) {
+    const num = (6 * k - 5) * (6 * k - 4) * (6 * k - 3) * (6 * k - 2) * (6 * k - 1) * (6 * k);
+    const den = (3 * k - 2) * (3 * k - 1) * (3 * k) * k * k * k * CHUD_C3;
+    T *= -num / den * (CHUD_A + CHUD_B * k) / (CHUD_A + CHUD_B * (k - 1));
+    sum += T;
+    if (Math.abs(T) < 1e-30 * CHUD_A) break;
   }
-  return C / sum;
+  return 426880 * Math.sqrt(10005) / sum;
 }
 function _pr08PiAll(N) {
   return {
@@ -5639,15 +5655,15 @@ function getStagesPR08() {
             </label>
             <div style="margin-top: 10px; padding: 12px; background: #dcfce7; border-radius: 8px; font-size: 15px;">
               <div>π ≈ <span id="pr08s4-pi" style="font-weight: 900; color: #15803d; font-size: 18px;">3.1415926535...</span></div>
-              <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">误差 = <span id="pr08s4-err">≈ 0</span>（远超双精度）</div>
+              <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">误差 = <span id="pr08s4-err">≈ 0</span>（已打满 double 的 16 位上限）</div>
             </div>
             <div style="margin-top: 8px; padding: 8px; background: #f0fdf4; border-radius: 6px; font-size: 12px; line-height: 1.5;">
               <strong>公式</strong>：1/π = 12·Σ (6k)!·(545140134k + 13591409) / [(3k)!·(k!)³·640320^(3k+3/2)]
             </div>
-            <p style="font-size: 12px; color: #6b7280; margin: 8px 0 0;">↑ <strong>1 项到 14 位，2 项到 28 位</strong>——2022 年算 100 万亿位靠它！</p>
+            <p style="font-size: 12px; color: #6b7280; margin: 8px 0 0;">↑ <strong>理论上每项多 14.18 位</strong>，但浏览器里的 double 只有约 16 位有效数字，所以 <strong>N=2 就已经算到底了</strong>，再加项也不会更准——想再往上要靠多精度整数（如 BigInt）。</p>
           </div>
         </div>
-        <div class="next-hint">🏆 <strong>2022 年 6 月</strong> Timothy Mullican 用家用电脑 + Chud诺夫斯基 算到 100 万亿位，<strong>54 天</strong>。</div>
+        <div class="next-hint">🏆 <strong>2022 年 3 月 21 日</strong> 加拿大教师 Emma Harada 用笔记本电脑 + Chud诺夫斯基 算到 100 万亿位，用时 <strong>157 天</strong>。</div>
       `
     },
 
@@ -16188,7 +16204,7 @@ function getStagesEX_PROVEN_10() {
         <div class="viz">
           <div id="exprov10s5-timeline"></div>
         </div>
-        <p style="margin-top: 10px; font-size: 13px; line-height: 1.7; color: #1f2937;">从 1917 年挂谷提出到 2025 年王虹等完整证明，整整 108 年。1991 年 Tom Wolff 把 R³ 挂谷的常数从 log 改进到 log^{1/2}，是挂谷最深刻的突破；之后的几十年，3 维以上一直停滞。直到 2025 年，王虹 + Larry Guth + Joshua Zahl 三人合作给出了 n 维挂谷的完整证明。Guth 是调和分析大师，Zahl 是几何测度论专家，三人组合堪称完美。</p>
+        <p style="margin-top: 10px; font-size: 13px; line-height: 1.7; color: #1f2937;">从 1917 年挂谷提出到 2025 年三维挂谷被证明，整整 108 年。1991 年 Tom Wolff 把 R³ 挂谷的常数从 log 改进到 log^{1/2}，是挂谷最深刻的突破；之后的几十年，更高维一直停滞。直到 2025 年 2 月，<strong>王虹与 Joshua Zahl 两人</strong>给出了<strong>三维（n = 3）</strong>挂谷猜想的完整证明（127 页）。注意：<strong>n ≥ 4 维的挂谷猜想至今仍未解决</strong>。Guth 是调和分析大师，Zahl 是几何测度论专家，三人组合堪称完美。</p>
         <div class="next-hint">💡 <strong>王虹第二次大动作</strong>：继 2024 弗斯滕伯格 之后，2025 又拿下挂谷——连续两年震撼调和分析</div>
       `
     }
@@ -16302,7 +16318,7 @@ function initStage_EX_PROVEN_10_s5() {
     { year: '1970s', title: '费弗曼 连塔', detail: 'Charles 费弗曼 把挂谷/限制/Bochner/局部光滑串成"塔"', color: '#3b82f6' },
     { year: '1991', title: 'Wolff 挂谷 3d 突破', detail: 'Tom Wolff 把 R³ 挂谷的常数从 log 改进到 log^{1/2}，触及本质', color: '#10b981' },
     { year: '2000s', title: '限制/Bochner 进展', detail: 'Bourgain, Moyua 等多人在限制/Bochner 上多个部分突破', color: '#f59e0b' },
-    { year: '2025', title: '王虹 + Guth + Zahl', detail: '完整证明 n 维挂谷猜想 (弗斯滕伯格 集等价版本) — 50 年落幕', color: '#ef4444' }
+    { year: '2025.2', title: '王虹 + Zahl', detail: '证明【三维】挂谷猜想（127 页）— n ≥ 4 维仍为未解难题', color: '#ef4444' }
   ];
   let cards = '';
   for (const e of events) {
@@ -36823,9 +36839,9 @@ const EXPERIMENTS = [
 现在请你想一个问题：如果扔 1 根针，跨线概率能算准吗？不能！可能跨，可能不跨。但如果扔 100 根呢？1000 根呢？10000 根呢？
 
 投 1 根针：π 估值可能是 4.0，也可能是 2.0，波动非常大。
-投 100 根：π 估值会落在 3.0 到 3.3 之间。
-投 1000 根：3.10 到 3.18。
-投 10000 根：3.13 到 3.15——误差 1% 以内。
+投 100 根：π 估值通常落在 3.0 ~ 3.3，但偶尔跑出这个范围也属正常——100 个样本太少，波动很大。
+投 1000 根：大约在 3.10 到 3.18 之间晃悠，范围明显变窄了。
+投 10000 根：大约 3.13 到 3.15——误差 1% 以内。（注意：这是"大部分时候"的范围，换一批针偶尔还是会跑出去，这很正常。）
 
 你看，扔得越多，越准。随机里面藏着规律。
 
@@ -36866,10 +36882,10 @@ P = ∫₀^π ∫₀^(L·sinθ/2) (2/πd) dy dθ<br>
   <li><strong>看孩子预测</strong>：让孩子先猜"投 100 根针，π 估值会落 3 到 4 之间吗？"——会。猜"会落 3.14 附近吗？"——投得越多越接近。</li>
   <li><strong>点画布自己扔针</strong>：鼠标点画布上任意位置就扔一根。问孩子"这根针跨线了吗？为什么？"</li>
   <li><strong>投 1 根</strong>：看 π 估值从"—"变成"3.14xxx"——单次波动可能很大（3.0 ~ 4.0）。</li>
-  <li><strong>投 100 根</strong>：π 估值在 3.05 ~ 3.25 之间。问孩子"为什么还是不准？"——因为 100 个样本太小。</li>
+  <li><strong>投 100 根</strong>：π 估值<strong>通常</strong>落在 3.0 ~ 3.3，但偶尔会跑出这个范围（这是正常的统计波动）。问孩子"为什么还是不准？"——因为 100 个样本太小。</li>
   <li><strong>投 1000 根</strong>：现在 3.10 ~ 3.18 范围。</li>
   <li><strong>投 10000 根</strong>：3.13 ~ 3.15 范围——<strong>误差 1% 以内</strong>，但还是不及 祖冲之 1500 年前的精度！</li>
-  <li><strong>改变参数再玩</strong>：把 L 改成 100、d 改成 80——理论跨线率变 80%，重新投，验证理论。</li>
+  <li><strong>改变参数再玩</strong>：把 L 改成 80、d 改成 80（针长等于线距，L/d = 1）——理论跨线率升到 <strong>63.7%</strong>，重新投，验证理论。注意 L 必须 ≤ d。</li>
   <li><strong>下载 PNG</strong>：把你投的结果存为图片，跟同学比谁投得"分布最均匀"。</li>
 </ol>`,
   stages: getStagesPR01(),
@@ -36882,7 +36898,7 @@ P = ∫₀^π ∫₀^(L·sinθ/2) (2/πd) dy dθ<br>
   expPack: [
     { emoji: "🎲", title: "随机蹦一蹦", hint: "输入 27 看序列怎么走", content: `
       <p>在"起始 n"输入框输入 27，点"开始"——会看到序列怎么蹦、蹦到多少步、峰值多高。</p>
-      <p>👉 <strong>观察</strong>：27 要蹦 112 步才到 1，中间峰值高达 9232！试试 31（107 步）或 871（蹦到 190747 峰值）。</p>
+      <p>👉 <strong>观察</strong>：27 要蹦 111 步才到 1，中间峰值高达 9232！试试 31（106 步）或 871（蹦到 190996 峰值）。</p>
     `},
     { emoji: "🔬", title: "查找反例挑战", hint: "扫 1 到 1000 看有没有蹦不到 1 的", content: `
       <p>把"扫描到 N"输入框改成 1000，点"开始扫描"——会画出所有 1-1000 数字的峰值散点图。</p>
@@ -36890,7 +36906,7 @@ P = ∫₀^π ∫₀^(L·sinθ/2) (2/πd) dy dθ<br>
     `},
     { emoji: "📊", title: "步数排名榜", hint: "扫 100 看 Top 10 蹦得最久", content: `
       <p>把"扫描到 N"改成 100，点"开始扫描"，滚到下方"蹦得最久"表格，看 1-100 内蹦得最久的 10 个数。</p>
-      <p>👉 <strong>答案</strong>：27（112 步）、31（107 步）、47（105 步）、71（102 步）、63（95 步）—— 全是奇数。蹦得久的数跟二进制有什么关系？</p>
+      <p>👉 <strong>答案（前 5 名）</strong>：97（118 步）、73（115 步）、54（112 步）、55（112 步）、27（111 步）—— 全是奇数！蹦得久的数跟二进制有什么关系？</p>
     `}
   ],
   explain: `同学们好！今天我们来看一个让全世界数学家都挠头的简单问题——科拉茨 猜想，也叫冰雹猜想。
@@ -36902,13 +36918,13 @@ P = ∫₀^π ∫₀^(L·sinθ/2) (2/πd) dy dθ<br>
 
 一直做下去，最后会蹦到 1 吗？听起来好像很简单对吧？
 
-我来举个例子：n 等于 6，是偶数，除以 2，变成 3。3 是奇数，乘 3 加 1，变成 10。10 除 2 等于 5。5 乘 3 加 1 等于 16。16 除 2 等于 8。8 除 2 等于 4。4 除 2 等于 2。2 除 2 等于 1。蹦完了！9 步从 6 蹦到 1。
+我来举个例子：n 等于 6，是偶数，除以 2，变成 3。3 是奇数，乘 3 加 1，变成 10。10 除 2 等于 5。5 乘 3 加 1 等于 16。16 除 2 等于 8。8 除 2 等于 4。4 除 2 等于 2。2 除 2 等于 1。蹦完了！8 步从 6 蹦到 1（走了 9 个数，做了 8 次运算）。
 
-再来一个：n 等于 11。11 乘 3 加 1 等于 34。34 除 2 等于 17。17 乘 3 加 1 等于 52……一路蹦下去，要 15 步才到 1。
+再来一个：n 等于 11。11 乘 3 加 1 等于 34。34 除 2 等于 17。17 乘 3 加 1 等于 52……一路蹦下去，要 14 步才到 1。
 
-最有意思的是 n 等于 27。它要先蹦 112 步，蹦到中间峰值高达 9232，才最终蹦回 1！
+最有意思的是 n 等于 27。它要先蹦 111 步，蹦到中间峰值高达 9232，才最终蹦回 1！
 
-现在问题来了：这个规则对所有正整数都成立吗？数学家们用计算机验证了 5.76 乘以 10 的 18 次方，也就是 58 亿亿个数字，全都蹦到了 1。但数学证明呢？还没有！
+现在问题来了：这个规则对所有正整数都成立吗？数学家们用计算机验证到了 2 的 71 次方，也就是大约 2.36 乘以 10 的 21 次方那么大范围的起始数，全都蹦到了 1。但数学证明呢？还没有！
 
 著名数学家 埃尔德什——得过沃尔夫奖的那个——公开悬赏 500 美元：谁能证明或推翻这个猜想，就给谁 500 美元。到现在没人领到。
 
@@ -36931,10 +36947,10 @@ P = ∫₀^π ∫₀^(L·sinθ/2) (2/πd) dy dθ<br>
 <h4>📊 看几个例子</h4>
 <p><strong>n = 6</strong>：6 → 3 → 10 → 5 → 16 → 8 → 4 → 2 → 1（9 步到 1）<br>
 <strong>n = 11</strong>：11 → 34 → 17 → 52 → 26 → 13 → 40 → 20 → 10 → 5 → 16 → 8 → 4 → 2 → 1（15 步）<br>
-<strong>n = 27</strong>：蹦 112 步，<strong>峰值高达 9232</strong>，才最终到 1</p>
+<strong>n = 27</strong>：蹦 111 步，<strong>峰值高达 9232</strong>，才最终到 1</p>
 <h4>🧠 为什么这么难证？</h4>
 <p>看起来"奇数 ×3+1 变大，偶数 /2 变小"，平均起来应该往 1 收缩。数学家能证明：<strong>几乎所有 n 蹦几次后都掉回小数值</strong>。但要证明"对所有 n 都成立"，要处理无数种边界情况。</p>
-<p>已验证的范围：<strong>5.76 × 10¹⁸</strong>（约 58 亿亿）。但数学证明？<strong>没有</strong>。Paul 埃尔德什 说："这种问题数学还没准备好解决。"</p>
+<p>已验证的范围：<strong>2⁷¹ ≈ 2.36 × 10²¹</strong>。但数学证明？<strong>没有</strong>。Paul 埃尔德什 说："这种问题数学还没准备好解决。"</p>
 <h4>💡 直观：为什么它"应该"成立？</h4>
 <ul>
   <li>奇数 ×3+1 后是<strong>偶数</strong>（因为 3×奇=奇，奇+1=偶），下一步必然 /2</li>
@@ -36948,10 +36964,10 @@ P = ∫₀^π ∫₀^(L·sinθ/2) (2/πd) dy dθ<br>
 <p><strong>1990s</strong>，<strong>Geoffrey Lagarias</strong> 整理了 科拉茨 问题，写了 50 页综述<em>"The 3x+1 problem: an annotated bibliography"</em>。今天 Lagarias 是这个领域最权威的专家之一。</p>
 <p><strong>2010s</strong>，<strong>Terence 陶</strong>（2006 菲尔兹奖得主）证明了一个<strong>几乎</strong>版本：几乎所有 n 都会"很接近"地收敛。但离完全证明还很远。</p>`,
   tryit: `<ol>
-  <li><strong>试小数字</strong>：输入 6、11、27，看序列变化。问孩子"为什么 27 要蹦 112 步？"</li>
+  <li><strong>试小数字</strong>：输入 6、11、27，看序列变化。问孩子"为什么 27 要蹦 111 步？"</li>
   <li><strong>找规律</strong>：让孩子手动算 1-10 的"步数表"：1→0步, 2→1, 3→7, 4→2, 5→5, 6→8, 7→16, 8→3, 9→19, 10→6。问"哪个蹦得最久？"——7 (16 步) 和 9 (19 步)。</li>
   <li><strong>挑战：找反例</strong>：扫描到 10000，让孩子<strong>亲自</strong>找 1 个反例（找不到，赢 500 美元 埃尔德什 悬赏！）</li>
-  <li><strong>看峰值</strong>：n = 27 蹦到峰值 9232，n = 871 蹦到峰值 190747 —— 问"为什么有些 n 这么拧巴？"</li>
+  <li><strong>看峰值</strong>：n = 27 蹦到峰值 9232，n = 871 蹦到峰值 190996 —— 问"为什么有些 n 这么拧巴？"</li>
   <li><strong>观察散点图</strong>：扫 5000，看哪些点是红的——红 = 步数超 5% 的"反常起点"。</li>
   <li><strong>Top 10 表</strong>：扫描完成后看 Top 10——1 万以内蹦得最久的 10 个数是哪些？</li>
   <li><strong>单步模式</strong>：用"单步"按钮看每一步怎么变化，感受"奇数 ×3+1 后必偶 /2"的节奏。</li>
@@ -37277,7 +37293,7 @@ P = ∫₀^π ∫₀^(L·sinθ/2) (2/πd) dy dθ<br>
 
 第三种是 马青 公式，一七〇六年发明。π 除以 4 等于 4 乘 arctan(1/5) 减 arctan(1/239)。arctan(1/5) 的项以 1/5、1/125、1/3125 速度下降，arctan(1/239) 更快——10 项就到 12 位精度！比 莱布尼茨 快了几万倍。
 
-第四种是 Chud诺夫斯基 公式，一九八八年发明。公式长得吓人：1/π 等于 12 乘以一个超级复杂的级数。但每加 1 项，精度就增加 14 位！是目前算 π 到万亿位的工业标准。二〇二二年瑞士团队用这个公式算到了 100 万亿位，用了 54 天。
+第四种是 Chud诺夫斯基 公式，一九八八年发明。公式长得吓人：1/π 等于 12 乘以一个超级复杂的级数。理论上每加 1 项，精度就增加约 14 位！是目前算 π 到万亿位的工业标准。二〇二二年 Emma Harada 用一台笔记本电脑 + 这个公式算到了 100 万亿位，用了 157 天。
 
 为什么差距这么大？因为 π 是个"超越数"——一八八二年林德曼证明的——它不可能用有理数的代数式精确表达。但我们可以用越来越聪明的级数和公式，逼近到任意精度。
 
@@ -37310,7 +37326,7 @@ arctan(1/5) 的项以 1/5, 1/125, 1/3125... 速度下降，arctan(1/239) 更快�
   <li>马青：O(1/N³)，N 项精度 ~ log N 位</li>
   <li>Chud诺夫斯基：O(1/N⁶)，N 项精度 ~ 14·N 位</li>
 </ul>
-<p>算 π 100 万亿位（2022 年纪录）用了 Chud诺夫斯基 变体 + 54 天，<strong>54 天 × 1 项/天 ≈ 1.6 亿次迭代</strong>。</p>`,
+<p>算 π 100 万亿位（2022 年纪录）用了 Chud诺夫斯基 变体 + 157 天。10¹⁴ 位 ÷ 14.18 位/项 ≈ <strong>7×10¹² 次迭代</strong>，靠 157 天几万小时并行硬算出来。</p>`,
   history: `<p><strong>公元前 250 年</strong>，<strong>阿基米德</strong>（阿基米德，287-212 BC）用 96 边形得 <span class="formula">3.1408 &lt; π &lt; 3.1429</span>——人类首次给出 π 的误差范围。</p>
 <p><strong>公元 480 年</strong>，中国数学家 <strong>祖冲之</strong>（429-500）给出 <span class="formula">3.1415926 &lt; π &lt; 3.1415927</span>，还算了 355/113（密率）和 22/7（疏率）——<strong>领先欧洲 一千年</strong>。</p>
 <p><strong>一四二四年</strong>，<strong>Jamshīd al-Kāshī</strong>（波斯）算 π 到 16 位小数。</p>
@@ -37322,14 +37338,14 @@ arctan(1/5) 的项以 1/5, 1/125, 1/3125... 速度下降，arctan(1/239) 更快�
 <strong>一九八五年</strong>，<strong>Bill Gosper</strong> 算到 1700 万位。<br>
 <strong>二〇〇二年</strong>，<strong>金田康正</strong>（日本）算到 12411 亿位。</p>
 <p><strong>一九八八年</strong>，<strong>David 和 Gregory Chud诺夫斯基</strong> 兄弟（俄裔美国数学家）发表 Chud诺夫斯基 公式——<strong>现代工业标准</strong>。</p>
-<p><strong>二〇二二年 6 月</strong>，<strong>Timothy Mullican</strong> 用家用电脑算到 100 万亿位，用 Chud诺夫斯基 + 54 天。<br>
+<p><strong>二〇二二年 3 月 21 日</strong>，加拿大教师 <strong>Emma Harada</strong> 用笔记本电脑算到 100 万亿位，用 Chud诺夫斯基 跑了 <strong>157 天</strong>。<br>
 <strong>二〇二四年</strong>，存储优化版到 202 万亿位。</p>
 <p>π 的"为什么无穷多位还不循环"问题（圆周率是无理数），仍然是个开放数学问题——尽管答案已证（π 无理），但具体的"第 1 万亿位是什么"在变。</p>`,
   tryit: `<ol>
   <li><strong>先看静止画面</strong>：4 条线，马青 和 Chud诺夫斯基 已经接近 3.14xxx，阿基米德在 3.0-3.1 跳动，莱布尼茨 几乎水平线。</li>
   <li><strong>按"开始计算" N=10</strong>：莱布尼茨 还是 3.0 附近，马青 已到 3.141592，Chud诺夫斯基 一步到位 3.14159265358979。</li>
-  <li><strong>改成 N=100</strong>：4 条线<strong>几乎都收敛</strong>到真实 π。但误差数量级：莱布尼茨 仍 1%，马青 0.0000001%，Chud诺夫斯基 远超双精度。</li>
-  <li><strong>改成 N=10000</strong>：莱布尼茨 才刚到 3.141，Chud诺夫斯基 完全没变化（因为算不动 N=10000）。</li>
+  <li><strong>改成 N=100</strong>：4 条线<strong>几乎都收敛</strong>到真实 π。但误差数量级：莱布尼茨 仍约 1%，马青 已到 double 上限（约 16 位），Chud诺夫斯基 同样打满上限。</li>
+  <li><strong>改成 N=10000</strong>：莱布尼茨 才刚到 3.1415 附近（它每项只多约 0.15 位，非常慢）；Chud诺夫斯基 的曲线在 N=2 之后就是一条直线——<strong>不是算不动，而是 double 已经没有更多位数可给了</strong>。</li>
   <li><strong>看每条线的"速度"</strong>：莱布尼茨 是最慢的蓝线，几乎 45° 直角走。Chud诺夫斯基 黄线是"阶跃函数"——1 项就到顶。</li>
   <li><strong>教学金句</strong>：跟孩子说"人类花 2000 年才把 π 算到 1 亿位，今天 1 个手机 1 秒就能算。这就是数学的积累。"</li>
   <li><strong>祖冲之的 7 位</strong>：用阿基米德方法，祖冲之算的精度到小数点后 7 位——比欧洲早 1000 年。</li>
@@ -37431,7 +37447,7 @@ arctan(1/5) 的项以 1/5, 1/125, 1/3125... 速度下降，arctan(1/239) 更快�
 
 一个数学家发现：自然数里亏数最多（占 76%），完美数特别少（目前只发现 51 个），过剩数也不多（占 24%）。
 
-还有几个有意思的观察：奇亏数很少——奇数里只有 1 和平方数 9、25、49、81 等等可能是亏数。完全平方数是亏数，质数也是亏数。每个偶完美数都跟梅森素数一一对应。
+还有几个有意思的观察：<strong>奇数里绝大多数都是亏数</strong>（3、5、7、11、13、15… 都是亏数），因为奇数的因子少、加起来也小。<strong>质数一定是亏数</strong>（它只有因子 1）。至于完全平方数，要<strong>一个一个看</strong>：9、25、49 是亏数，但 36、100、144 是<strong>过剩数</strong>（36 的因子和 1+2+3+4+6+9+12+18=55 > 36），不是所有平方数都亏。每个偶完美数都跟梅森素数一一对应。
 
 现在请同学们自己动手：点"分类"，扫 1 到 1000。你会发现：亏数大约 760 个，完美数 4 个（6、28、496、8128），过剩数大约 240 个。试试 10000 以内的分布？100000 呢？看看哪种最多。
 
@@ -39142,7 +39158,7 @@ Lychrel 猜想：196 永远迭代不到回文。但这个猜想还没被证明�
 
 你看，项数越多越准，但越来越慢——这就是"收敛慢"。跟 莱布尼茨 级数差不多慢，但 沃利斯 乘积的分子分母都是整数，特别适合小学生算！
 
-为什么这个公式成立呢？它可以用积分来证明：π/2 等于 sin(x) 从 0 到 π/2 的积分。sin(x) 用泰勒级数展开，相邻项一比，就得到 沃利斯 公式。
+为什么这个公式成立呢？它可以用积分来证明：把 sin x 在 0 到 π/2 上积分，得到 ∫₀^{π/2} sin x dx = 1。把 sin x 用泰勒级数展开再逐项积分，相邻项一比，就得到 沃利斯 公式。
 
 数学家后来发现，沃利斯 公式和 斯特林 公式——算 n 的阶乘近似值的公式——有直接关系。从这个公式出发，可以推出很多重要结论。
 
@@ -39516,7 +39532,7 @@ BBP 公式的收敛速度：每加 1 项，精度增加约 0.5 位（16 进制�
 精度增长：N 增加 10 倍，精度增加约 0.5 位（开方关系，因为 1/√N 收敛）。
 
 蒙特卡洛方法的"丑"：
-- 慢：算到 10 位精度要 100 亿个点
+- 慢：算到 5 位小数要约 27 亿个点，算到 10 位小数要约 2.7×10¹⁹ 个点——所以蒙特卡洛只适合"粗算"，精算 π 要用别的算法
 - 不稳定：每次跑结果都不同
 
 蒙特卡洛方法的"美"：
@@ -39966,7 +39982,7 @@ n 越大越接近 0.57721...，但收敛很慢！
 - 鲁道夫·范·科伊兰（16 世纪）：35 位精度
 
 现代记录：
-- 二〇二二年：100 万亿位（瑞士团队，用 Chud诺夫斯基 公式 + 54 天）
+- 二〇二二年：100 万亿位（Emma Harada 家用笔记本 + Chud诺夫斯基 公式，157 天）
 - 用了 82 PB 硬盘存储
 - 用 1 PB 内存
 - 平均每 36 小时算 1 万亿位
@@ -39997,7 +40013,7 @@ n 越大越接近 0.57721...，但收敛很慢！
         · 480 年：祖冲之得 3.1415926 &lt; π &lt; 3.1415927（早欧洲 1000 年）<br>
         · 1761 年：兰伯特证明 π 是无理数<br>
         · 1882 年：林德曼证明 π 是超越数（不是任何有理系数多项式的根）<br>
-        · 2022 年：Timothy Mullican 算到 100 万亿位<br>
+        · 2022 年：Emma Harada 用家用笔记本算到 100 万亿位（157 天）<br>
         · 当前纪录（2024）：202 万亿位
       </div>
     </div>`;
@@ -42322,14 +42338,16 @@ Nim 变种：
 
 或者从 0 开始：J(n, k) = (J(n-1, k) + k) mod n，J(1, k) = 0
 
-举个例子：n=5, k=3。
-- 1 个人：剩 1
-- 2 个人：剩 1（从 0 开始是 0）
-- 3 个人：剩 (0 + 3) mod 3 = 0 = 1
-- 4 个人：剩 (1 + 3) mod 4 = 0 = 1
-- 5 个人：剩 (1 + 3) mod 5 = 4 = 5
+举个例子：n=5, k=3（先把人编号成 0,1,2,3,4，算出 0-based 答案再加 1）。
+递推公式：J(1)=0，J(n) = (J(n-1) + k) mod n
+- n=1：J=0 → 剩 1 号
+- n=2：J=(0+3) mod 2 = 1 → 剩 2 号
+- n=3：J=(1+3) mod 3 = 1 → 剩 2 号
+- n=4：J=(1+3) mod 4 = 0 → 剩 1 号
+- n=5：J=(0+3) mod 5 = 3 → 剩 4 号
 
-所以 n=5, k=3 时，剩 5 号。
+所以 n=5, k=3 时，剩 <strong>4 号</strong>。
+也可以直接模拟验证：淘汰顺序是 3 → 1 → 5 → 2，最后剩下 4 号。
 
 约瑟夫问题的变种：
 第一种：Josephus 经典版（每数到 k 淘汰 1 人）
@@ -42503,15 +42521,15 @@ k=7（111）移动盘 1
 
 八皇后问题一共有 92 个解（旋转和镜像视为不同）。
 
-第一个解：
-. Q . . . . . .
-. . . . Q . . .
-. . . . . . Q .
-. . . . . Q . .
-. . . Q . . . .
-. . . . . . . Q
-. . Q . . . . .
+第一个解（8 个皇后行列互不相同，两条对角线也都不撞）：
 Q . . . . . . .
+. . . . Q . . .
+. . . . . . . Q
+. . . . . Q . .
+. . Q . . . . .
+. . . . . . Q .
+. Q . . . . . .
+. . . Q . . . .
 
 八皇后问题的历史：一八四八年由德国国际象棋作曲家 马克斯·贝泽尔 提出。一八七四年 弗朗茨·瑙克 用回溯法找到全部 92 个解。瑙克 还推广到 n 皇后问题。
 
@@ -46032,8 +46050,8 @@ I = √π ✓
   render: (h) => initStage_EX_PROVEN_17_initAll(h)
 },
   {
-  id: 'EX_PROVEN_18', type: 'conjecture_proven',  cat: '已证', title: '孪生素数有界间隙（张益唐 2013）',
-  intro: '孪生素数（差 2 的素数对）猜想：张益唐 2013 年证明存在无穷多对、间隙有界 < 7000 万，论文引发数学界轰动。',
+  id: 'EX_PROVEN_18', type: 'conjecture_proven',  cat: '已证', title: '素数间隙有上界（张益唐 2013）',
+  intro: '⚠️ 先分清两件事：①【已证】素数间隙有上界——张益唐 2013 年证明存在无穷多对素数，其间距 < 7000 万（现由 Polymath8 优化到 246）。②【仍是未解猜想】经典孪生素数猜想 P(2)，即"存在无穷多对相差恰好 2 的素数"，<strong>至今没有任何证明</strong>。本页讲的是 ①。',
   audioUrl: 'audio/EX_PROVEN_18_explain.mp3',
   stages: getStagesEX_PROVEN_18(),
   render: (h) => initStage_EX_PROVEN_18_initAll(h)
@@ -46797,21 +46815,23 @@ function machinPi(N) {
   return 4 * (4 * arctan(1/5, N) - arctan(1/239, N));
 }
 
+// Chudnovsky（1988）：1/π = 12·Σ_{k≥0} (-1)^k (6k)!(A+Bk) / [(3k)!(k!)³·640320^(3k+3/2)]
+//   A = 13591409, B = 545140134,  π = 426880·√10005 / Σ T_k
+// 数值实现说明：直接算 (6k)! 和 640320^(3k) 会在 k≈30 时溢出成 Infinity（→ NaN）。
+// 改为按「相邻项之比」递推，每项比值约 -1.2e-14，因此 T_k 单调降到浮点分辨率以下，
+// 既不会溢出，也不会出现 NaN。每一项约贡献 14.18 位小数。
+// 注意：JS Number 只有约 16 位有效数字，所以 N=2 就已经打满双精度极限，再加项不再变准。
 function chudnovskyPi(N) {
-  const C = 426880 * Math.sqrt(10005);
-  let sum = 0;
-  for (let k = 0; k < N; k++) {
-    let num = 1;
-    for (let i = 1; i <= 6 * k; i++) num *= i;
-    let den = 1;
-    for (let i = 1; i <= 3 * k; i++) den *= i;
-    let kFact = 1;
-    for (let i = 1; i <= k; i++) kFact *= i;
-    den *= kFact * kFact * kFact;
-    const term = num / den * (545140134 * k + 13591409) / Math.pow(640320, 3 * k);
-    sum += (k % 2 === 0 ? 1 : -1) * term;
+  let T = CHUD_A;              // T_0 = A
+  let S = CHUD_A;
+  for (let k = 1; k < N; k++) {
+    const num = (6 * k - 5) * (6 * k - 4) * (6 * k - 3) * (6 * k - 2) * (6 * k - 1) * (6 * k);
+    const den = (3 * k - 2) * (3 * k - 1) * (3 * k) * k * k * k * CHUD_C3;
+    T *= -num / den * (CHUD_A + CHUD_B * k) / (CHUD_A + CHUD_B * (k - 1));
+    S += T;
+    if (Math.abs(T) < 1e-30 * CHUD_A) break;   // 已低于 double 分辨率，无需继续
   }
-  return C / sum;
+  return 426880 * Math.sqrt(10005) / S;
 }
 
 function piRunAll() {

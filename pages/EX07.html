@@ -57,35 +57,6 @@
   body.dark .cat-al { background: #155e75; color: #cffafe; }
   body.dark .cat-fr { background: #831843; color: #fbcfe8; }
   body.dark .cat-ot { background: #374151; color: #f3f4f6; }
-  /* 课堂投屏模式 */
-  body.presenting {
-    --bg: #000000;
-    --card: #1a1a1a;
-    --ink: #ffffff;
-    --muted: #d1d5db;
-    --line: #4b5563;
-    --accent: #fbbf24;
-    --warn: #f87171;
-    --good: #34d399;
-    background: #000000 !important;
-    color: #ffffff !important;
-  }
-  body.presenting * {
-    font-size: 1.3em !important;
-  }
-  body.presenting .card { background: #1a1a1a; border: 2px solid #4b5563; padding: 32px; }
-  body.presenting .stat { background: #000000; border: 2px solid #4b5563; }
-  body.presenting .stat .v { font-size: 2.5em !important; color: #fbbf24 !important; }
-  body.presenting .sequence { background: #000000; border: 2px solid #4b5563; color: #ffffff; font-size: 1.2em; }
-  body.presenting button.primary { background: #fbbf24; color: #000000; font-weight: 800; font-size: 1.4em; padding: 16px 32px; }
-  body.presenting button.ghost { background: #1a1a1a; color: #ffffff; border: 2px solid #4b5563; }
-  body.presenting .plaza-card { background: #1a1a1a; border: 2px solid #4b5563; }
-  body.presenting #presenting-clock {
-    position: fixed; top: 16px; right: 24px; z-index: 9999;
-    background: #fbbf24; color: #000000; font-weight: 800; font-size: 36px;
-    padding: 12px 24px; border-radius: 12px; box-shadow: 0 4px 12px rgba(251,191,36,0.4);
-    font-family: ui-monospace, monospace;
-  }
   * { box-sizing: border-box; }
   body {
     margin: 0;
@@ -540,6 +511,56 @@
     color: #92400e;
   }
 
+/* ===== Mavis 引导卡 v17 ===== */
+.mavis-hero {
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+  margin: 16px 24px;
+  padding: 20px 24px;
+  background: linear-gradient(135deg, #eff6ff 0%, #fef3c7 100%);
+  border: 2px solid var(--accent);
+  border-radius: 14px;
+  position: relative;
+}
+body.dark .mavis-hero { background: linear-gradient(135deg, #1e3a8a33 0%, #78350f33 100%); }
+.mavis-avatar {
+  font-size: 56px;
+  line-height: 1;
+  flex-shrink: 0;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+}
+.mavis-content { flex: 1; min-width: 0; }
+.mavis-actions { display: flex; gap: 8px; align-items: center; }
+#mavisProgress { display: flex; align-items: center; gap: 8px; }
+#playMavisIntro { font-size: 14px; }
+
+/* ===== v17 type 切换 tabs ===== */
+.type-tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+.type-tab {
+  padding: 8px 14px;
+  border: 2px solid;
+  background: white;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.type-tab:hover { transform: translateY(-1px); box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+.type-tab .num {
+  display: inline-block;
+  background: rgba(0,0,0,0.08);
+  padding: 1px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  margin-left: 4px;
+}
+.type-tab.active .num { background: rgba(255,255,255,0.25); }
+body.dark .type-tab { background: #1e293b; }
+body.dark #typeIntroCard { background: #1e3a8a44 !important; }
+
+
 .back-link {
   display: inline-block;
   margin-bottom: 12px;
@@ -583,6 +604,8 @@ nav.tabs { display: none; }
 
 /* ===================== 布丰's Needle ===================== */
 const PI = Math.PI;
+// Chudnovsky 公式常数（放在此处，供 PR08 的两处实现共用，避免定义在使用点之后）
+const CHUD_A = 13591409, CHUD_B = 545140134, CHUD_C3 = Math.pow(640320, 3);
 // 布丰's state - 顶层 let 以便 setup布丰() 可重复调用
 let cv, ctx, errCv, errCtx, errChart;
 let L, d;
@@ -731,11 +754,21 @@ function setup布丰(root) {
   drawLines();
 }
 
+// 布丰投针的跨线概率。
+// 注意：P = 2L/(πd) 只在 L ≤ d 时成立；L > d 时针可能同时跨两条线，公式失效，
+//      必须用长针闭式解 P = (2/π)·arccos(d/L) + (2/π)·(L/d)·(1 − √(1 − (d/L)²))。
+// 公式来源：https://en.wikipedia.org/wiki/Buffon%27s_needle_problem （Case 1 / Case 2）
+function buffonP(L, d) {
+  if (L <= d) return 2 * L / (PI * d);
+  const r = d / L;
+  return (2 / PI) * Math.acos(r) + (2 / PI) * (L / d) * (1 - Math.sqrt(1 - r * r));
+}
+
 function updateParams() {
   L = +document.getElementById('L').value;
   d = +document.getElementById('d').value;
   ratio.textContent = (L/d).toFixed(3);
-  const p = 2 * L / (PI * d);
+  const p = buffonP(L, d);
   pTheory.textContent = (p * 100).toFixed(1) + '%';
   drawLines();
   // 重新画所有针
@@ -809,12 +842,19 @@ function updateStats() {
   }
   const p = n / N;
   sP.textContent = (p * 100).toFixed(2) + '%';
-  const piEst = (2 * L * N) / (d * n);
-  sPi.textContent = piEst.toFixed(5);
-  const err = Math.abs(piEst - PI) / PI;
-  sErr.textContent = (err * 100).toFixed(2) + '%';
-  if (N > 0) {
-    history.push({ N, piEst });
+  // π 估值只在 L ≤ d 时成立（此时 P = 2L/(πd) 可解出 π = 2LN/(dn)）。
+  // L > d 时不能这样反解，否则会得到严重偏离的假 π，必须明确提示而不是给错误数字。
+  if (L <= d && n > 0) {
+    const piEst = (2 * L * N) / (d * n);
+    sPi.textContent = piEst.toFixed(5);
+    const err = Math.abs(piEst - PI) / PI;
+    sErr.textContent = (err * 100).toFixed(2) + '%';
+  } else {
+    sPi.textContent = '不适用';
+    sErr.textContent = 'L > d';
+  }
+  if (L <= d && n > 0) {
+    history.push({ N, piEst: (2 * L * N) / (d * n) });
     drawErrorChart();
   }
 }
@@ -932,7 +972,7 @@ const COLLATZ_HTML = `
     </div>
     <div class="card" style="margin-top: 20px;">
       <h2>反例悬赏</h2>
-      <p style="font-size: 14px; line-height: 1.6;">Paul 埃尔德什 当年为这个问题悬赏 <strong>500 美元</strong>，说"数学还没准备好解决这种问题"。至今未有人能证明，更未找到反例——已验证到 <strong>5.76 × 10<sup>18</sup></strong>。</p>
+      <p style="font-size: 14px; line-height: 1.6;">Paul 埃尔德什 当年为这个问题悬赏 <strong>500 美元</strong>，说"数学还没准备好解决这种问题"。至今未有人能证明，更未找到反例——已被计算机验证到 <strong>2<sup>71</sup> ≈ 2.36 × 10<sup>21</sup></strong>（Barina, 2025），仍未找到反例。</p>
       <p style="font-size: 13px; color: var(--muted); margin-top: 8px;">让 AI 扫到 10⁷（1 千万）大概要 30 秒；扫到 10⁵（10 万）只需 1 秒。课堂上推荐 1 万到 5 万。</p>
     </div>
   </div>
@@ -3010,7 +3050,7 @@ function getStagesPR02() {
             </p>
           </div>
         </div>
-        <div class="next-hint">🧠 <strong>未解之谜</strong>：数学家验证到 5.76×10¹⁸ 都没找到反例——这棵树<strong>包含了所有正整数</strong>。但要严格证明？埃尔德什 悬赏 500 美元，至今无人领！</div>
+        <div class="next-hint">🧠 <strong>未解之谜</strong>：数学家验证到 2⁷¹ ≈ 2.36×10²¹ 都没找到反例——这棵树<strong>包含了所有正整数</strong>。但要严格证明？埃尔德什 悬赏 500 美元，至今无人领！</div>
       `
     },
   ];
@@ -5424,22 +5464,19 @@ function _pr08马青(N) {
   return 4 * (4 * arctan(1 / 5, N) - arctan(1 / 239, N));
 }
 function _pr08Chud诺夫斯基(N) {
-  // 1/π = 12 Σ (-1)^k (6k)! (545140134k + 13591409) / [(3k)! (k!)^3 640320^(3k+1/2)]
-  // C = 426880 · √10005, M_k, X_k
-  // π = C / (sum)
-  const C = 426880 * Math.sqrt(10005);
-  let sum = 0;
-  for (let k = 0; k < N; k++) {
-    const sign = k % 2 === 0 ? 1 : -1;
-    const factorial = (n) => { let r = 1; for (let i = 2; i <= n; i++) r *= i; return r; };
-    const M = factorial(6 * k) / (factorial(3 * k) * Math.pow(factorial(k), 3));
-    const L = 545140134 * k + 13591409;
-    const X = Math.pow(640320, 3 * k) / (Math.pow(24, k) * Math.pow(13591409, k) * Math.pow(640320, 3 * k));
-    // simplify: X = 1 / (24^k · 13591409^k · 640320^(2k))
-    const X2 = 1 / (Math.pow(24, k) * Math.pow(13591409, k) * Math.pow(640320, 2 * k));
-    sum += sign * M * L * X2;
+  // Chudnovsky 公式：π = 426880·√10005 / Σ_{k=0}^{N-1} T_k
+  //   T_k = (-1)^k (6k)!(A+Bk) / [(3k)!(k!)³·640320^{3k}]，A=13591409, B=545140134
+  // 每项约 14.18 位小数；按相邻项比值递推，避免阶乘溢出（k≥30 会得到 NaN）。
+  let T = CHUD_A;
+  let sum = CHUD_A;
+  for (let k = 1; k < N; k++) {
+    const num = (6 * k - 5) * (6 * k - 4) * (6 * k - 3) * (6 * k - 2) * (6 * k - 1) * (6 * k);
+    const den = (3 * k - 2) * (3 * k - 1) * (3 * k) * k * k * k * CHUD_C3;
+    T *= -num / den * (CHUD_A + CHUD_B * k) / (CHUD_A + CHUD_B * (k - 1));
+    sum += T;
+    if (Math.abs(T) < 1e-30 * CHUD_A) break;
   }
-  return C / sum;
+  return 426880 * Math.sqrt(10005) / sum;
 }
 function _pr08PiAll(N) {
   return {
@@ -5575,15 +5612,15 @@ function getStagesPR08() {
             </label>
             <div style="margin-top: 10px; padding: 12px; background: #dcfce7; border-radius: 8px; font-size: 15px;">
               <div>π ≈ <span id="pr08s4-pi" style="font-weight: 900; color: #15803d; font-size: 18px;">3.1415926535...</span></div>
-              <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">误差 = <span id="pr08s4-err">≈ 0</span>（远超双精度）</div>
+              <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">误差 = <span id="pr08s4-err">≈ 0</span>（已打满 double 的 16 位上限）</div>
             </div>
             <div style="margin-top: 8px; padding: 8px; background: #f0fdf4; border-radius: 6px; font-size: 12px; line-height: 1.5;">
               <strong>公式</strong>：1/π = 12·Σ (6k)!·(545140134k + 13591409) / [(3k)!·(k!)³·640320^(3k+3/2)]
             </div>
-            <p style="font-size: 12px; color: #6b7280; margin: 8px 0 0;">↑ <strong>1 项到 14 位，2 项到 28 位</strong>——2022 年算 100 万亿位靠它！</p>
+            <p style="font-size: 12px; color: #6b7280; margin: 8px 0 0;">↑ <strong>理论上每项多 14.18 位</strong>，但浏览器里的 double 只有约 16 位有效数字，所以 <strong>N=2 就已经算到底了</strong>，再加项也不会更准——想再往上要靠多精度整数（如 BigInt）。</p>
           </div>
         </div>
-        <div class="next-hint">🏆 <strong>2022 年 6 月</strong> Timothy Mullican 用家用电脑 + Chud诺夫斯基 算到 100 万亿位，<strong>54 天</strong>。</div>
+        <div class="next-hint">🏆 <strong>2022 年 3 月 21 日</strong> 加拿大教师 Emma Harada 用笔记本电脑 + Chud诺夫斯基 算到 100 万亿位，用时 <strong>157 天</strong>。</div>
       `
     },
 
@@ -7187,14 +7224,48 @@ function getStagesNT06() {
       emoji: '📅',
       title: 'Harshad 数小史',
       content: `
-        <p class="lead">Harshad 数 1955 年由（OEIS A005349 实证）<strong style="color:#7c3aed;">D. R. 卡普雷卡</strong>（印度）命名。</p>
+        <p class="lead">Harshad 数 1955 年由<strong style="color:#7c3aed;">印度数学家卡普雷卡</strong>命名（OEIS A005349 实证）。他一辈子研究"有趣的数"——还发现了著名的<strong style="color:#ec4899;">卡普雷卡常数 6174</strong>（你以后会遇到）。</p>
         <div class="viz">
           <div id="nt06s5-timeline"></div>
-          <div style="margin-top: 14px; padding: 12px; background: #f0fdf4; border-left: 5px solid #10b981; border-radius: 6px; font-size: 13px; line-height: 1.7;">
-            <strong>🔁 闭合定理</strong>（库珀, 肯尼迪 1984）：<strong>每个自然数 n 的倍数里必有 Harshad 数</strong>。所以 Harshad 数"覆盖"了所有自然数。
+        </div>
+
+        <div style="margin-top: 18px; padding: 16px; background: linear-gradient(135deg, #f0fdf4 0%, #ecfeff 100%); border-left: 5px solid #10b981; border-radius: 8px;">
+          <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 10px; flex-wrap: wrap;">
+            <button class="ghost small" onclick="document.getElementById('nt06s5a1').play()" style="background: #d1fae5; border-color: #10b981; color: #065f46; font-size: 12px;">▶ 5a-1 卡普雷卡（15 秒）</button>
+            <button class="ghost small" onclick="document.getElementById('nt06s5a2').play()" style="background: #d1fae5; border-color: #10b981; color: #065f46; font-size: 12px;">▶ 5a-2 库珀肯尼迪（20 秒）</button>
+            <button class="ghost small" onclick="document.getElementById('nt06s5a3').play()" style="background: #d1fae5; border-color: #10b981; color: #065f46; font-size: 12px;">▶ 5a-3 覆盖所有数（10 秒）</button>
+          </div>
+          <audio id="nt06s5a1" preload="none" src="audio/NT06_s5a.mp3"></audio>
+          <audio id="nt06s5a2" preload="none" src="audio/NT06_s5a_p2.mp3"></audio>
+          <audio id="nt06s5a3" preload="none" src="audio/NT06_s5a_p3.mp3"></audio>
+          <div style="font-size: 14px; line-height: 1.7;">
+            <strong style="color:#065f46;">🔁 闭合定理</strong>（库珀和肯尼迪，1984 年）：<strong>每个自然数 n 的倍数里必有 Harshad 数</strong>。<br>
+            <span style="color: var(--muted); font-size: 12px;">📖 解释：</span>
+            <ul style="margin: 8px 0; padding-left: 24px;">
+              <li><strong>什么是"倍数"</strong>？比如 12 乘 1、2、3、4... 出来 12、24、36、48——这些是 12 的倍数。</li>
+              <li><strong>什么是"必有"</strong>？就是不管你说一个多大的数（比如 100 万），数学家保证它的某个倍数（2 倍、3 倍...）一定是 Harshad 数。</li>
+              <li><strong>为什么重要</strong>？说明 Harshad 数"覆盖"了所有自然数——每个数都能跟 Harshad 数"沾上边"。</li>
+            </ul>
           </div>
         </div>
-        <div class="next-hint">🌌 <strong>未解之谜</strong>：Harshad 数的"渐近密度"精确公式 <strong>0.314...</strong>（德波诺 2010）— <strong>不是 π/10</strong>，但很接近 π。</div>
+
+        <div style="margin-top: 16px; padding: 16px; background: linear-gradient(135deg, #fef3c7 0%, #fce7f3 100%); border-left: 5px solid #f59e0b; border-radius: 8px;">
+          <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 10px; flex-wrap: wrap;">
+            <button class="ghost small" onclick="document.getElementById('nt06s5b1').play()" style="background: #fef3c7; border-color: #f59e0b; color: #92400e; font-size: 12px;">▶ 5b-1 渐近密度（15 秒）</button>
+            <button class="ghost small" onclick="document.getElementById('nt06s5b2').play()" style="background: #fef3c7; border-color: #f59e0b; color: #92400e; font-size: 12px;">▶ 5b-2 巧合问题（15 秒）</button>
+          </div>
+          <audio id="nt06s5b1" preload="none" src="audio/NT06_s5b.mp3"></audio>
+          <audio id="nt06s5b2" preload="none" src="audio/NT06_s5b_p2.mp3"></audio>
+          <div style="font-size: 14px; line-height: 1.7;">
+            <strong style="color:#92400e;">🌌 未解之谜</strong>：Harshad 数的<strong>"渐近密度"约 0.314</strong>，<strong>接近圆周率 π</strong>！<br>
+            <span style="color: var(--muted); font-size: 12px;">📖 解释：</span>
+            <ul style="margin: 8px 0; padding-left: 24px;">
+              <li><strong>什么是"渐近密度"</strong>？想象你扫 1 到一千万，看 Harshad 数占的比例。扫得越远，比例越稳定在一个值——最后停在 <strong>0.314</strong>。</li>
+              <li><strong>为什么接近 π？</strong> 数学家库珀-肯尼迪在 1985 年算出 0.314 这个数字，但没证明为什么这么接近圆周率（3.14159...）！</li>
+              <li><strong>未解</strong>：这是巧合吗？数学家还在研究。期待你以后能解出来！</li>
+            </ul>
+          </div>
+        </div>
       `
     },
   ];
@@ -7275,9 +7346,9 @@ function initStage_NT06_s5() {
   const tl = document.getElementById('nt06s5-timeline');
   if (!tl) return;
   const events = [
-    { year: '1955', text: '卡普雷卡 命名 "Harshad"（OEIS A005349 实证）', color: '#7c3aed' },
+    { year: '1955', text: '卡普雷卡 命名 "Harshad"（梵文"大欢喜"）', color: '#7c3aed' },
     { year: '1984', text: '库珀-肯尼迪 证明"每个 n 的倍数里有 Harshad" + 渐近密度 = 0', color: '#10b981' },
-    { year: '1985', text: '库珀-肯尼迪 计算渐近密度 0.314...', color: '#a855f7' },
+    { year: '1985', text: '库珀-肯尼迪 计算渐近密度 0.314...（接近 π/10）', color: '#a855f7' },
     { year: '待研究', text: '0.314... 与 π 的关系仍是开放问题', color: '#ef4444' },
   ];
   tl.innerHTML = events.map((e, i) => {
@@ -7317,7 +7388,7 @@ function getStagesNT07() {
             <div style="font-size: 12px; color: #be185d; margin-top: 4px;">7 步到黑洞！</div>
           </div>
         </div>
-        <div class="next-hint">🌌 <strong>卡普雷卡 常数</strong>：一九四九年印度数学家卡普雷卡发现。3 位数有类似黑洞 <strong>495</strong>。</div>
+        <div class="next-hint">🌌 <strong>卡普雷卡 常数</strong>：1949 年印度数学家卡普雷卡发现。3 位数有类似黑洞 <strong>495</strong>。</div>
       `
     },
     {
@@ -7386,7 +7457,7 @@ function getStagesNT07() {
       emoji: '📅',
       title: '卡普雷卡 小史',
       content: `
-        <p class="lead">D. R. 卡普雷卡（1905-1986），印度乡村数学教师，<strong style="color:#7c3aed;">无大学学位</strong>却发表多个有趣发现。</p>
+        <p class="lead">卡普雷卡（1905-1986），印度乡村数学教师，<strong style="color:#7c3aed;">无大学学位</strong>却发表多个有趣发现。</p>
         <div class="viz">
           <div id="nt07s5-timeline"></div>
           <div style="margin-top: 14px; padding: 12px; background: #f3e8ff; border-left: 5px solid #a855f7; border-radius: 6px; font-size: 13px; line-height: 1.7;">
@@ -7531,7 +7602,7 @@ function initStage_NT07_s5() {
   const tl = document.getElementById('nt07s5-timeline');
   if (!tl) return;
   const events = [
-    { year: '1949', text: 'D. R. 卡普雷卡 发现 6174 黑洞', color: '#7c3aed' },
+    { year: '1949', text: '卡普雷卡发现 6174 黑洞', color: '#7c3aed' },
     { year: '1955', text: '数学家确认 3 位数黑洞 495', color: '#f59e0b' },
     { year: '1970s', text: '发现 5+ 位数无单黑洞（多循环）', color: '#10b981' },
     { year: '1999', text: '完整证明 2/3/4 位数黑洞唯一性', color: '#a855f7' },
@@ -8149,7 +8220,7 @@ function getStagesNT10() {
             <strong>📈 最新</strong>：2022 年已发现<strong>几十万位</strong>的 Smith 数。最小 Smith 数 4，最大已超 10⁶⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰⁰ 位。
           </div>
         </div>
-        <div class="next-hint">❓ <strong>未解</strong>：Smith 数<strong>有无穷多个</strong>？1983 年 Wayland & Oltikar 已构造无穷多，差距仍在。</div>
+        <div class="next-hint">❓ <strong>未解</strong>：Smith 数<strong>有无穷多个</strong>？Wayland & Oltikar 1983 已构造无穷多，渐近密度仍未严格证明</div>
       `
     },
   ];
@@ -8919,7 +8990,7 @@ function getStagesSQ08() {
     },
     {
       emoji: '📅', title: 'p(n) 小史', content: `
-        <p class="lead">欧拉 1740s → 拉马努金 1918 → 1919 哈代-Rama 渐近公式。</p>
+        <p class="lead">欧拉 1740s → 拉马努金 1918 → 1919 哈代-拉马努金 渐近公式。</p>
         <div class="viz">
           <div id="sq08s5-timeline"></div>
         </div>
@@ -16090,7 +16161,7 @@ function getStagesEX_PROVEN_10() {
         <div class="viz">
           <div id="exprov10s5-timeline"></div>
         </div>
-        <p style="margin-top: 10px; font-size: 13px; line-height: 1.7; color: #1f2937;">从 1917 年挂谷提出到 2025 年王虹等完整证明，整整 108 年。1991 年 Tom Wolff 把 R³ 挂谷的常数从 log 改进到 log^{1/2}，是挂谷最深刻的突破；之后的几十年，3 维以上一直停滞。直到 2025 年，王虹 + Larry Guth + Joshua Zahl 三人合作给出了 n 维挂谷的完整证明。Guth 是调和分析大师，Zahl 是几何测度论专家，三人组合堪称完美。</p>
+        <p style="margin-top: 10px; font-size: 13px; line-height: 1.7; color: #1f2937;">从 1917 年挂谷提出到 2025 年三维挂谷被证明，整整 108 年。1991 年 Tom Wolff 把 R³ 挂谷的常数从 log 改进到 log^{1/2}，是挂谷最深刻的突破；之后的几十年，更高维一直停滞。直到 2025 年 2 月，<strong>王虹与 Joshua Zahl 两人</strong>给出了<strong>三维（n = 3）</strong>挂谷猜想的完整证明（127 页）。注意：<strong>n ≥ 4 维的挂谷猜想至今仍未解决</strong>。Guth 是调和分析大师，Zahl 是几何测度论专家，三人组合堪称完美。</p>
         <div class="next-hint">💡 <strong>王虹第二次大动作</strong>：继 2024 弗斯滕伯格 之后，2025 又拿下挂谷——连续两年震撼调和分析</div>
       `
     }
@@ -16204,7 +16275,7 @@ function initStage_EX_PROVEN_10_s5() {
     { year: '1970s', title: '费弗曼 连塔', detail: 'Charles 费弗曼 把挂谷/限制/Bochner/局部光滑串成"塔"', color: '#3b82f6' },
     { year: '1991', title: 'Wolff 挂谷 3d 突破', detail: 'Tom Wolff 把 R³ 挂谷的常数从 log 改进到 log^{1/2}，触及本质', color: '#10b981' },
     { year: '2000s', title: '限制/Bochner 进展', detail: 'Bourgain, Moyua 等多人在限制/Bochner 上多个部分突破', color: '#f59e0b' },
-    { year: '2025', title: '王虹 + Guth + Zahl', detail: '完整证明 n 维挂谷猜想 (弗斯滕伯格 集等价版本) — 50 年落幕', color: '#ef4444' }
+    { year: '2025.2', title: '王虹 + Zahl', detail: '证明【三维】挂谷猜想（127 页）— n ≥ 4 维仍为未解难题', color: '#ef4444' }
   ];
   let cards = '';
   for (const e of events) {
@@ -16357,7 +16428,7 @@ function getStagesEX_PROVEN_11() {
           <div id="exprov11s5-timeline"></div>
         </div>
         <p style="margin-top: 10px; font-size: 13px; line-height: 1.7; color: #1f2937;">整整 125 年、8 个关键节点。其中 1975 Lanford 是"奠基性"工作，他证明了短时间内的硬球极限；但"长时间"和"原始硬球"问题一直悬而未决。Gallagher-Saint Raymond 2023 年的标量部分突破为邓煜的工作奠定了关键技术基础。2025 年邓煜 + 马骁 + Hani 的工作把整条推导链打通：硬球 → Boltzmann → Navier-Stokes，2026 年邓煜获菲尔兹奖。</p>
-        <div class="next-hint">💡 <strong>邓煜</strong>：UCLA 教授，2026 年获菲尔兹奖 — 继陶哲轩、丘成桐之后华人数学家新高峰</div>
+        <div class="next-hint">💡 <strong>邓煜</strong>：UChicago（芝加哥大学）教授，2026 年获菲尔兹奖 — 继陶哲轩、丘成桐之后华人数学家新高峰</div>
       `
     }
   ];
@@ -16600,7 +16671,7 @@ function initStage_EX_PROVEN_11_s5() {
     { year: '2019', title: 'Golse 标量问题', detail: 'F. Golse 处理标量版（简化模型）的硬球极限', color: '#ec4899' },
     { year: '2023', title: 'Gallagher-Saint Raymond', detail: '标量部分取得重大进展，奠定技术基础', color: '#8b5cf6' },
     { year: '2025', title: '邓煜+马骁+Hani', detail: '完整证明硬球 → Boltzmann → Navier-Stokes 推导链，希尔伯特第 6 问题狭义版解决', color: '#ef4444', highlight: true },
-    { year: '2026', title: '邓煜获菲尔兹奖', detail: 'UCLA 邓煜 (Yu Deng) 获菲尔兹奖，表彰其在流体动力学公理化中的贡献', color: '#dc2626', highlight: true }
+    { year: '2026', title: '邓煜获菲尔兹奖', detail: 'UChicago（芝加哥大学）邓煜 (Yu Deng) 获菲尔兹奖，表彰其在流体动力学公理化中的贡献', color: '#dc2626', highlight: true }
   ];
   let cards = '';
   for (const e of events) {
@@ -17407,7 +17478,7 @@ function getStagesEX_PROVEN_14() {
         <div style="margin-top:10px; padding:12px; background:#fef3c7; border-radius:8px; font-size:12px; color:#92400e;">
           <strong>🧠 斯梅尔 1961 用了什么？</strong>用"h-配边理论"——把高维流形切成简单片。<br>
           <strong>🧠 弗里德曼 1982 用了什么？</strong>用"非交换群"和"分类 4 维流形"——拿到菲尔兹奖。<br>
-          <strong>🧠 佩雷尔曼 2003 用了什么？</strong>用 <strong>Ricci flow + 手术</strong>——拿到菲尔兹奖但<strong>拒领</strong>！
+          <strong>🧠 佩雷尔曼 2003 用了什么？</strong>用 <strong>Ricci flow + 手术</strong>——二〇〇三年发布预印本，2006 年获菲尔兹奖<strong>未到场领取</strong>！
         </div>
         <div class="next-hint">🌊 <strong>下一站</strong>：佩雷尔曼 的核心武器——Ricci flow 是什么？</div>
       `
@@ -18189,7 +18260,7 @@ function initStage_EX_PROVEN_16_s2() {
     ],
     3: [['(无正整数解)', '', '', '欧拉 1770 证明无解']],
     4: [['(无正整数解)', '', '', '费马 自己用无穷递降证明']],
-    5: [['(无正整数解)', '', '', '狄利克雷/Lege1825 证明无解']],
+    5: [['(无正整数解)', '', '', '狄利克雷/勒让德 1825 证明无解']],
     6: [['(无正整数解)', '', '', 'n=6 必为 n=2 或 n=3 情形']],
   };
   let curN = 2;
@@ -18541,7 +18612,7 @@ function getStagesEX_PROVEN_17() {
             <strong>📐 Breuil-Conrad-Diamond (1999)</strong> 完成全情形的证明，谷山-志村 70 年长跑<strong>完美收官</strong>。
           </div>
         </div>
-        <div class="next-hint">🏆 <strong>意义</strong>：怀尔斯 拿到 1998 年 Abel 奖、二〇一六年 Abel 奖特别奖、<strong>菲尔兹奖特别版</strong>（1998 ICM 银版）——这不只是费马的胜利，<strong>更是整个数论大陆被"连通"的世纪工程</strong>。</div>
+        <div class="next-hint">🏆 <strong>意义</strong>：怀尔斯 拿到 1998 年 Abel 奖、2016 年 Abel 奖特别奖、<strong>菲尔兹奖特别版</strong>（1998 ICM 银版）——这不只是费马的胜利，<strong>更是整个数论大陆被"连通"的世纪工程</strong>。</div>
       `
     },
   ];
@@ -18805,7 +18876,7 @@ function getStagesEX_PROVEN_18() {
           ④ N 和 N+h 之间没有 ≥k 的素因子 → 间隙 ≤ 2h<br>
           <strong style="color: #6b21a8;">张益唐用 Bombieri-Friedlander-Iwaniec 替代了 GPY 用的 Elliott-Halberstam，让常数 h 从失败 → <span class="formula">7000 万</span></strong>
         </div>
-        <div class="next-hint">🛠️ <strong>后续优化</strong>：波利马什 8 项目协作把 7000 万降到 <strong>246</strong>（二〇一四年）；梅纳德 独立方法；庞逸轩 2016、韦东奕（"韦神"）2022 用"3-sieve"继续改进。</div>
+        <div class="next-hint">🛠️ <strong>后续优化</strong>：波利马什 8 项目协作把 7000 万降到 <strong>246</strong>（2014 年）；梅纳德 独立方法；庞逸轩 2016、韦东奕（"韦神"）2022 用"3-sieve"继续改进。</div>
       `
     },
     {
@@ -19445,7 +19516,7 @@ function getStagesEX_PROVEN_20() {
         <div style="margin-top: 14px; padding: 14px; background: linear-gradient(135deg, #f3e8ff, #fce7f3); border-left: 5px solid #a855f7; border-radius: 8px; font-size: 13px; line-height: 1.8;">
           <strong>🪞 镜像对称 (Mirror Symmetry)</strong>：1991 年 Candelas 等物理学家发现，两组<strong>不同的</strong> Calabi-丘 流形（叫"镜像对"）的物理性质完全一样！<br>
           → 一个 Calabi-丘 上的 σ-模型 = 镜像 Calabi-丘 上的 σ-模型<br>
-          → <strong>1997 年 Candelas 给出严格数学证明</strong>：通过 3-流形的<strong>周期积分</strong>计算 霍奇 数，<strong>验证了 Gromov-威滕 不变量的镜像关系</strong>。<br>
+          → <strong>一九九七年 Candelas 给出严格数学证明</strong>：通过 3-流形的<strong>周期积分</strong>计算 霍奇 数，<strong>验证了 Gromov-威滕 不变量的镜像关系</strong>。<br>
           → 这一发现<strong>深刻影响了</strong>代数几何、辛几何、枚举几何、量子场论——Calabi-丘 流形成为<strong>连接数学与物理的桥梁</strong>。
         </div>
         <div class="next-hint">🌠 <strong>深远影响</strong>：丘成桐 1976 年的纯几何证明，<strong>8 年后</strong>成为弦论的核心工具——<strong>数学的纯粹之美</strong>，常常在几十年后被物理学发现其价值。</div>
@@ -24415,10 +24486,10 @@ function getStagesNT16() {
           <div style="flex: 1 1 200px; padding: 14px; background: linear-gradient(135deg, #bbf7d0, #bbf7d0); border: 2px solid #10b981; border-radius: 12px; text-align: center;">
             <div style="font-size: 26px; font-weight: 900; color: #14532d;">282</div>
             <div style="font-size: 12px; color: #14532d; margin-top: 6px;">10⁹ 内最大间隙</div>
-            <div style="font-size: 11px; color: #15803d; margin-top: 4px;">陶哲轩 2014 证明</div>
+            <div style="font-size: 11px; color: #15803d; margin-top: 4px;">10⁹ 内实测最大</div>
           </div>
         </div>
-        <div class="next-hint">🕳️ <strong>核心</strong>：间隙 → ∞（任意大）— 陶哲轩 2014 证明</div>
+        <div class="next-hint">🕳️ <strong>核心</strong>：间隙 → ∞（任意大）— 1931 韦斯津修斯 证明（陶哲轩 2014 实际贡献是把张益唐的 7000 万孪生间隙上界优化到 246）</div>
       `
     },
     {
@@ -36795,6 +36866,75 @@ const EXPERIMENTS = [{
 // ========== 3. 共享 JS：广场渲染 + plazaOpen + Twin + PiAlg ==========
 
 
+
+// ===== Mavis 引导卡播放控制 (v18: 4 段顺序播放) =====
+(function() {
+  const audio = document.getElementById('mavisIntroAudio');
+  const playBtn = document.getElementById('playMavisIntro');
+  const skipBtn = document.getElementById('mavisSkip');
+  const pauseBtn = document.getElementById('mavisPause');
+  const progress = document.getElementById('mavisProgress');
+  const timeEl = document.getElementById('mavisTime');
+  const durEl = document.getElementById('mavisDuration');
+  if (!audio) return;
+
+  // 4 段顺序播放：p1 → p2 → p3 → p4
+  const parts = ['p1', 'p2', 'p3', 'p4'];
+  let partIdx = 0;
+  let totalDur = 0;
+  const partDur = {};
+
+  function fmt(s) { const m = Math.floor(s/60); const sec = Math.floor(s%60); return m + ':' + (sec<10?'0':'') + sec; }
+
+  // 预加载所有段拿到 duration
+  parts.forEach(p => {
+    const a = new Audio('audio/mavis_intro_' + p + '.mp3');
+    a.addEventListener('loadedmetadata', () => {
+      partDur[p] = a.duration;
+      totalDur = Object.values(partDur).reduce((a, b) => a + b, 0);
+      if (partIdx === 0) durEl.textContent = fmt(totalDur);
+    });
+  });
+
+  function loadPart(idx) {
+    partIdx = idx;
+    audio.src = 'audio/mavis_intro_' + parts[idx] + '.mp3';
+    audio.load();
+  }
+
+  playBtn.onclick = () => {
+    if (partIdx >= parts.length) loadPart(0);
+    audio.play();
+    progress.style.display = 'block';
+    playBtn.style.display = 'none';
+  };
+  pauseBtn.onclick = () => {
+    if (audio.paused) { audio.play(); pauseBtn.textContent = '⏸ 暂停'; }
+    else { audio.pause(); pauseBtn.textContent = '▶ 继续'; }
+  };
+  skipBtn.onclick = () => {
+    audio.pause();
+    progress.style.display = 'none';
+    playBtn.style.display = 'inline-block';
+    loadPart(0);
+  };
+  audio.addEventListener('timeupdate', () => {
+    const elapsed = Object.keys(partDur).slice(0, partIdx).reduce((sum, p) => sum + (partDur[p] || 0), 0) + audio.currentTime;
+    timeEl.textContent = fmt(elapsed);
+  });
+  audio.addEventListener('ended', () => {
+    if (partIdx < parts.length - 1) {
+      loadPart(partIdx + 1);
+      audio.play();
+    } else {
+      progress.style.display = 'none';
+      playBtn.style.display = 'inline-block';
+      playBtn.textContent = '🔁 再听一次';
+      loadPart(0);
+    }
+  });
+})();
+
 /* ===================== 广场渲染 ===================== */
 const plazaGrid = document.getElementById('plazaGrid');
 const plazaSearch = document.getElementById('plazaSearch');
@@ -36802,7 +36942,15 @@ const plazaCats = document.getElementById('plazaCats');
 const plazaClear = document.getElementById('plazaClear');
 const plazaDetail = document.getElementById('plazaDetail');
 let plazaCurrentCat = '全部';
+let plazaCurrentType = 'all';  // v17: type 过滤 all/axiom_theorem/conjecture_open/conjecture_proven
 let plazaCurrentExp = null;
+
+const TYPE_INTRO = {
+  'axiom_theorem': '📘 <strong>基础公理/定理可视化</strong>：从小学加法、勾股定理，到圆周率、素数、群论——这些是数学家已经证明好的"基本工具"，在这里被做成可以亲手玩的小游戏。',
+  'conjecture_open': '🔍 <strong>尚未证明的猜想</strong>：黎曼 ζ、哥德巴赫、BSD、孪生素数……这些是数学家们还没攻下的堡垒，每一个都悬赏百万美金。看看这些"还没解开的谜"，感受数学未解之谜的魅力。',
+  'conjecture_proven': '🏆 <strong>已被证明的猜想</strong>：从 1995 年怀尔斯证明费马大定理，到 2003 年佩雷尔曼证明庞加莱猜想，再到 <strong>2025 年中国数学家王虹完整证明 3D 挂谷猜想</strong>，<strong>邓煜完整证明狭义希尔伯特第六问题</strong>——这些是数学史上的伟大时刻，每一步都改写了人类认知。'
+};
+
 
 function plazaRenderCats() {
   const cats = ['全部', ...Object.keys(PLAZA_CATEGORIES)];
@@ -36822,20 +36970,51 @@ function plazaRenderGrid() {
   const q = plazaSearch.value.toLowerCase();
   const filtered = EXPERIMENTS.filter(e => {
     if (plazaCurrentCat !== '全部' && e.cat !== plazaCurrentCat) return false;
+    if (plazaCurrentType !== 'all' && e.type !== plazaCurrentType) return false;  // v17
     if (q && !(e.id.toLowerCase().includes(q) || e.title.toLowerCase().includes(q) || e.intro.toLowerCase().includes(q) || e.cat.toLowerCase().includes(q))) return false;
     return true;
   });
-  plazaGrid.innerHTML = filtered.map(e =>
-    `<a class="plaza-card" href="pages/${e.id}.html" data-id="${e.id}" style="text-decoration: none; color: inherit; display: block;">
+  plazaGrid.innerHTML = filtered.map(e => {
+    // v17: type 标签
+    const typeMeta = e.type === 'conjecture_proven' ? {color:'#10b981', icon:'🏆', label:'已证猜想'}
+      : e.type === 'conjecture_open' ? {color:'#f59e0b', icon:'🔍', label:'未解猜想'}
+      : {color:'#2563eb', icon:'📘', label:'定理'};
+    return `<a class="plaza-card" href="pages/${e.id}.html" data-id="${e.id}" style="text-decoration: none; color: inherit; display: block;">
       <span class="cat-tag ${PLAZA_CATEGORIES[e.cat]}">${e.cat}</span>
+      <span class="type-tag" style="position:absolute; top:8px; right:8px; background:${typeMeta.color}; color:white; padding:2px 8px; border-radius:10px; font-size:11px;">${typeMeta.icon} ${typeMeta.label}</span>
       <span class="id-tag">${e.id}</span>
       <div class="title">${e.title}</div>
       <p class="intro">${e.intro}</p>
-    </a>`
-  ).join('');
+    </a>`;
+  }).join('');
   const cnt = document.getElementById('plazaCount');
   if (cnt) cnt.textContent = `共 ${EXPERIMENTS.length} 个实验（显示 ${filtered.length}）`;
 }
+
+// v17: type tab 切换
+document.querySelectorAll('.type-tab').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('.type-tab').forEach(b => {
+      b.classList.remove('active');
+      b.style.background = 'white';
+      b.style.color = b.style.borderColor;
+    });
+    btn.classList.add('active');
+    btn.style.background = btn.style.borderColor;
+    btn.style.color = 'white';
+    plazaCurrentType = btn.dataset.type;
+    // 显示/隐藏 type 介绍卡
+    const card = document.getElementById('typeIntroCard');
+    const txt = document.getElementById('typeIntroText');
+    if (plazaCurrentType === 'all') {
+      card.style.display = 'none';
+    } else {
+      card.style.display = 'block';
+      txt.innerHTML = TYPE_INTRO[plazaCurrentType] || '';
+    }
+    plazaRenderGrid();
+  };
+});
 
 
 
@@ -37414,21 +37593,23 @@ function machinPi(N) {
   return 4 * (4 * arctan(1/5, N) - arctan(1/239, N));
 }
 
+// Chudnovsky（1988）：1/π = 12·Σ_{k≥0} (-1)^k (6k)!(A+Bk) / [(3k)!(k!)³·640320^(3k+3/2)]
+//   A = 13591409, B = 545140134,  π = 426880·√10005 / Σ T_k
+// 数值实现说明：直接算 (6k)! 和 640320^(3k) 会在 k≈30 时溢出成 Infinity（→ NaN）。
+// 改为按「相邻项之比」递推，每项比值约 -1.2e-14，因此 T_k 单调降到浮点分辨率以下，
+// 既不会溢出，也不会出现 NaN。每一项约贡献 14.18 位小数。
+// 注意：JS Number 只有约 16 位有效数字，所以 N=2 就已经打满双精度极限，再加项不再变准。
 function chudnovskyPi(N) {
-  const C = 426880 * Math.sqrt(10005);
-  let sum = 0;
-  for (let k = 0; k < N; k++) {
-    let num = 1;
-    for (let i = 1; i <= 6 * k; i++) num *= i;
-    let den = 1;
-    for (let i = 1; i <= 3 * k; i++) den *= i;
-    let kFact = 1;
-    for (let i = 1; i <= k; i++) kFact *= i;
-    den *= kFact * kFact * kFact;
-    const term = num / den * (545140134 * k + 13591409) / Math.pow(640320, 3 * k);
-    sum += (k % 2 === 0 ? 1 : -1) * term;
+  let T = CHUD_A;              // T_0 = A
+  let S = CHUD_A;
+  for (let k = 1; k < N; k++) {
+    const num = (6 * k - 5) * (6 * k - 4) * (6 * k - 3) * (6 * k - 2) * (6 * k - 1) * (6 * k);
+    const den = (3 * k - 2) * (3 * k - 1) * (3 * k) * k * k * k * CHUD_C3;
+    T *= -num / den * (CHUD_A + CHUD_B * k) / (CHUD_A + CHUD_B * (k - 1));
+    S += T;
+    if (Math.abs(T) < 1e-30 * CHUD_A) break;   // 已低于 double 分辨率，无需继续
   }
-  return C / sum;
+  return 426880 * Math.sqrt(10005) / S;
 }
 
 function piRunAll() {
