@@ -23227,8 +23227,16 @@ function _hermite(n, x) {
   return h1;
 }
 // ψ_n(x) 未归一化
+// 谐振子归一化波函数 ψ_n(x) = H_n(x)·e^(-x²/2) / (π^(1/4)·√(2^n·n!))
+// 归一化常数不可省略：∫|ψ_n|²dx 必须等于 1。缺了它，原式算出来是 2^n·n!·√π
+// （n=0 就是 1.772，n=5 是 6806），与页面宣称的"理论值 1"对不上。
+function _psiNorm(n) {
+  let fact = 1;
+  for (let i = 2; i <= n; i++) fact *= i;      // n!
+  return 1 / (Math.pow(Math.PI, 0.25) * Math.sqrt(Math.pow(2, n) * fact));
+}
 function _psiN(n, x) {
-  return _hermite(n, x) * Math.exp(-x * x / 2);
+  return _hermite(n, x) * Math.exp(-x * x / 2) * _psiNorm(n);
 }
 function initStage_EX17_s1() {}
 function initStage_EX17_s2() {

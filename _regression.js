@@ -60,5 +60,18 @@ ck('_ntSigma(36) = 55（36 是过剩数）', _ntSigma(36) === 55, '实际 ' + _n
 ck('_nt05Happy(19)=true', _nt05Happy(19) === true);
 ck('_nt05Happy(4)=false', _nt05Happy(4) === false);
 
+console.log('\n===== EX17 谐振子波函数归一化（页面称「理论值 1」）=====');
+(function () {
+  const h2 = fs.readFileSync('/Users/paulshi/Documents/MiniMax/π/mathexperiment/index.html', 'utf-8');
+  const g = re => { const m = h2.match(re); if (!m) throw new Error('missing ' + re); return m[0]; };
+  eval([g(/function _hermite[\s\S]*?\n\}/), g(/function _psiNorm[\s\S]*?\n\}/),
+        g(/function _psiN\(n, x\) \{[\s\S]*?\n\}/)].join('\n'));
+  for (const n of [0, 1, 2, 3, 4, 5, 6]) {
+    let s2 = 0; const dx = 0.05;                 // 与页面 initStage_EX17_s4 完全一致的积分
+    for (let x = -10; x <= 10; x += dx) { const v = _psiN(n, x); s2 += v * v * dx; }
+    ck(`EX17 n=${n} 的 ∫|ψ|² = 1`, Math.abs(s2 - 1) < 0.01, '实测 ' + s2.toFixed(4) + '（修前 n=5 是 6806.2231）');
+  }
+})();
+
 console.log('\n' + (fail === 0 ? `全部通过 ✅  (${pass} 项)` : `${fail} 项失败 ❌  (通过 ${pass} 项)`));
 process.exit(fail === 0 ? 0 : 1);
