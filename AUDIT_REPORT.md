@@ -319,3 +319,58 @@ PR07: '122 对'  -> index.html=True  meta=True
 ---
 
 *审查方法：抽取 148 个实验全部文案（约 53 万字）→ 用 Python/Node 独立重实现每个算法 → 与页面断言逐条比对；历史条目用 Wikipedia API / arXiv 双源查证；关键条目（NaN、L>d、Collatz 榜单、快乐数、Bell 数、错排、快乐数、Mersenne、Fields Medal、Westzynthius、Harshad）全部由我本人独立复算，未采信子 agent 的结论。*
+
+---
+
+# 修复记录（2026-09-28）
+
+本报告的 12 项 CRITICAL + 27 项 MAJOR + 8 项 MINOR 已全部修复，并额外通过 5 轮
+全族复核新发现 9 项错误、消除 4 处教学歧义。
+
+## 提交
+
+| 提交 | 内容 |
+|---|---|
+| `e45d3b5` v18.3 | 12 项 CRITICAL + 重建过期的 pages/ |
+| `8d8a9ee` v18.4 | 33 项 MAJOR/MINOR + README 重写 + 逐页复核工具 |
+| `1d6a41f` v18.5 | 第二轮：新发现 6 项 + 2 处歧义 |
+| `f43d3df` v18.6 | 第三轮：EX 前沿族 + 挂谷归因/术语 |
+| `1ade0a8` v18.7 | 第四轮：FR/AL/GM 族 + 首页统计 |
+| `215f8ce` v18.8 | 第五轮：PR 精选族（含 Stage3 漏网长针 bug） |
+
+备份标签：`backup-pre-audit-fix-745fcec`（修复前的 745fcec）
+
+## 关键修复效果（浏览器实测）
+
+| 项目 | 修复前 | 修复后 |
+|---|---|---|
+| PR08 Chudnovski（默认 N=100） | `NaN` | `3.14159265` |
+| PR01 Stage3 理论值 vs 实测 | 76.4% vs 71.5%（差 5 点） | 71.5% vs 71.5%（差 0.06 点） |
+| PR01 L=100,d=80 的 π | 1.82（偏差 −42%） | 明确提示「不适用」 |
+| Collatz Top5 | 真第一名 97 一个未提 | 97/73/54/55/27 |
+| 首页统计 | 120+8+20（实际 119+9+20）、9 大类（实际 11 类） | 119+9+20、11 类 |
+
+## 自动化守卫（可复跑）
+
+| 文件 | 作用 | 项数 |
+|---|---|---|
+| `_regression.js` | 算法回归（Chudnovsky / 布丰 / Collatz / 完美数 / 快乐数） | 24 |
+| `_verify_major.js` | 文案数值断言 + 错误断言回归守卫 | 65 |
+| `_audit_pages.py` | 148 页结构 / 音频引用 / 错误断言 / meta↔index 同步性 | 148 页 |
+
+```bash
+node _regression.js && node _verify_major.js && python3 _audit_pages.py
+# 改完 index.html 后必须重跑构建：
+node extract_exps.js && python3 gen_pages.py
+```
+
+## 遗留说明（未做，需你决定）
+
+- **尚未 push / 部署**：线上仍是修复前的版本（PR08 仍在显示 `NaN`）。
+- **`expPack` / `introIntro` 是死字段**：`extract_exps.js` 只抽取 12 个字段，写进
+  这两个字段的内容**不会出现在 pages/ 上**，且全站无任何代码读取它们。PR02 那张
+  Collatz 排行榜就在 `expPack` 里——写错了学生也看不到。已顺手改正内容，但要根治
+  需把这两个字段接入提取清单或删掉。
+- **每个页面 2.1 MB**：因为 gen_pages.py 把整份 index.html 共享 JS（含全部 148 个
+  实验的文案）都塞进了每个单页。可考虑按需拆分以减小体积与首屏压力。
+- **历史类"待核"项**（审计报告第五节 7 条）仍未联网双源核实。
