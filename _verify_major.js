@@ -130,5 +130,10 @@ ck('EX17 波函数已归一化（含 _psiNorm）', cnt(/function _psiNorm\(n\)/)
 ck('EX17 _psiN 已乘归一化常数', cnt(/Math\.exp\(-x \* x \/ 2\) \* _psiNorm\(n\)/) === 1);
 ck('全站已无未归一化的 _psiN 写法', cnt(/return _hermite\(n, x\) \* Math\.exp\(-x \* x \/ 2\);/) === 0);
 
+ck('EX10 保角标签已订正 z=1 保角 / z=0 不保角', cnt(/在 <strong>z = 0<\/strong> 处：f′\(0\) = 0 → <strong>不保角<\/strong>/) === 1);
+ck('全站已无错误的"z=1 处 45°→90°"标签', cnt(/在 z=1 处<br>原 45° 曲线 → 90° 曲线/) === 0);
+ck('EX01 宽度改为真实测量（含 arcPts）', cnt(/const arcPts = \(P, Q, R, N\) =>/) === 1);
+ck('EX01 已无硬编码宽度打印', cnt(/宽度 = <strong style="color:#7c3aed;">\$\{s\}<\/strong><br>\(恒等于 s！\)/) === 0);
+
 console.log('\n' + (fail === 0 ? `全部通过 ✅  (${pass} 项)` : `${fail} 项失败 ❌  (通过 ${pass})`));
 process.exit(fail === 0 ? 0 : 1);
