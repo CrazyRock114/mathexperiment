@@ -9953,7 +9953,6 @@ function initStage_SQ05_s1() {}
 function initStage_SQ05_s2() {
   const nInput = document.getElementById('sq05s2-n');
   const resultEl = document.getElementById('sq05s2-result');
-  if (!runBtn);  // noop
   if (!nInput) return;
   const update = () => {
     const n = Math.max(1, Math.min(6, parseInt(nInput.value) || 3));

@@ -1,0 +1,15 @@
+{
+  "name": "mathexperiment",
+  "version": "18.11",
+  "private": true,
+  "description": "AI 数学课堂 · 148 个可交互数学实验",
+  "scripts": {
+    "build": "node extract_exps.js && python3 gen_pages.py",
+    "test": "node _regression.js && node _verify_major.js && python3 _audit_pages.py",
+    "test:runtime": "node _page_smoke.js"
+  },
+  "devDependencies": {
+    "jsdom": "^26.0.0"
+  },
+  "license": "MIT"
+}
