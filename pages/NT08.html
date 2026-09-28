@@ -31247,20 +31247,48 @@ function initStage_AL01_s2() {
       gen([...nums], 0);
       for (const p of perms) {
         for (let o1 = 0; o1 < 4; o1++) for (let o2 = 0; o2 < 4; o2++) for (let o3 = 0; o3 < 4; o3++) {
+          // 4 个数的 5 种括法都要枚举。原先只查了前 3 种，漏掉下面两种，
+          // 导致 3,3,8,8 这种经典题被误判成"无解"（解法 8÷(3−8÷3)=24 属第 5 种）。
+          const label = (a, b, c, top) => a === p[0] && b === p[1] && c === p[2]
+            ? `(${a}${opName[o1]}${b})${opName[top]}(${p[2]}${opName[o2]}${p[3]})`
+            : `(${a}${opName[o1]}${b})${opName[top]}(${c}${opName[o2]}${p[3]})`;
+          // 1. (a o1 b) o3 (c o2 d)
           const r1 = apply(p[0], p[1], o1), r2 = apply(p[2], p[3], o2);
           if (r1 !== null && r2 !== null) {
             const r = apply(r1, r2, o3);
             if (r !== null && Math.abs(r - 24) < eps) found.push(`(${p[0]}${opName[o1]}${p[1]})${opName[o3]}(${p[2]}${opName[o2]}${p[3]})`);
           }
+          // 2. ((a o1 b) o2 c) o3 d
           const r12 = apply(r1, p[2], o2);
           if (r12 !== null) {
             const r = apply(r12, p[3], o3);
             if (r !== null && Math.abs(r - 24) < eps) found.push(`((${p[0]}${opName[o1]}${p[1]})${opName[o2]}${p[2]})${opName[o3]}${p[3]}`);
           }
+          // 3. a o1 ((b o2 c) o3 d)
           const r23 = apply(p[1], p[2], o2);
           if (r23 !== null) {
-            const r = apply(p[0], apply(r23, p[3], o3), o1);
-            if (r !== null && Math.abs(r - 24) < eps) found.push(`${p[0]}${opName[o1]}(${p[1]}${opName[o2]}${p[2]})${opName[o3]}${p[3]})`);
+            const r23b = apply(r23, p[3], o3);
+            if (r23b !== null) {
+              const r = apply(p[0], r23b, o1);
+              if (r !== null && Math.abs(r - 24) < eps) found.push(`${p[0]}${opName[o1]}((${p[1]}${opName[o2]}${p[2]})${opName[o3]}${p[3]})`);
+            }
+          }
+          // 4. (a o1 (b o2 c)) o3 d   ← 原先遗漏
+          if (r23 !== null) {
+            const ra = apply(p[0], r23, o1);
+            if (ra !== null) {
+              const r = apply(ra, p[3], o3);
+              if (r !== null && Math.abs(r - 24) < eps) found.push(`(${p[0]}${opName[o1]}(${p[1]}${opName[o2]}${p[2]}))${opName[o3]}${p[3]}`);
+            }
+          }
+          // 5. a o1 (b o2 (c o3 d))   ← 原先遗漏，3,3,8,8 的解就在这一类
+          const r34 = apply(p[2], p[3], o3);
+          if (r34 !== null) {
+            const rb = apply(p[1], r34, o2);
+            if (rb !== null) {
+              const r = apply(p[0], rb, o1);
+              if (r !== null && Math.abs(r - 24) < eps) found.push(`${p[0]}${opName[o1]}(${p[1]}${opName[o2]}(${p[2]}${opName[o3]}${p[3]}))`);
+            }
           }
         }
       }
@@ -31301,12 +31329,23 @@ function initStage_AL01_s3() {
         let found = false;
         outer: for (const p of perms) {
           for (let o1 = 0; o1 < 4 && !found; o1++) for (let o2 = 0; o2 < 4 && !found; o2++) for (let o3 = 0; o3 < 4 && !found; o3++) {
+            // 4 个数的 5 种括法必须全查，否则 3,3,8,8 这类会漏判为"无解"
             const r1 = apply(p[0], p[1], o1), r2 = apply(p[2], p[3], o2);
             if (r1 !== null && r2 !== null) { const r = apply(r1, r2, o3); if (r !== null && Math.abs(r - 24) < 1e-6) found = true; }
             const r12 = apply(r1, p[2], o2);
             if (r12 !== null) { const r = apply(r12, p[3], o3); if (r !== null && Math.abs(r - 24) < 1e-6) found = true; }
             const r23 = apply(p[1], p[2], o2);
-            if (r23 !== null) { const r = apply(p[0], apply(r23, p[3], o3), o1); if (r !== null && Math.abs(r - 24) < 1e-6) found = true; }
+            if (r23 !== null) {
+              const r23b = apply(r23, p[3], o3);
+              if (r23b !== null) { const r = apply(p[0], r23b, o1); if (r !== null && Math.abs(r - 24) < 1e-6) found = true; }
+              const ra = apply(p[0], r23, o1);
+              if (ra !== null) { const r = apply(ra, p[3], o3); if (r !== null && Math.abs(r - 24) < 1e-6) found = true; }
+            }
+            const r34 = apply(p[2], p[3], o3);
+            if (r34 !== null) {
+              const rb = apply(p[1], r34, o2);
+              if (rb !== null) { const r = apply(p[0], rb, o1); if (r !== null && Math.abs(r - 24) < 1e-6) found = true; }
+            }
           }
         }
         if (found) count++; total++;
@@ -31341,10 +31380,23 @@ function initStage_AL01_s4() {
         let numSol = 0;
         for (const p of perms) {
           for (let o1 = 0; o1 < 4; o1++) for (let o2 = 0; o2 < 4; o2++) for (let o3 = 0; o3 < 4; o3++) {
+            // 同样要查满 5 种括法，否则解数会被少算
             const r1 = apply(p[0], p[1], o1), r2 = apply(p[2], p[3], o2);
             if (r1 !== null && r2 !== null) { const r = apply(r1, r2, o3); if (r !== null && Math.abs(r - 24) < 1e-6) numSol++; }
             const r12 = apply(r1, p[2], o2);
             if (r12 !== null) { const r = apply(r12, p[3], o3); if (r !== null && Math.abs(r - 24) < 1e-6) numSol++; }
+            const r23 = apply(p[1], p[2], o2);
+            if (r23 !== null) {
+              const r23b = apply(r23, p[3], o3);
+              if (r23b !== null) { const r = apply(p[0], r23b, o1); if (r !== null && Math.abs(r - 24) < 1e-6) numSol++; }
+              const ra = apply(p[0], r23, o1);
+              if (ra !== null) { const r = apply(ra, p[3], o3); if (r !== null && Math.abs(r - 24) < 1e-6) numSol++; }
+            }
+            const r34 = apply(p[2], p[3], o3);
+            if (r34 !== null) {
+              const rb = apply(p[1], r34, o2);
+              if (rb !== null) { const r = apply(p[0], rb, o1); if (r !== null && Math.abs(r - 24) < 1e-6) numSol++; }
+            }
           }
         }
         numSol = Math.min(10, Math.floor(numSol / 6));

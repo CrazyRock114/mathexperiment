@@ -12,7 +12,12 @@ eval([grab(/const CHUD_A = [^;]+;/), grab(/const PI = Math\.PI;/),
 
 let fail = 0, pass = 0;
 const ck = (n, c, d) => { c ? (pass++, console.log('  ✅ ' + n + (d ? '  ' + d : ''))) : (fail++, console.log('  ❌ ' + n + (d ? '  ' + d : ''))); };
-const cnt = (re) => (h.match(re) || []).length;
+// 注意：String.match(re) 在 re 没有 /g 时只返回第 1 个匹配（长度恒为 1），
+// 原先的 cnt() 因此把 "恰好 1 次" 退化成了 "至少 1 次"。改用 matchAll 精确计数。
+const cnt = (re) => {
+  const g = new RegExp(re.source, re.flags.includes('g') ? re.flags : re.flags + 'g');
+  return [...h.matchAll(g)].length;
+};
 
 console.log('=== 文本断言：页面写的数 == 实际算出的数 ===');
 
@@ -142,6 +147,10 @@ ck('AL01 5 种括法已补全（不再有 apply(...,p[3]) 误用）', cnt(/apply
 ck('全站已无把 p[3] 当运算符下标的写法', cnt(/apply\(apply\(p\[0\], apply\(p\[1\], p\[2\], o2\), o3\), p\[3\]\)/) === 0);
 ck('PB10 二项 PMF 已改连乘（阶乘会溢出成 NaN）', cnt(/let comb = 1;\n        for \(let i = 0; i < k; i\+\+\) comb \*= \(n - i\) \/ \(k - i\);/) === 1);
 ck('全站已无 PB10 的 factorial(n)/factorial(k) 写法', cnt(/const binom = factorial\(n\) \/ factorial\(k\)/) === 0);
+
+ck('AL01_s2 已补第 4 种括法 (a o1 (b o2 c)) o3 d', cnt(/\/\/ 4\. \(a o1 \(b o2 c\)\) o3 d   ← 原先遗漏/) === 1);
+ck('AL01_s2 已补第 5 种括法 a o1 (b o2 (c o3 d))', cnt(/\/\/ 5\. a o1 \(b o2 \(c o3 d\)\)   ← 原先遗漏/) === 1);
+ck('AL01 三处求解器均已含第 5 种括法 r34', cnt(/r34 = apply\(p\[2\], p\[3\], o3\)/) >= 3, cnt(/r34 = apply\(p\[2\], p\[3\], o3\)/) + ' 处（s2/s3/s4）');
 
 console.log('\n' + (fail === 0 ? `全部通过 ✅  (${pass} 项)` : `${fail} 项失败 ❌  (通过 ${pass})`));
 process.exit(fail === 0 ? 0 : 1);
