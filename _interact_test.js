@@ -23,7 +23,8 @@ const BAD = [
   [/>[^<]*\bnull\b[^<]*</, '渲染出裸 null'],
 ];
 
-let totalClicks = 0, totalInputs = 0;
+let totalClicks = 0, totalInputs = 0, totalStageTabs = 0;
+const problems = [];
 const report = [];
 let clean = 0;
 
@@ -77,10 +78,17 @@ for (const f of files) {
   try { d.querySelectorAll('details').forEach(x => { x.open = true; }); } catch (e) {}
 
   const scan = () => {
-    for (const el of d.querySelectorAll('script, style, template')) { /* 保留，扫描时排除 */ }
     const clone = d.body.cloneNode(true);
     clone.querySelectorAll('script, style, template').forEach(e => e.remove());
     return clone.textContent || '';
+  };
+  // 某个 stage 面板是否"渲染出了东西"（防 SQ05 那类整块空白的回归）
+  const panelText = () => {
+    const p = d.querySelector('.stage-panel.active') || d.querySelector('.stage-panel');
+    if (!p) return '';
+    const c = p.cloneNode(true);
+    c.querySelectorAll('script, style, template').forEach(e => e.remove());
+    return (c.textContent || '').replace(/\s+/g, ' ').trim();
   };
 
   const before = errs.length;
@@ -94,6 +102,21 @@ for (const f of files) {
     seen.add(key);
     try { b.click(); totalClicks++; } catch (e) { errs.push('click ' + key + ': ' + String(e.message).slice(0, 100)); }
   }
+
+  // 1.5) 逐个点开 5 个 stage 标签，检查每个 stage 面板都真的渲染出了内容
+  const stageTabs = [...d.querySelectorAll('.stage-tab[data-step]')];
+  for (const tab of stageTabs) {
+    const step = tab.getAttribute('data-step');
+    try {
+      tab.click();
+      await sleep(120);
+      const txt = panelText();
+      if (txt.length < 40) {
+        problems.push({ id, kind: 'stage 空白', detail: `step=${step} 面板文本仅 ${txt.length} 字符：${JSON.stringify(txt.slice(0, 60))}` });
+      }
+    } catch (e) { errs.push('stageTab ' + step + ': ' + String(e.message).slice(0, 90)); }
+  }
+  totalStageTabs += stageTabs.length;
 
   // 2) 拨动所有 range / number / text 输入
   const inputs = [...d.querySelectorAll('input[type=range], input[type=number], input:not([type]), textarea')];
@@ -135,6 +158,6 @@ for (const f of files) {
 }
 
 console.log(`\n交互体检：${files.length} 页 —— 干净 ${clean}，有问题 ${report.length}`);
-console.log(`共点击 ${totalClicks} 次按钮，改写 ${totalInputs} 次输入框\n`);
+console.log(`共点击 ${totalClicks} 次按钮，改写 ${totalInputs} 次输入框，逐个打开 ${totalStageTabs} 个 stage 标签\n`);
 for (const r of report) console.log(`  ${r.id}  ${r.kind}\n      ${r.detail}\n`);
 })();

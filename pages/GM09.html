@@ -3632,11 +3632,21 @@ function initStage_PR03_s2() {
     aEl.textContent = a;
     bEl.textContent = b;
     cEl.textContent = c;
+    const gcdABC = gcd(gcd(a, b), c);   // 复用全站已有的 gcd()
+    const isPrim = gcdABC === 1;
+    const paritiesDiffer = (m - n) % 2 === 1;
     const ok = a * a + b * b === c * c;
-    verifyEl.style.background = ok ? '#dcfce7' : '#fee2e2';
-    verifyEl.style.color = ok ? '#15803d' : '#b91c1c';
+    // 勾股等式恒成立，但"本原"还需要 gcd(m,n)=1 且 m、n 奇偶不同。
+    // 滑块原本只限制 n<m，学生可以滑出 (12,16,20) 这类非本原解，页面却照样打绿勾，
+    // 而文案写的是"任意 m,n 一定是一组本原勾股数"——两处都要一起改。
+    verifyEl.style.background = ok ? (isPrim ? '#dcfce7' : '#fef3c7') : '#fee2e2';
+    verifyEl.style.color = ok ? (isPrim ? '#15803d' : '#b45309') : '#b91c1c';
     verifyEl.innerHTML = ok
-      ? `✅ ${a}² + ${b}² = ${a * a} + ${b * b} = ${c * c} = ${c}²`
+      ? (isPrim
+          ? `✅ ${a}² + ${b}² = ${a * a} + ${b * b} = ${c * c} = ${c}²　（本原：gcd(${a},${b},${c}) = 1）`
+          : `⚠️ ${a}² + ${b}² = ${a * a} + ${b * b} = ${c * c} = ${c}²　勾股等式成立，<strong>但不是本原勾股数</strong>：gcd(${a},${b},${c}) = ${gcdABC}` +
+            `<br>原因：生成<strong>本原</strong>勾股数需要同时满足 ① gcd(m,n) = ${gcd(m, n)} ${gcd(m, n) === 1 ? '✅' : '≠ 1 ❌'}　② m、n 奇偶不同 ${paritiesDiffer ? '✅' : '❌（同为' + (m % 2 === 0 ? '偶' : '奇') + '数）'}` +
+            `<br>试着把 n 改成比 m 小 1、且与 m 互质的数，比如 m = ${m} 时取 n = ${[...Array(m - 1).keys()].map(k => k + 1).filter(k => gcd2(m, k) === 1 && (m - k) % 2 === 1)[0] ?? '（无）'}。`)
       : `❌ ${a}² + ${b}² = ${a * a + b * b} ≠ ${c * c}`;
   };
   mSlider.oninput = update;
