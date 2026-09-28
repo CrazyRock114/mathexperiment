@@ -8034,12 +8034,17 @@ function initStage_NT09_s2() {
     let pow = 1;
     for (let i = 0; i < n - 1; i++) pow = (pow * b) % n;
     const isCarmichael = _nt09IsCarmichael(n);
-    const is普里姆eToN = (b % n !== 0 || n === 1) && n > 1; // 简化
+    // 费马小定理的前提是 gcd(b, n) = 1。
+    // 当 b 与 n 不互素时（如 b = n = 5），b^(n-1) mod n 必然 ≠ 1，
+    // 但这不能推出 n 是合数——5 明明是素数。原来的 is普里姆eToN 算了却没用上，
+    // 于是 n=5,b=5 / n=7,b=7 / n=11,b=11 都会被误判成"一定是合数"。
+    const gcd_bn = (function g(x, y) { return y === 0 ? x : g(y, x % y); })(b, n);
+    const coprime = gcd_bn === 1;
     resultEl.innerHTML = `
       <div style="margin-bottom: 6px;">n = <strong>${n}</strong>，底数 b = <strong>${b}</strong></div>
       <div>${b}<sup>${n - 1}</sup> mod ${n} = <strong style="color: #7c3aed;">${pow}</strong></div>
       <div style="margin-top: 8px; padding: 8px; background: ${pow === 1 && isCarmichael ? '#dcfce7' : pow === 1 ? '#fef3c7' : '#fee2e2'}; color: ${pow === 1 && isCarmichael ? '#15803d' : pow === 1 ? '#b45309' : '#b91c1c'}; border-radius: 6px; text-align: center; font-weight: 700;">
-        ${pow === 1 && isCarmichael ? `🎭 ${n} 是 Carmichael 数！` : pow === 1 ? `✓ 通过费马测试（可能是素数或 Carmichael）` : `✗ 不通过费马测试（一定是合数）`}
+        ${pow === 1 && isCarmichael ? `🎭 ${n} 是 Carmichael 数！` : !coprime ? `⚠️ b 与 n 不互素（gcd=${gcd_bn}），费马小定理不适用，这个结果<b>不能</b>用来判断 ${n} 是素数还是合数` : pow === 1 ? `✓ 通过费马测试（可能是素数或 Carmichael）` : `✗ 不通过费马测试（${n} 很可能是合数）`}
       </div>
     `;
   };
@@ -10175,12 +10180,12 @@ function initStage_SQ07_s4() {
     const lines = [];
     let a = 1, b = 1;
     for (let k = 1; k <= n + 1; k++) {
+      // ⚠️ 原循环里 j = k - i，使 i + j 恒等于 k，于是求的是【第 k 整行】之和 = 2^k，
+      //    却贴上"斜线 k 之和 = F(k+1)"的标签（2,4,8,16… 与 1,2,3,5… 完全不同）。
+      //    真正的浅对角线是 i - j = k，即 tri[i][i-k]。
       let sum = 0;
-      for (let i = 0; i <= k; i++) {
-        const j = k - i;
-        if (i + j <= n) sum += tri[i+j] && tri[i+j][j] !== undefined ? tri[i+j][j] : 0;
-      }
-      lines.push(`斜线 ${k} 之和 = F<sub>${k+1}</sub> = ${sum} (计算 F=${a})`);
+      for (let i = k; i <= n; i++) sum += tri[i][i - k];
+      lines.push(`斜线 ${k} 之和（i−j=${k}）= F<sub>${k+1}</sub> = <strong>${sum}</strong>　（同期整行和 = ${2 ** k}）`);
       const t = a + b; a = b; b = t;
     }
     resultEl.innerHTML = lines.map(l => `<div>${l}</div>`).join('');
@@ -25168,11 +25173,14 @@ function initStage_NT14_s3() {
   if (!ctx) return;
   if (ctx._chart) { ctx._chart.destroy(); ctx._chart = null; }
   const counts = Array(10).fill(0);
-  for (let n = 1; n <= 100; n++) counts[n === 0 ? 9 : n % 9]++;
+  // ⚠️ 原写法 n === 0 永远不会成立（n 从 1 开始），于是 9 的倍数（9,18,…,99 共 11 个）
+  //    全被记进 counts[0]；而图表取 counts.slice(0,9)（索引 0..8），
+  //    于是第 1、2 根柱子错位、counts[9] 从未写入、总数只有 89（真实应为 100）。
+  for (let n = 1; n <= 100; n++) counts[((n - 1) % 9) + 1]++;
   const labels = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
   ctx._chart = new Chart(ctx, {
     type: 'bar',
-    data: { labels, datasets: [{ label: '次数', data: counts.slice(0, 9), backgroundColor: '#7c3aed' }] },
+    data: { labels, datasets: [{ label: '次数', data: counts.slice(1, 10), backgroundColor: '#7c3aed' }] },
     options: { plugins: { legend: { display: false } } }
   });
 }
@@ -25559,11 +25567,36 @@ function initStage_NT19_s2() {
       if (m < 1000000n) {
         if (is普里姆eSmall(Number(m))) out.push({ p, m: m.toString() });
       } else {
-        let is普里姆e = true;
-        for (let d = 2; d * d <= Number(m > 1000000n ? 10000 : Number(m)); d++) {
-          if (m % BigInt(d) === 0n) { is普里姆e = false; break; }
-        }
-        if (is普里姆e) out.push({ p, m: m.toString() });
+        // ⚠️ 原试除上限写死 d ≤ 100。2^29−1 的最小因子是 233、2^37−1 是 223，
+        //    试除到 100 会漏判 → 把合数当成梅森素数。这里改用 BigInt 版确定性 Miller-Rabin。
+        const is普里姆eBig = (n) => {
+          if (n < 2n) return false;
+          for (const q of [2n, 3n, 5n, 7n, 11n, 13n, 17n, 19n, 23n, 29n, 31n, 37n]) {
+            if (n % q === 0n) return n === q;
+          }
+          let d = n - 1n, r = 0n;
+          while (d % 2n === 0n) { d /= 2n; r += 1n; }
+          const modPow = (base, exp, mod) => {
+            let res = 1n, b = base % mod;
+            while (exp > 0n) {
+              if (exp % 2n === 1n) res = (res * b) % mod;
+              b = (b * b) % mod; exp /= 2n;
+            }
+            return res;
+          };
+          for (const a of [2n, 3n, 5n, 7n, 11n, 13n, 17n, 19n, 23n, 29n, 31n, 37n]) {
+            let x = modPow(a, d, n);
+            if (x === 1n || x === n - 1n) continue;
+            let composite = true;
+            for (let i = 0n; i < r - 1n; i++) {
+              x = (x * x) % n;
+              if (x === n - 1n) { composite = false; break; }
+            }
+            if (composite) return false;
+          }
+          return true;
+        };
+        if (is普里姆eBig(m)) out.push({ p, m: m.toString() });
       }
     }
     resultEl.innerHTML = `p ≤ ${P} 时梅森素数：<br>` + out.map(x => `<strong>2<sup>${x.p}</sup> - 1 = ${x.m}</strong>`).join('  ·  ');

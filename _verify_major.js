@@ -177,5 +177,14 @@ ck('全站已无 floor(numSol/6) 兼作可解判定', cnt(/numSol = Math\.min\(1
 ck('OT05_s4 铺法数初值已修正为 [1,1]', cnt(/const T = \[1, 1\];\n      for \(let i = 2; i <= N; i\+\+\) T\.push/) === 1);
 ck('OT01_s3 不再把同一镜像推 4 次', cnt(/for \(let k = 0; k < 4; k\+\+\) all\.push\(m\)/) === 0);
 
+ck('SQ07_s4 已改为真斜线（i−j=k）', cnt(/斜线 \$\{k\} 之和（i−j=\$\{k\}）/) === 1);
+ck('全站已无「i+j=k 恒等于 k」的旧循环', cnt(/const j = k - i;\n        if \(i \+ j <= n\) sum/) === 0);
+ck('NT19_s2 已改用 BigInt Miller-Rabin', cnt(/const is普里姆eBig = \(n\) =>/) === 1);
+ck('全站已无 d<=100 的试除上限', cnt(/Number\(m > 1000000n \? 10000 : Number\(m\)\)/) === 0);
+ck('NT09_s2 已加 gcd(b,n) 前提判定', cnt(/费马小定理不适用/) === 1);
+ck('全站已无从未生效的 is普里姆eToN', cnt(/const is普里姆eToN =/) === 0);
+ck('NT14_s3 数字根分桶已用 ((n-1)%9)+1', cnt(/counts\[\(\(n - 1\) % 9\) \+ 1\]\+\+/) === 1);
+ck('NT14_s3 已改取 slice(1,10)', cnt(/data: counts\.slice\(1, 10\)/) === 1);
+
 console.log('\n' + (fail === 0 ? `全部通过 ✅  (${pass} 项)` : `${fail} 项失败 ❌  (通过 ${pass})`));
 process.exit(fail === 0 ? 0 : 1);
