@@ -207,5 +207,17 @@ ck('FR04_s2 r=0.5 边界已处理', cnt(/每代等长，总长恒为 n\+1 = ' \+
 ck('OT07_s3 变体 A 已换成合法幻方', cnt(/变体 A（丢勒旋转 90°）/) === 1);
 ck('全站已非幻方的变体 A', cnt(/g: \[1, 14, 12, 7, 6, 11, 9, 8, 10, 5, 13, 16, 15, 2, 4, 3\]/) === 0);
 
+ck('GR01_s3 奇度顶点数据已订正', cnt(/const data = \[0, 2, 0, 4, 4\];/) === 1);
+ck('全站已无 GR01_s3 旧错误数据', cnt(/const data = \[0, 2, 5, 2, 4\];/) === 0);
+ck('GR01 规律文案已按 K_n 度数= n-1 改写', cnt(/每个顶点度 = n−1/) === 1);
+ck('toPoly/polyStr 常数项修复已落地（GR08 + GR02 两处）',
+   cnt(/if \(v === 1\) return term === '' \? '1' : term;/) >= 2, cnt(/if \(v === 1\) return term === '' \? '1' : term;/) + ' 处');
+ck('全站已无 toPoly 丢常数项的旧写法（注释里的引述不计）',
+   !/[^/*]\(v === 1 \? '' : v\)/.test(h.replace(/\/\/.*$/gm, '')));
+ck('EX14 Ginibre 圆盘半径已订正为 1', cnt(/const Rbound = Rdisk \* 1\.0;/) === 1);
+ck('全站已无把 2√N 画成 Ginibre 半径', cnt(/Rbound = 2 \* Math\.sqrt\(N\)/) === 0);
+ck('EX08_s3 格子按取值个数分配', cnt(/cellH = H \/ aVals\.length/) === 1);
+ck('全站已无 EX08_s3 的 H/3 硬编码', cnt(/const cellW = W \/ 3, cellH = H \/ 3;/) === 0);
+
 console.log('\n' + (fail === 0 ? `全部通过 ✅  (${pass} 项)` : `${fail} 项失败 ❌  (通过 ${pass})`));
 process.exit(fail === 0 ? 0 : 1);

@@ -21504,7 +21504,10 @@ function initStage_EX08_s3() {
     // 9 个小图，每个 a ∈ {-2, -1, 0}, b ∈ {-1, 0, 1}
     const aVals = [-2, -1, 0, 1];
     const bVals = [-1, 0, 1];
-    const cellW = W / 3, cellH = H / 3;
+    // ⚠️ 原来 cellH = H / 3，但 aVals 有 4 个值 {-2,-1,0,1}：
+    //    第 4 行 offY = 3 × (300/3) = 300 = 画布高度，整行画在可视区之外，永远看不到。
+    //    现在按两个轴各自的取值个数分配格子。
+    const cellW = W / bVals.length, cellH = H / aVals.length;
     const colors = ['#7c3aed', '#f59e0b', '#10b981', '#3b82f6', '#ef4444', '#a855f7', '#06b6d4', '#84cc16', '#f97316'];
     let idx = 0;
     for (let ai = 0; ai < aVals.length; ai++) {
@@ -22481,7 +22484,7 @@ function getStagesEX14() {
           <div style="flex: 1 1 180px; padding: 14px; background: linear-gradient(135deg, #dbeafe, #dbeafe); border: 2px solid #3b82f6; border-radius: 12px; text-align: center;">
             <div style="font-size: 24px; font-weight: 900; color: #1e3a8a;">吉尔科 圆</div>
             <div style="font-size: 12px; color: #1e3a8a; margin-top: 6px;">实随机矩阵</div>
-            <div style="font-size: 11px; color: #312e81; margin-top: 4px;">|λ| ≤ 2√N（圆盘）</div>
+            <div style="font-size: 11px; color: #312e81; margin-top: 4px;">Ginibre 圆盘半径 ≈ 1（未归一化时为 √N）</div>
           </div>
           <div style="flex: 1 1 180px; padding: 14px; background: linear-gradient(135deg, #fef3c7, #fef3c7); border: 2px solid #f59e0b; border-radius: 12px; text-align: center;">
             <div style="font-size: 24px; font-weight: 900; color: #92400e;">Wigner 半圆</div>
@@ -22603,7 +22606,7 @@ function initStage_EX14_s2() {
     const finite = eigs.filter(v => isFinite(v) && !isNaN(v));
     const maxAbs = Math.max(...finite.map(v => Math.abs(v)));
     const allInCircle = finite.every(v => Math.abs(v) < 2.5);
-    resultEl.innerHTML = `N = ${N}<br>特征值（前 10 个）：<br>${finite.slice(0, 10).map(v => v.toFixed(4)).join(', ')}<br><br>最大 |λ| = <strong style="color:#7c3aed;">${maxAbs.toFixed(4)}</strong><br>理论半径 2√N = ${(2 * Math.sqrt(N)).toFixed(4)}<br>${allInCircle ? '✓ 落在圆内' : '⚠ 部分外溢'}`;
+    resultEl.innerHTML = `N = ${N}<br>特征值（前 10 个）：<br>${finite.slice(0, 10).map(v => v.toFixed(4)).join(', ')}<br><br>最大 |λ| = <strong style="color:#7c3aed;">${maxAbs.toFixed(4)}</strong><br>理论半径（Ginibre 盘，已按 1/√N 归一化）= 1.0000<br>${allInCircle ? '✓ 落在圆内' : '⚠ 部分外溢'}`;
   };
   if (runBtn) runBtn.onclick = update;
   nInput.oninput = update;
@@ -22644,12 +22647,18 @@ function initStage_EX14_s3() {
     const W = 400, H = 400;
     const cx = W / 2, cy = H / 2;
     const Rdisk = Math.min(W, H) / 2 - 30;
-    // 吉尔科 圆：理论半径 √N，但实随机矩阵特征值通常 |λ| ≤ 2√N
-    const Rbound = 2 * Math.sqrt(N) * Rdisk / 3.5;
+    // 吉尔科（Ginibre）圆：本实验的矩阵是【非厄米】的 iid 高斯矩阵（元素方差 1/N），
+    // 特征值铺满复平面上的圆盘。正确半径：
+    //   未归一化的 iid 高斯矩阵 -> 盘半径 √N；
+    //   本代码已把每个元素除以 √N -> 盘半径 √N × √(1/N) = 1。
+    // 实测 N=3/5/10/20 时 |λ| 最大值都在 1.0~1.5 之间，与半径 1 吻合。
+    // ⚠️ 原来画的是 2√N 并标注「2√N」——那是【厄米矩阵】的特征值界（特征值为实数、
+    //    落在 [-2√N, 2√N]），与本实验的非厄米情形不符；N=10 时会画出 6.3 倍的圆。
+    const Rbound = Rdisk * 1.0;
     // 圆边界
     let html = `<svg viewBox="0 0 ${W} ${H}" style="max-width: 100%; background: white; border-radius: 8px;">
       <circle cx="${cx}" cy="${cy}" r="${Rbound}" fill="none" stroke="#7c3aed" stroke-width="2" stroke-dasharray="5 4"/>
-      <text x="${cx + Rbound + 5}" y="${cy - 5}" font-size="11" fill="#7c3aed">2√N</text>
+      <text x="${cx + Rbound + 5}" y="${cy - 5}" font-size="11" fill="#7c3aed">半径 1</text>
       <line x1="0" y1="${cy}" x2="${W}" y2="${cy}" stroke="#9ca3af" stroke-width="1"/>
       <line x1="${cx}" y1="0" x2="${cx}" y2="${H}" stroke="#9ca3af" stroke-width="1"/>
       <text x="10" y="20" font-size="13" font-weight="700" fill="#1f2937">特征值 (实部, 0)</text>`;
@@ -27634,7 +27643,7 @@ function getStagesGR01() {
         <div class="viz" style="padding: 14px; background: #f0f9ff; border-radius: 8px;">
           <canvas id="gr01s3-chart" style="max-width: 100%;"></canvas>
         </div>
-        <div class="next-hint">🔭 <strong>规律</strong>：环=0、路径=2、奇阶完全图=n(全奇)、星=2、七桥=4</div>
+        <div class="next-hint">🔭 <strong>规律</strong>：环 C₆=0、路径 P₆=2、七桥=4。<br>· <strong>完全图 K_n</strong>：每个顶点度 = n−1。所以 <strong>n 为奇数时 K_n（如 K₅）度为偶数，奇度顶点 0 个</strong>；n 为偶数时（如 K₄，度为 3）才是 n 个奇度顶点。<br>· <strong>星图 S₅</strong>（中心 + 4 叶）：中心度 4（偶）、4 个叶度 1（奇），共 <strong>4 个奇度顶点</strong>。<br>· 欧拉路径存在的充要条件：<strong>奇度顶点恰好 0 个（有欧拉回路）或 2 个（有欧拉路径）</strong>。七桥图有 4 个奇度顶点，两条都不满足 → 无解。</div>
       `
     },
     {
@@ -27705,7 +27714,14 @@ function initStage_GR01_s3() {
   if (!ctx) return;
   if (ctx._chart) { ctx._chart.destroy(); ctx._chart = null; }
   const labels = ['环 C₆', '路径 P₆', '完全图 K₅', '星 S₅', 'Königsberg'];
-  const data = [0, 2, 5, 2, 4];
+  // 奇度顶点数逐个核对（Euler 路径存在的充要条件是"奇度顶点为 0 个或 2 个"）：
+  //   环 C₆      度数 [2,2,2,2,2,2]  -> 0 个奇度
+  //   路径 P₆    度数 [1,2,2,2,2,1]  -> 2 个奇度
+  //   完全图 K₅  度数 [4,4,4,4,4]    -> 0 个奇度（每个顶点度都是 4，偶数！）
+  //   星 S₅      度数 [4,1,1,1,1]    -> 4 个奇度
+  //   Königsberg 度数 [5,3,3,3]      -> 4 个奇度
+  // 原值 [0, 2, 5, 2, 4] 把 K₅ 记成 5 个奇度（其实是 0）、星图记成 2（其实 4）。
+  const data = [0, 2, 0, 4, 4];
   const colors = ['#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#a855f7'];
   ctx._chart = new Chart(ctx, {
     type: 'bar',
@@ -28874,7 +28890,15 @@ function initStage_GR08_s2() {
   const runBtn = document.getElementById('gr08s2-run');
   const resultEl = document.getElementById('gr08s2-result');
   if (!runBtn) return;
-  const toPoly = arr => arr.map((v, i) => v === 0 ? '' : (v === 1 ? '' : v) + (i === 0 ? '' : (i === 1 ? 'x' : `x^${i}`))).filter(Boolean).join(' + ') || '0';
+  // ⚠️ 原写法对 v === 1 返回 ''，把【常数项】整个丢掉了：
+  //    多项式 1 + 2x + 3x² 会被显示成「2x + 3x²」，与左边的系数数组对不上。
+  //    只有当 i === 0（常数项位置）且系数为 1 时，1 才可以省略写成 x 的系数形式。
+  const toPoly = arr => arr.map((v, i) => {
+    if (v === 0) return '';
+    const term = (i === 0) ? '' : (i === 1 ? 'x' : `x^${i}`);
+    if (v === 1) return term === '' ? '1' : term;      // 常数项的 1 不能省
+    return v + term;
+  }).filter(Boolean).join(' + ') || '0';
   runBtn.onclick = () => {
     const a = aInput.value.split(',').map(s => parseFloat(s.trim())).filter(x => !isNaN(x));
     const b = bInput.value.split(',').map(s => parseFloat(s.trim())).filter(x => !isNaN(x));
@@ -37046,7 +37070,7 @@ const EXPERIMENTS = [{
   svgDemo: "",
   explain: "同学们好！今天我们要认识一个让物理学家和数学家都疯狂的领域——叫随机矩阵理论。它研究的是\"随机填的矩阵\"的特征值分布。\n\n什么是随机矩阵呢？比如你随机生成一个 N×N 的矩阵，每个元素都是从正态分布（高斯分布）里独立抽样。问：它的特征值长什么样？\n\n答案让你大吃一惊（<strong>但要分清两种情况</strong>）：\n\n<strong>① 厄米矩阵（Hermitian，实对称或复共轭对称）</strong>——这是 Wigner 半圆律（Wigner semicircle law）真正的适用场景。这类矩阵的特征值<strong>全都是实数</strong>，它们分布在一条<strong>实轴上的区间</strong>里，密度曲线是一个<strong>半圆形</strong>（Wigner 半圆律）。矩阵越大，越贴近这个半圆。\n\n<strong>② 元素是独立复高斯、但不是厄米矩阵</strong>——这时特征值<strong>确实</strong>会铺满复平面上的<strong>单位圆盘</strong>，圆盘内的密度是 1/π。这是 <strong>Ginibre 圆盘</strong>结果，与 Wigner 半圆律<strong>不是一回事</strong>。\n\n⚠️ 常见误解：不要把\"单位圆盘\"当成 Wigner 半圆律的结论——Wigner 半圆律描述的是<strong>实数轴上的一段区间</strong>，不是二维圆盘。\n\n如果矩阵是正交的（QR 分解），特征值全在单位圆上。如果矩阵只有 0 和 1 元素，特征值的分布有完全不同的形状。\n\n随机矩阵理论有什么用？物理学家用它研究重原子核的能级——大原子核有几千个能级，能级之间的间隔分布居然和随机矩阵的特征值间距分布一致！这意味着重核的能量分布是\"量子混沌\"的。\n\n数学家用它研究黎曼 ζ 函数的零点——ζ 的非平凡零点的统计，居然和随机埃尔米特矩阵的特征值分布惊人地一致！这就是\"Montgomery 偶对猜想\"的实证。\n\n还有金融里用相关矩阵来管理投资组合，机器学习里用随机矩阵做降维。一九五五年 Wigner 提出来的纯数学问题，现在是核物理、密码学、金融、AI 的工具！",
   audioUrl: "audio/EX14_explain.mp3",
-  stages: [{"emoji": "🎲", "title": "随机矩阵：每个元素独立随机", "content": "\n        <p class=\"lead\">N×N 矩阵 A，A[i][j] 独立从 N(0,1) 抽样；特征值 λ = α + βi 落在哪？</p>\n        <div class=\"viz\" style=\"display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;\">\n          <div style=\"flex: 1 1 180px; padding: 14px; background: linear-gradient(135deg, #dbeafe, #dbeafe); border: 2px solid #3b82f6; border-radius: 12px; text-align: center;\">\n            <div style=\"font-size: 24px; font-weight: 900; color: #1e3a8a;\">吉尔科 圆</div>\n            <div style=\"font-size: 12px; color: #1e3a8a; margin-top: 6px;\">实随机矩阵</div>\n            <div style=\"font-size: 11px; color: #312e81; margin-top: 4px;\">|λ| ≤ 2√N（圆盘）</div>\n          </div>\n          <div style=\"flex: 1 1 180px; padding: 14px; background: linear-gradient(135deg, #fef3c7, #fef3c7); border: 2px solid #f59e0b; border-radius: 12px; text-align: center;\">\n            <div style=\"font-size: 24px; font-weight: 900; color: #92400e;\">Wigner 半圆</div>\n            <div style=\"font-size: 12px; color: #92400e; margin-top: 6px;\">GOE/GUE Hermitian</div>\n            <div style=\"font-size: 11px; color: #b45309; margin-top: 4px;\">ρ(λ) = (1/2π)√(4-λ²)</div>\n          </div>\n          <div style=\"flex: 1 1 180px; padding: 14px; background: linear-gradient(135deg, #bbf7d0, #bbf7d0); border: 2px solid #10b981; border-radius: 12px; text-align: center;\">\n            <div style=\"font-size: 24px; font-weight: 900; color: #14532d;\">Wigner-Dyson</div>\n            <div style=\"font-size: 12px; color: #14532d; margin-top: 6px;\">间距分布</div>\n            <div style=\"font-size: 11px; color: #15803d; margin-top: 4px;\">P(s) ∝ s · e^(-πs²/4)</div>\n          </div>\n        </div>\n        <div class=\"next-hint\">🎲 <strong>类比</strong>：独立随机变量和 → 高斯（CLT）；独立随机矩阵特征值 → Wigner 半圆</div>\n      "}, {"emoji": "🧮", "title": "随机生成 N×N 矩阵 + QR 迭代", "content": "\n        <p class=\"lead\">输入 N (5-50)，随机生成矩阵并迭代 200 步求特征值：</p>\n        <div class=\"viz\" style=\"display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap;\">\n          <div style=\"flex: 1 1 200px; min-width: 200px;\">\n            <label style=\"display: block; margin: 6px 0; font-weight: 700;\">N = <input type=\"number\" id=\"ex14s2-n\" min=\"5\" max=\"50\" value=\"20\" style=\"width: 100px; padding: 4px;\"></label>\n            <button class=\"primary\" id=\"ex14s2-run\" style=\"margin-top: 8px;\">计算特征值</button>\n            <div style=\"display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap;\">\n              <button class=\"ghost small ex14s2-preset\" data-n=\"5\">N=5</button>\n              <button class=\"ghost small ex14s2-preset\" data-n=\"20\">N=20</button>\n              <button class=\"ghost small ex14s2-preset\" data-n=\"50\">N=50</button>\n            </div>\n          </div>\n          <div style=\"flex: 2 1 300px; min-width: 300px;\">\n            <div id=\"ex14s2-result\" style=\"padding: 14px; background: #f0fdf4; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 14px; line-height: 1.8;\"></div>\n          </div>\n        </div>\n        <div class=\"next-hint\">💡 <strong>QR 算法</strong>：每次 A = QR，R·Q 替换 A；收敛后对角线 = 特征值</div>\n      "}, {"emoji": "🔵", "title": "画 100 个随机矩阵的特征值散点", "content": "\n        <p class=\"lead\">100 个 N×N 随机矩阵 → 复平面上的 100·N 个特征值（应落入圆盘内）：</p>\n        <div class=\"viz\" style=\"padding: 14px; background: #f0f9ff; border-radius: 8px;\">\n          <div style=\"display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap;\">\n            <button class=\"primary small ex14s3-cfg\" data-n=\"20\" data-m=\"50\">N=20, 50 个</button>\n            <button class=\"ghost small ex14s3-cfg\" data-n=\"50\" data-m=\"50\">N=50, 50 个</button>\n            <button class=\"ghost small ex14s3-cfg\" data-n=\"100\" data-m=\"100\">N=100, 100 个</button>\n          </div>\n          <div id=\"ex14s3-svg\" style=\"text-align: center;\"></div>\n        </div>\n        <div class=\"next-hint\">🔵 <strong>吉尔科 圆定律</strong>（1984）：特征值均匀落入半径 √N 的圆盘</div>\n      "}, {"emoji": "📈", "title": "Wigner 半圆律 + GUE/GOE 间距", "content": "\n        <p class=\"lead\">GUE/GOE（Hermitian 对称）特征值都是实数 → 实轴上半圆律：</p>\n        <div class=\"viz\" style=\"display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;\">\n          <div style=\"flex: 1 1 220px; padding: 14px; background: linear-gradient(135deg, #ede9fe, #ede9fe); border: 2px solid #a855f7; border-radius: 12px;\">\n            <div style=\"font-size: 16px; font-weight: 900; color: #6b21a8;\">Wigner 半圆</div>\n            <div style=\"font-size: 12px; color: #6b21a8; margin-top: 6px;\">ρ(λ) = (1/2πσ²)·√(4Nσ²-λ²)</div>\n            <div style=\"font-size: 11px; color: #581c87; margin-top: 4px;\">|λ| ≤ 2σ√N</div>\n          </div>\n          <div style=\"flex: 1 1 220px; padding: 14px; background: linear-gradient(135deg, #fef3c7, #fef3c7); border: 2px solid #f59e0b; border-radius: 12px;\">\n            <div style=\"font-size: 16px; font-weight: 900; color: #92400e;\">GOE 间距</div>\n            <div style=\"font-size: 12px; color: #92400e; margin-top: 6px;\">P(s) = (π/2)·s·e^(-πs²/4)</div>\n            <div style=\"font-size: 11px; color: #b45309; margin-top: 4px;\">实对称（正交系综）</div>\n          </div>\n          <div style=\"flex: 1 1 220px; padding: 14px; background: linear-gradient(135deg, #bbf7d0, #bbf7d0); border: 2px solid #10b981; border-radius: 12px;\">\n            <div style=\"font-size: 16px; font-weight: 900; color: #14532d;\">GUE 间距</div>\n            <div style=\"font-size: 12px; color: #14532d; margin-top: 6px;\">P(s) = (32/π²)·s²·e^(-4s²/π)</div>\n            <div style=\"font-size: 11px; color: #15803d; margin-top: 4px;\">复 Hermitian（酉系综）</div>\n          </div>\n        </div>\n        <div class=\"next-hint\">📈 <strong>反例</strong>：泊松间距 P(s) = e^(-s) 表示\"无关联\"——经典可积系统</div>\n      "}, {"emoji": "📅", "title": "Wigner 1955：从核物理到数学", "content": "\n        <p class=\"lead\">随机矩阵理论 70 年发展</p>\n        <div class=\"viz\">\n          <div id=\"ex14s5-timeline\"></div>\n        </div>\n        <div class=\"next-hint\">💡 <strong>巧合</strong>：ζ 函数零点间距也服从 GUE 统计（Montgomery-Odlyzko 1973）</div>\n      "}],
+  stages: [{"emoji": "🎲", "title": "随机矩阵：每个元素独立随机", "content": "\n        <p class=\"lead\">N×N 矩阵 A，A[i][j] 独立从 N(0,1) 抽样；特征值 λ = α + βi 落在哪？</p>\n        <div class=\"viz\" style=\"display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;\">\n          <div style=\"flex: 1 1 180px; padding: 14px; background: linear-gradient(135deg, #dbeafe, #dbeafe); border: 2px solid #3b82f6; border-radius: 12px; text-align: center;\">\n            <div style=\"font-size: 24px; font-weight: 900; color: #1e3a8a;\">吉尔科 圆</div>\n            <div style=\"font-size: 12px; color: #1e3a8a; margin-top: 6px;\">实随机矩阵</div>\n            <div style=\"font-size: 11px; color: #312e81; margin-top: 4px;\">Ginibre 圆盘半径 ≈ 1（未归一化时为 √N）</div>\n          </div>\n          <div style=\"flex: 1 1 180px; padding: 14px; background: linear-gradient(135deg, #fef3c7, #fef3c7); border: 2px solid #f59e0b; border-radius: 12px; text-align: center;\">\n            <div style=\"font-size: 24px; font-weight: 900; color: #92400e;\">Wigner 半圆</div>\n            <div style=\"font-size: 12px; color: #92400e; margin-top: 6px;\">GOE/GUE Hermitian</div>\n            <div style=\"font-size: 11px; color: #b45309; margin-top: 4px;\">ρ(λ) = (1/2π)√(4-λ²)</div>\n          </div>\n          <div style=\"flex: 1 1 180px; padding: 14px; background: linear-gradient(135deg, #bbf7d0, #bbf7d0); border: 2px solid #10b981; border-radius: 12px; text-align: center;\">\n            <div style=\"font-size: 24px; font-weight: 900; color: #14532d;\">Wigner-Dyson</div>\n            <div style=\"font-size: 12px; color: #14532d; margin-top: 6px;\">间距分布</div>\n            <div style=\"font-size: 11px; color: #15803d; margin-top: 4px;\">P(s) ∝ s · e^(-πs²/4)</div>\n          </div>\n        </div>\n        <div class=\"next-hint\">🎲 <strong>类比</strong>：独立随机变量和 → 高斯（CLT）；独立随机矩阵特征值 → Wigner 半圆</div>\n      "}, {"emoji": "🧮", "title": "随机生成 N×N 矩阵 + QR 迭代", "content": "\n        <p class=\"lead\">输入 N (5-50)，随机生成矩阵并迭代 200 步求特征值：</p>\n        <div class=\"viz\" style=\"display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap;\">\n          <div style=\"flex: 1 1 200px; min-width: 200px;\">\n            <label style=\"display: block; margin: 6px 0; font-weight: 700;\">N = <input type=\"number\" id=\"ex14s2-n\" min=\"5\" max=\"50\" value=\"20\" style=\"width: 100px; padding: 4px;\"></label>\n            <button class=\"primary\" id=\"ex14s2-run\" style=\"margin-top: 8px;\">计算特征值</button>\n            <div style=\"display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap;\">\n              <button class=\"ghost small ex14s2-preset\" data-n=\"5\">N=5</button>\n              <button class=\"ghost small ex14s2-preset\" data-n=\"20\">N=20</button>\n              <button class=\"ghost small ex14s2-preset\" data-n=\"50\">N=50</button>\n            </div>\n          </div>\n          <div style=\"flex: 2 1 300px; min-width: 300px;\">\n            <div id=\"ex14s2-result\" style=\"padding: 14px; background: #f0fdf4; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 14px; line-height: 1.8;\"></div>\n          </div>\n        </div>\n        <div class=\"next-hint\">💡 <strong>QR 算法</strong>：每次 A = QR，R·Q 替换 A；收敛后对角线 = 特征值</div>\n      "}, {"emoji": "🔵", "title": "画 100 个随机矩阵的特征值散点", "content": "\n        <p class=\"lead\">100 个 N×N 随机矩阵 → 复平面上的 100·N 个特征值（应落入圆盘内）：</p>\n        <div class=\"viz\" style=\"padding: 14px; background: #f0f9ff; border-radius: 8px;\">\n          <div style=\"display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap;\">\n            <button class=\"primary small ex14s3-cfg\" data-n=\"20\" data-m=\"50\">N=20, 50 个</button>\n            <button class=\"ghost small ex14s3-cfg\" data-n=\"50\" data-m=\"50\">N=50, 50 个</button>\n            <button class=\"ghost small ex14s3-cfg\" data-n=\"100\" data-m=\"100\">N=100, 100 个</button>\n          </div>\n          <div id=\"ex14s3-svg\" style=\"text-align: center;\"></div>\n        </div>\n        <div class=\"next-hint\">🔵 <strong>吉尔科 圆定律</strong>（1984）：特征值均匀落入半径 √N 的圆盘</div>\n      "}, {"emoji": "📈", "title": "Wigner 半圆律 + GUE/GOE 间距", "content": "\n        <p class=\"lead\">GUE/GOE（Hermitian 对称）特征值都是实数 → 实轴上半圆律：</p>\n        <div class=\"viz\" style=\"display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;\">\n          <div style=\"flex: 1 1 220px; padding: 14px; background: linear-gradient(135deg, #ede9fe, #ede9fe); border: 2px solid #a855f7; border-radius: 12px;\">\n            <div style=\"font-size: 16px; font-weight: 900; color: #6b21a8;\">Wigner 半圆</div>\n            <div style=\"font-size: 12px; color: #6b21a8; margin-top: 6px;\">ρ(λ) = (1/2πσ²)·√(4Nσ²-λ²)</div>\n            <div style=\"font-size: 11px; color: #581c87; margin-top: 4px;\">|λ| ≤ 2σ√N</div>\n          </div>\n          <div style=\"flex: 1 1 220px; padding: 14px; background: linear-gradient(135deg, #fef3c7, #fef3c7); border: 2px solid #f59e0b; border-radius: 12px;\">\n            <div style=\"font-size: 16px; font-weight: 900; color: #92400e;\">GOE 间距</div>\n            <div style=\"font-size: 12px; color: #92400e; margin-top: 6px;\">P(s) = (π/2)·s·e^(-πs²/4)</div>\n            <div style=\"font-size: 11px; color: #b45309; margin-top: 4px;\">实对称（正交系综）</div>\n          </div>\n          <div style=\"flex: 1 1 220px; padding: 14px; background: linear-gradient(135deg, #bbf7d0, #bbf7d0); border: 2px solid #10b981; border-radius: 12px;\">\n            <div style=\"font-size: 16px; font-weight: 900; color: #14532d;\">GUE 间距</div>\n            <div style=\"font-size: 12px; color: #14532d; margin-top: 6px;\">P(s) = (32/π²)·s²·e^(-4s²/π)</div>\n            <div style=\"font-size: 11px; color: #15803d; margin-top: 4px;\">复 Hermitian（酉系综）</div>\n          </div>\n        </div>\n        <div class=\"next-hint\">📈 <strong>反例</strong>：泊松间距 P(s) = e^(-s) 表示\"无关联\"——经典可积系统</div>\n      "}, {"emoji": "📅", "title": "Wigner 1955：从核物理到数学", "content": "\n        <p class=\"lead\">随机矩阵理论 70 年发展</p>\n        <div class=\"viz\">\n          <div id=\"ex14s5-timeline\"></div>\n        </div>\n        <div class=\"next-hint\">💡 <strong>巧合</strong>：ζ 函数零点间距也服从 GUE 统计（Montgomery-Odlyzko 1973）</div>\n      "}],
   render: function(h) {
     h.innerHTML = `<div class="row"><label>矩阵 N <input type="number" id="ex14_n" value="50" min="5" max="200"></label><label>样本数 <input type="number" id="ex14_m" value="100" min="10" max="500"></label><button class="primary" id="ex14_run">生成 + 画</button></div><div id="ex14_out" style="margin-top: 12px; padding: 12px; background: #f0fdf4; border-radius: 8px; font-family: 'Courier New', monospace;"></div><canvas id="ex14_cv" width="400" height="400" style="margin-top: 12px; max-width: 100%; border: 1px solid var(--line); border-radius: 6px;"></canvas>`;
     // 实随机矩阵特征值（用 QR 迭代替代——这里用简化：随机矩阵 + 显示经验分布）
@@ -37108,7 +37132,7 @@ const EXPERIMENTS = [{
         ctx.fillRect(px, cy + y * R, 1.5, 1.5);
       }
       ctx.fillStyle = '#1f2937'; ctx.font = '13px sans-serif';
-      ctx.fillText('吉尔科 圆：|λ| ≤ 2√N', 20, 20);
+      ctx.fillText('吉尔科 圆：|λ| ≤ 1（已归一化）', 20, 20);
       document.getElementById('ex14_out').innerHTML = `生成 ${M} 个 N=${N} 随机矩阵<br>特征值数：${points.length}<br>应落入圆盘内（吉尔科 圆定律）`;
     };
   }

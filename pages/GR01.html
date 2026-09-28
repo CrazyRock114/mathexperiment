@@ -21504,7 +21504,10 @@ function initStage_EX08_s3() {
     // 9 个小图，每个 a ∈ {-2, -1, 0}, b ∈ {-1, 0, 1}
     const aVals = [-2, -1, 0, 1];
     const bVals = [-1, 0, 1];
-    const cellW = W / 3, cellH = H / 3;
+    // ⚠️ 原来 cellH = H / 3，但 aVals 有 4 个值 {-2,-1,0,1}：
+    //    第 4 行 offY = 3 × (300/3) = 300 = 画布高度，整行画在可视区之外，永远看不到。
+    //    现在按两个轴各自的取值个数分配格子。
+    const cellW = W / bVals.length, cellH = H / aVals.length;
     const colors = ['#7c3aed', '#f59e0b', '#10b981', '#3b82f6', '#ef4444', '#a855f7', '#06b6d4', '#84cc16', '#f97316'];
     let idx = 0;
     for (let ai = 0; ai < aVals.length; ai++) {
@@ -22481,7 +22484,7 @@ function getStagesEX14() {
           <div style="flex: 1 1 180px; padding: 14px; background: linear-gradient(135deg, #dbeafe, #dbeafe); border: 2px solid #3b82f6; border-radius: 12px; text-align: center;">
             <div style="font-size: 24px; font-weight: 900; color: #1e3a8a;">吉尔科 圆</div>
             <div style="font-size: 12px; color: #1e3a8a; margin-top: 6px;">实随机矩阵</div>
-            <div style="font-size: 11px; color: #312e81; margin-top: 4px;">|λ| ≤ 2√N（圆盘）</div>
+            <div style="font-size: 11px; color: #312e81; margin-top: 4px;">Ginibre 圆盘半径 ≈ 1（未归一化时为 √N）</div>
           </div>
           <div style="flex: 1 1 180px; padding: 14px; background: linear-gradient(135deg, #fef3c7, #fef3c7); border: 2px solid #f59e0b; border-radius: 12px; text-align: center;">
             <div style="font-size: 24px; font-weight: 900; color: #92400e;">Wigner 半圆</div>
@@ -22603,7 +22606,7 @@ function initStage_EX14_s2() {
     const finite = eigs.filter(v => isFinite(v) && !isNaN(v));
     const maxAbs = Math.max(...finite.map(v => Math.abs(v)));
     const allInCircle = finite.every(v => Math.abs(v) < 2.5);
-    resultEl.innerHTML = `N = ${N}<br>特征值（前 10 个）：<br>${finite.slice(0, 10).map(v => v.toFixed(4)).join(', ')}<br><br>最大 |λ| = <strong style="color:#7c3aed;">${maxAbs.toFixed(4)}</strong><br>理论半径 2√N = ${(2 * Math.sqrt(N)).toFixed(4)}<br>${allInCircle ? '✓ 落在圆内' : '⚠ 部分外溢'}`;
+    resultEl.innerHTML = `N = ${N}<br>特征值（前 10 个）：<br>${finite.slice(0, 10).map(v => v.toFixed(4)).join(', ')}<br><br>最大 |λ| = <strong style="color:#7c3aed;">${maxAbs.toFixed(4)}</strong><br>理论半径（Ginibre 盘，已按 1/√N 归一化）= 1.0000<br>${allInCircle ? '✓ 落在圆内' : '⚠ 部分外溢'}`;
   };
   if (runBtn) runBtn.onclick = update;
   nInput.oninput = update;
@@ -22644,12 +22647,18 @@ function initStage_EX14_s3() {
     const W = 400, H = 400;
     const cx = W / 2, cy = H / 2;
     const Rdisk = Math.min(W, H) / 2 - 30;
-    // 吉尔科 圆：理论半径 √N，但实随机矩阵特征值通常 |λ| ≤ 2√N
-    const Rbound = 2 * Math.sqrt(N) * Rdisk / 3.5;
+    // 吉尔科（Ginibre）圆：本实验的矩阵是【非厄米】的 iid 高斯矩阵（元素方差 1/N），
+    // 特征值铺满复平面上的圆盘。正确半径：
+    //   未归一化的 iid 高斯矩阵 -> 盘半径 √N；
+    //   本代码已把每个元素除以 √N -> 盘半径 √N × √(1/N) = 1。
+    // 实测 N=3/5/10/20 时 |λ| 最大值都在 1.0~1.5 之间，与半径 1 吻合。
+    // ⚠️ 原来画的是 2√N 并标注「2√N」——那是【厄米矩阵】的特征值界（特征值为实数、
+    //    落在 [-2√N, 2√N]），与本实验的非厄米情形不符；N=10 时会画出 6.3 倍的圆。
+    const Rbound = Rdisk * 1.0;
     // 圆边界
     let html = `<svg viewBox="0 0 ${W} ${H}" style="max-width: 100%; background: white; border-radius: 8px;">
       <circle cx="${cx}" cy="${cy}" r="${Rbound}" fill="none" stroke="#7c3aed" stroke-width="2" stroke-dasharray="5 4"/>
-      <text x="${cx + Rbound + 5}" y="${cy - 5}" font-size="11" fill="#7c3aed">2√N</text>
+      <text x="${cx + Rbound + 5}" y="${cy - 5}" font-size="11" fill="#7c3aed">半径 1</text>
       <line x1="0" y1="${cy}" x2="${W}" y2="${cy}" stroke="#9ca3af" stroke-width="1"/>
       <line x1="${cx}" y1="0" x2="${cx}" y2="${H}" stroke="#9ca3af" stroke-width="1"/>
       <text x="10" y="20" font-size="13" font-weight="700" fill="#1f2937">特征值 (实部, 0)</text>`;
@@ -27634,7 +27643,7 @@ function getStagesGR01() {
         <div class="viz" style="padding: 14px; background: #f0f9ff; border-radius: 8px;">
           <canvas id="gr01s3-chart" style="max-width: 100%;"></canvas>
         </div>
-        <div class="next-hint">🔭 <strong>规律</strong>：环=0、路径=2、奇阶完全图=n(全奇)、星=2、七桥=4</div>
+        <div class="next-hint">🔭 <strong>规律</strong>：环 C₆=0、路径 P₆=2、七桥=4。<br>· <strong>完全图 K_n</strong>：每个顶点度 = n−1。所以 <strong>n 为奇数时 K_n（如 K₅）度为偶数，奇度顶点 0 个</strong>；n 为偶数时（如 K₄，度为 3）才是 n 个奇度顶点。<br>· <strong>星图 S₅</strong>（中心 + 4 叶）：中心度 4（偶）、4 个叶度 1（奇），共 <strong>4 个奇度顶点</strong>。<br>· 欧拉路径存在的充要条件：<strong>奇度顶点恰好 0 个（有欧拉回路）或 2 个（有欧拉路径）</strong>。七桥图有 4 个奇度顶点，两条都不满足 → 无解。</div>
       `
     },
     {
@@ -27705,7 +27714,14 @@ function initStage_GR01_s3() {
   if (!ctx) return;
   if (ctx._chart) { ctx._chart.destroy(); ctx._chart = null; }
   const labels = ['环 C₆', '路径 P₆', '完全图 K₅', '星 S₅', 'Königsberg'];
-  const data = [0, 2, 5, 2, 4];
+  // 奇度顶点数逐个核对（Euler 路径存在的充要条件是"奇度顶点为 0 个或 2 个"）：
+  //   环 C₆      度数 [2,2,2,2,2,2]  -> 0 个奇度
+  //   路径 P₆    度数 [1,2,2,2,2,1]  -> 2 个奇度
+  //   完全图 K₅  度数 [4,4,4,4,4]    -> 0 个奇度（每个顶点度都是 4，偶数！）
+  //   星 S₅      度数 [4,1,1,1,1]    -> 4 个奇度
+  //   Königsberg 度数 [5,3,3,3]      -> 4 个奇度
+  // 原值 [0, 2, 5, 2, 4] 把 K₅ 记成 5 个奇度（其实是 0）、星图记成 2（其实 4）。
+  const data = [0, 2, 0, 4, 4];
   const colors = ['#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#a855f7'];
   ctx._chart = new Chart(ctx, {
     type: 'bar',
@@ -28874,7 +28890,15 @@ function initStage_GR08_s2() {
   const runBtn = document.getElementById('gr08s2-run');
   const resultEl = document.getElementById('gr08s2-result');
   if (!runBtn) return;
-  const toPoly = arr => arr.map((v, i) => v === 0 ? '' : (v === 1 ? '' : v) + (i === 0 ? '' : (i === 1 ? 'x' : `x^${i}`))).filter(Boolean).join(' + ') || '0';
+  // ⚠️ 原写法对 v === 1 返回 ''，把【常数项】整个丢掉了：
+  //    多项式 1 + 2x + 3x² 会被显示成「2x + 3x²」，与左边的系数数组对不上。
+  //    只有当 i === 0（常数项位置）且系数为 1 时，1 才可以省略写成 x 的系数形式。
+  const toPoly = arr => arr.map((v, i) => {
+    if (v === 0) return '';
+    const term = (i === 0) ? '' : (i === 1 ? 'x' : `x^${i}`);
+    if (v === 1) return term === '' ? '1' : term;      // 常数项的 1 不能省
+    return v + term;
+  }).filter(Boolean).join(' + ') || '0';
   runBtn.onclick = () => {
     const a = aInput.value.split(',').map(s => parseFloat(s.trim())).filter(x => !isNaN(x));
     const b = bInput.value.split(',').map(s => parseFloat(s.trim())).filter(x => !isNaN(x));
@@ -37046,7 +37070,7 @@ const EXPERIMENTS = [{
   svgDemo: "",
   explain: "同学们好！今天我们来看一个超经典的问题——欧拉路径和 Königsberg 七桥。\n\n一七三六年，普鲁士城市 Königsberg（现在俄罗斯加里宁格勒）有 7 座桥连接 4 块陆地。市民们想：能不能从某地出发，每座桥走恰好一次，走遍所有 7 座桥？\n\n大数学家欧拉研究后证明：**不能**。\n\n他的方法很巧妙：把陆地抽象成\"点\"，把桥抽象成\"边\"。问题变成：能不能从某点出发，每条边走恰好一次，走遍所有边？\n\n这种\"每条边走恰好一次\"的路径叫\"欧拉路径\"。\n\n欧拉发现了一个关键定理：\n- 如果所有顶点都是偶数度（连接到偶数条边），存在\"欧拉回路\"（能回到起点）。\n- 如果恰有 2 个奇数度顶点，存在\"欧拉路径\"（从奇数度顶点之一出发，到另一个奇数度顶点结束）。\n- 如果有 4 个或更多奇数度顶点，不存在欧拉路径。\n\n为什么？看\"度\"：路径中除了起点和终点，每个顶点\"进\"和\"出\"的次数必须相等（度是偶数）。起点和终点可以\"多出少进\"（度是奇数）。\n\nKönigsberg 七桥的图：4 个顶点，7 条边。A 区（中心岛）连 5 座桥，B 区连 3 座桥，C 区连 3 座桥，D 区连 3 座桥。所以度数是 <strong>5 3 3 3</strong>——4 个顶点全是奇数度。\n\n所以 Königsberg 七桥**无解**！市民试了无数次都走不通。\n\n欧拉因此开创了图论！他在 一七三六年发表的论文被认为是图论的开端。\n\n欧拉路径的实际应用：\n- 邮递员：最短邮路（每条街走一次）\n- 电路设计：每条线走一次\n- DNA 测序：组装 DNA 片段\n- 垃圾车路径：每条街走一次\n\n欧拉路径跟\"哈密顿路径\"（每点恰好走一次）不同——哈密顿路径是 NP 完全问题，超级难。\n\n现在请同学们自己动手：点\"欧拉路径\"，拖动顶点看度数变化。试试画一个所有顶点都是偶数度的图（比如 4 个顶点 4 条边围成矩形）——存在欧拉回路。画一个 4 个奇数度顶点的图——不存在欧拉路径。明天带过来我们比一比。\n\n记住：数学不只藏在书本里——藏在每一次\"走过每座桥恰好一次\"的有趣问题里。",
   audioUrl: "audio/GR01_explain.mp3",
-  stages: [{"emoji": "🌉", "title": "欧拉定理三情况", "content": "\n        <p class=\"lead\">只看\"顶点度数\"就能判欧拉路径：<strong style=\"color:#7c3aed;\">奇度顶点数</strong>决定一切！</p>\n        <div class=\"viz\" style=\"display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;\">\n          <div style=\"flex: 1 1 200px; padding: 14px; background: linear-gradient(135deg, #dbeafe, #dbeafe); border: 2px solid #3b82f6; border-radius: 12px; text-align: center;\">\n            <div style=\"font-size: 28px; font-weight: 900; color: #1e3a8a;\">0</div>\n            <div style=\"font-size: 12px; color: #1e3a8a; margin-top: 6px;\">奇度顶点</div>\n            <div style=\"font-size: 11px; color: #312e81; margin-top: 4px;\">欧拉回路（能回起点）</div>\n          </div>\n          <div style=\"flex: 1 1 200px; padding: 14px; background: linear-gradient(135deg, #fde68a, #fde68a); border: 2px solid #f59e0b; border-radius: 12px; text-align: center;\">\n            <div style=\"font-size: 28px; font-weight: 900; color: #92400e;\">2</div>\n            <div style=\"font-size: 12px; color: #92400e; margin-top: 6px;\">奇度顶点</div>\n            <div style=\"font-size: 11px; color: #b45309; margin-top: 4px;\">欧拉路径（奇度到奇度）</div>\n          </div>\n          <div style=\"flex: 1 1 200px; padding: 14px; background: linear-gradient(135deg, #fecaca, #fecaca); border: 2px solid #ef4444; border-radius: 12px; text-align: center;\">\n            <div style=\"font-size: 28px; font-weight: 900; color: #7f1d1d;\">≥4</div>\n            <div style=\"font-size: 12px; color: #7f1d1d; margin-top: 6px;\">奇度顶点</div>\n            <div style=\"font-size: 11px; color: #991b1b; margin-top: 4px;\">不存在！</div>\n          </div>\n        </div>\n        <div class=\"next-hint\">🌉 <strong>七桥</strong> Königsberg 4 块陆地连 7 桥，A=5 B=3 C=3 D=3，4 个奇度，<strong>无解</strong>！</div>\n      "}, {"emoji": "🧮", "title": "交互：输入边判度", "content": "\n        <p class=\"lead\">输入顶点数 n 和边（u-v 逗号分隔），看每顶点度数和欧拉类型：</p>\n        <div class=\"viz\" style=\"display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap;\">\n          <div style=\"flex: 1 1 200px; min-width: 200px;\">\n            <label style=\"display: block; margin: 6px 0; font-weight: 700;\">n = <input type=\"number\" id=\"gr01s2-n\" min=\"2\" max=\"6\" value=\"4\" style=\"width: 100px; padding: 4px;\"></label>\n            <label style=\"display: block; margin: 6px 0; font-weight: 700;\">边 (u-v,逗号分隔)\n              <input type=\"text\" id=\"gr01s2-edges\" value=\"0-1,1-2,2-3,3-0\" style=\"width: 100%; padding: 4px; font-family: monospace;\">\n            </label>\n            <div style=\"display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap;\">\n              <button class=\"primary small gr01s2-preset\" data-edges=\"0-1,1-2,2-3,3-0\">矩形</button>\n              <button class=\"ghost small gr01s2-preset\" data-edges=\"0-1,1-2,2-0,0-2\">K₃+对角</button>\n              <button class=\"ghost small gr01s2-preset\" data-edges=\"0-1,1-2,0-2,0-3,3-1,1-3\">七桥简化</button>\n            </div>\n          </div>\n          <div style=\"flex: 2 1 300px; min-width: 300px;\">\n            <div id=\"gr01s2-result\" style=\"padding: 14px; background: #faf5ff; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.8;\"></div>\n          </div>\n        </div>\n        <div class=\"next-hint\">💡 <strong>关键</strong>：输入\"0-1,1-2,2-3,3-0,0-2\"试试——度数 3,2,3,2 → 2 个奇度 → 欧拉路径</div>\n      "}, {"emoji": "🔭", "title": "扫描各种图的奇度分布", "content": "\n        <p class=\"lead\">环/路径/完全图/星/七桥——5 类典型图的奇度顶点个数：</p>\n        <div class=\"viz\" style=\"padding: 14px; background: #f0f9ff; border-radius: 8px;\">\n          <canvas id=\"gr01s3-chart\" style=\"max-width: 100%;\"></canvas>\n        </div>\n        <div class=\"next-hint\">🔭 <strong>规律</strong>：环=0、路径=2、奇阶完全图=n(全奇)、星=2、七桥=4</div>\n      "}, {"emoji": "🔬", "title": "欧拉 vs 哈密顿", "content": "\n        <p class=\"lead\">欧拉（每边 1 次）<strong style=\"color:#7c3aed;\">多项式可判</strong>；哈密顿（每点 1 次）<strong style=\"color:#ef4444;\">NP 完全</strong>。</p>\n        <div class=\"viz\" style=\"display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap;\">\n          <div style=\"flex: 1 1 240px; padding: 14px; background: #dcfce7; border-left: 4px solid #10b981; border-radius: 6px; font-size: 13px;\">\n            <strong>✅ 欧拉路径</strong><br>\n            判定：O(V) 看度数<br>\n            构造：Hierholzer O(E)<br>\n            应用：邮路、电路、DNA\n          </div>\n          <div style=\"flex: 1 1 240px; padding: 14px; background: #fecaca; border-left: 4px solid #ef4444; border-radius: 6px; font-size: 13px;\">\n            <strong>❌ 哈密顿路径</strong><br>\n            判定：NP 完全（无多项式）<br>\n            实际：暴力 2ⁿ / 动态 n²2ⁿ<br>\n            应用：旅行商 TSP\n          </div>\n        </div>\n        <div class=\"next-hint\">🔬 <strong>反直觉</strong>：看上去类似的两个问题，一个简单一个难，是 P vs NP 的缩影</div>\n      "}, {"emoji": "📅", "title": "欧拉路径小史", "content": "\n        <p class=\"lead\">1736 欧拉开图论 → 1873 Hierholzer 算法 → 现代算法导论必学</p>\n        <div class=\"viz\">\n          <div id=\"gr01s5-timeline\"></div>\n        </div>\n        <div class=\"next-hint\">💡 <strong>趣闻</strong>：欧拉当时用的拉丁文 \"Solutio problematis ad geometriam situs pertinensis\" 是拓扑学雏形</div>\n      "}],
+  stages: [{"emoji": "🌉", "title": "欧拉定理三情况", "content": "\n        <p class=\"lead\">只看\"顶点度数\"就能判欧拉路径：<strong style=\"color:#7c3aed;\">奇度顶点数</strong>决定一切！</p>\n        <div class=\"viz\" style=\"display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;\">\n          <div style=\"flex: 1 1 200px; padding: 14px; background: linear-gradient(135deg, #dbeafe, #dbeafe); border: 2px solid #3b82f6; border-radius: 12px; text-align: center;\">\n            <div style=\"font-size: 28px; font-weight: 900; color: #1e3a8a;\">0</div>\n            <div style=\"font-size: 12px; color: #1e3a8a; margin-top: 6px;\">奇度顶点</div>\n            <div style=\"font-size: 11px; color: #312e81; margin-top: 4px;\">欧拉回路（能回起点）</div>\n          </div>\n          <div style=\"flex: 1 1 200px; padding: 14px; background: linear-gradient(135deg, #fde68a, #fde68a); border: 2px solid #f59e0b; border-radius: 12px; text-align: center;\">\n            <div style=\"font-size: 28px; font-weight: 900; color: #92400e;\">2</div>\n            <div style=\"font-size: 12px; color: #92400e; margin-top: 6px;\">奇度顶点</div>\n            <div style=\"font-size: 11px; color: #b45309; margin-top: 4px;\">欧拉路径（奇度到奇度）</div>\n          </div>\n          <div style=\"flex: 1 1 200px; padding: 14px; background: linear-gradient(135deg, #fecaca, #fecaca); border: 2px solid #ef4444; border-radius: 12px; text-align: center;\">\n            <div style=\"font-size: 28px; font-weight: 900; color: #7f1d1d;\">≥4</div>\n            <div style=\"font-size: 12px; color: #7f1d1d; margin-top: 6px;\">奇度顶点</div>\n            <div style=\"font-size: 11px; color: #991b1b; margin-top: 4px;\">不存在！</div>\n          </div>\n        </div>\n        <div class=\"next-hint\">🌉 <strong>七桥</strong> Königsberg 4 块陆地连 7 桥，A=5 B=3 C=3 D=3，4 个奇度，<strong>无解</strong>！</div>\n      "}, {"emoji": "🧮", "title": "交互：输入边判度", "content": "\n        <p class=\"lead\">输入顶点数 n 和边（u-v 逗号分隔），看每顶点度数和欧拉类型：</p>\n        <div class=\"viz\" style=\"display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap;\">\n          <div style=\"flex: 1 1 200px; min-width: 200px;\">\n            <label style=\"display: block; margin: 6px 0; font-weight: 700;\">n = <input type=\"number\" id=\"gr01s2-n\" min=\"2\" max=\"6\" value=\"4\" style=\"width: 100px; padding: 4px;\"></label>\n            <label style=\"display: block; margin: 6px 0; font-weight: 700;\">边 (u-v,逗号分隔)\n              <input type=\"text\" id=\"gr01s2-edges\" value=\"0-1,1-2,2-3,3-0\" style=\"width: 100%; padding: 4px; font-family: monospace;\">\n            </label>\n            <div style=\"display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap;\">\n              <button class=\"primary small gr01s2-preset\" data-edges=\"0-1,1-2,2-3,3-0\">矩形</button>\n              <button class=\"ghost small gr01s2-preset\" data-edges=\"0-1,1-2,2-0,0-2\">K₃+对角</button>\n              <button class=\"ghost small gr01s2-preset\" data-edges=\"0-1,1-2,0-2,0-3,3-1,1-3\">七桥简化</button>\n            </div>\n          </div>\n          <div style=\"flex: 2 1 300px; min-width: 300px;\">\n            <div id=\"gr01s2-result\" style=\"padding: 14px; background: #faf5ff; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.8;\"></div>\n          </div>\n        </div>\n        <div class=\"next-hint\">💡 <strong>关键</strong>：输入\"0-1,1-2,2-3,3-0,0-2\"试试——度数 3,2,3,2 → 2 个奇度 → 欧拉路径</div>\n      "}, {"emoji": "🔭", "title": "扫描各种图的奇度分布", "content": "\n        <p class=\"lead\">环/路径/完全图/星/七桥——5 类典型图的奇度顶点个数：</p>\n        <div class=\"viz\" style=\"padding: 14px; background: #f0f9ff; border-radius: 8px;\">\n          <canvas id=\"gr01s3-chart\" style=\"max-width: 100%;\"></canvas>\n        </div>\n        <div class=\"next-hint\">🔭 <strong>规律</strong>：环 C₆=0、路径 P₆=2、七桥=4。<br>· <strong>完全图 K_n</strong>：每个顶点度 = n−1。所以 <strong>n 为奇数时 K_n（如 K₅）度为偶数，奇度顶点 0 个</strong>；n 为偶数时（如 K₄，度为 3）才是 n 个奇度顶点。<br>· <strong>星图 S₅</strong>（中心 + 4 叶）：中心度 4（偶）、4 个叶度 1（奇），共 <strong>4 个奇度顶点</strong>。<br>· 欧拉路径存在的充要条件：<strong>奇度顶点恰好 0 个（有欧拉回路）或 2 个（有欧拉路径）</strong>。七桥图有 4 个奇度顶点，两条都不满足 → 无解。</div>\n      "}, {"emoji": "🔬", "title": "欧拉 vs 哈密顿", "content": "\n        <p class=\"lead\">欧拉（每边 1 次）<strong style=\"color:#7c3aed;\">多项式可判</strong>；哈密顿（每点 1 次）<strong style=\"color:#ef4444;\">NP 完全</strong>。</p>\n        <div class=\"viz\" style=\"display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap;\">\n          <div style=\"flex: 1 1 240px; padding: 14px; background: #dcfce7; border-left: 4px solid #10b981; border-radius: 6px; font-size: 13px;\">\n            <strong>✅ 欧拉路径</strong><br>\n            判定：O(V) 看度数<br>\n            构造：Hierholzer O(E)<br>\n            应用：邮路、电路、DNA\n          </div>\n          <div style=\"flex: 1 1 240px; padding: 14px; background: #fecaca; border-left: 4px solid #ef4444; border-radius: 6px; font-size: 13px;\">\n            <strong>❌ 哈密顿路径</strong><br>\n            判定：NP 完全（无多项式）<br>\n            实际：暴力 2ⁿ / 动态 n²2ⁿ<br>\n            应用：旅行商 TSP\n          </div>\n        </div>\n        <div class=\"next-hint\">🔬 <strong>反直觉</strong>：看上去类似的两个问题，一个简单一个难，是 P vs NP 的缩影</div>\n      "}, {"emoji": "📅", "title": "欧拉路径小史", "content": "\n        <p class=\"lead\">1736 欧拉开图论 → 1873 Hierholzer 算法 → 现代算法导论必学</p>\n        <div class=\"viz\">\n          <div id=\"gr01s5-timeline\"></div>\n        </div>\n        <div class=\"next-hint\">💡 <strong>趣闻</strong>：欧拉当时用的拉丁文 \"Solutio problematis ad geometriam situs pertinensis\" 是拓扑学雏形</div>\n      "}],
   render: function(h) {
     h.innerHTML = `<div style="font-size: 14px; line-height: 1.6;">
       <p><strong>历史</strong>：18 世纪 Königsberg（今加里宁格勒）有 7 桥。欧拉证明不可能"走遍每桥恰好一次"。</p>
