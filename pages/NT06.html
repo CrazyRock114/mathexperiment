@@ -31600,8 +31600,12 @@ function initStage_AL02_s2() {
     if (!runBtn) return;
     const nimXor = arr => arr.reduce((a, b) => a ^ b, 0);
     const update = () => {
+      // 「堆数」输入框此前绑了 oninput 却从不读取（死控件）——改这里用 nInput 兜底：
+      // 若用户在「堆大小」里给的堆数多于 nInput 指定，就截断到 nInput 堆。
+      const cap = Math.max(1, Math.min(64, parseInt(nInput.value) || 0) || 0);
       let piles = pInput.value.split(',').map(Number).filter(x => !isNaN(x) && x >= 0);
       if (piles.length === 0) { resultEl.innerHTML = '请输入堆大小'; return; }
+      if (cap > 0 && piles.length > cap) piles = piles.slice(0, cap);
       const log = [`初始 [${piles.join(',')}], XOR=${nimXor(piles)}`];
       let turn = 0;
       const maxSteps = 100;
@@ -32448,13 +32452,64 @@ function initStage_AL06_s2() {
     const runBtn = document.getElementById('al06s2-run');
     const resultEl = document.getElementById('al06s2-result');
     if (!runBtn) return;
+    // 4×4 数独：基础解（1..4 的 Latin 方组合），需满足行/列/宫各含 1..4
+    const BASE4 = [[1,2,3,4],[3,4,1,2],[2,1,4,3],[4,3,2,1]];
+    const isValid4 = (g) => {
+      for (let r = 0; r < 4; r++) {
+        const row = new Set(g[r]), col = new Set(g.map(x => x[r]));
+        if (row.size !== 4 || col.size !== 4) return false;
+      }
+      for (const [br, bc] of [[0,0],[0,2],[2,0],[2,2]]) {
+        const box = new Set();
+        for (let i = 0; i < 2; i++) for (let j = 0; j < 2; j++) box.add(g[br+i][bc+j]);
+        if (box.size !== 4) return false;
+      }
+      return true;
+    };
+    const solveCount = (g) => {   // 回溯计数，统计剩余格有多少种解
+      const idx = [];
+      for (let i = 0; i < 16; i++) if (g[i>>2][i&3] === 0) idx.push(i);
+      if (!idx.length) return 1;
+      let n = 0;
+      const used = (p) => {
+        const r = p >> 2, c = p & 3, br = r & ~1, bc = c & ~1, u = new Set();
+        for (let j = 0; j < 4; j++) { u.add(g[r][j]); u.add(g[j][c]); }
+        for (let i = 0; i < 2; i++) for (let j = 0; j < 2; j++) u.add(g[br+i][bc+j]);
+        return u;
+      };
+      const rec = (k) => {
+        if (k === idx.length) { n++; return n > 2; }
+        const p = idx[k], u = used(p);
+        for (let v = 1; v <= 4; v++) {
+          if (u.has(v)) continue;
+          g[p>>2][p&3] = v;
+          if (rec(k + 1)) { g[p>>2][p&3] = 0; return true; }
+          g[p>>2][p&3] = 0;
+        }
+        return false;
+      };
+      rec(0);
+      return n;
+    };
     const genPuzzle = () => {
-      // 标准 4×4 Latin 方基础解
-      const base = [[1,2,3,4],[3,4,1,2],[2,1,4,3],[4,3,2,1]];
-      const puzzle = base.map(r => [...r]);
-      const holes = new Set();
-      while (holes.size < 8) holes.add(Math.floor(Math.random() * 16));
-      return { puzzle, base, holes };
+      const base = BASE4.map(r => [...r]);
+      if (!isValid4(base)) return { puzzle: base.map(r => [...r]), base, holes: new Set(), valid: false };
+      // ⚠️ 原代码只生成 holes 集合，却从未把它挖进 puzzle，
+      //    于是「谜题」与「答案」逐格相同（16 格全满），等于直接把答案显示两遍。
+      //    现在真正挖洞，并保证挖完后仍有唯一解。
+      for (let tries = 0; tries < 400; tries++) {
+        const puz = base.map(r => [...r]);
+        const order = [...Array(16).keys()].sort(() => Math.random() - 0.5);
+        for (let i = 0; i < 8; i++) puz[order[i] >> 2][order[i] & 3] = 0;
+        if (solveCount(puz) === 1) {
+          return { puzzle: puz, base, holes: new Set(order.slice(0, 8)), valid: true };
+        }
+      }
+      // 兜底：挖 6 洞，仍要求唯一解
+      const puz = base.map(r => [...r]);
+      const order = [...Array(16).keys()].sort(() => Math.random() - 0.5);
+      for (let i = 0; i < 6; i++) puz[order[i] >> 2][order[i] & 3] = 0;
+      return { puzzle: puz, base, holes: new Set(order.slice(0, 6)), valid: solveCount(puz) === 1 };
     };
     const renderTable = (grid, holes, isHole) => {
       let html = '<table style="border-collapse: collapse; font-size: 20px; text-align: center; margin: 4px;">';
@@ -32517,14 +32572,17 @@ function initStage_AL06_s3() {
       }
       sample.forEach((s, k) => {
         const h = new Set(); while (h.size < holes) h.add(Math.floor(Math.random()*16));
+        // ⚠️ 原来 h 只用来改背景色，格子里仍显示完整答案——16 格全满，
+        //    「题面」和「答案」完全一样，挖孔形同虚设。现在真正清空被挖的格子。
         let html = '<table style="border-collapse: collapse; font-size: 12px; text-align: center; display: inline-table; margin: 4px;">';
         for (let r = 0; r < 4; r++) { html += '<tr>'; for (let c = 0; c < 4; c++) {
           const thick = (c === 1 || c === 3 || r === 1 || r === 3) ? '2px' : '1px';
           const isH = h.has(r*4+c);
-          html += `<td style="border: ${thick} solid #1f2937; width: 24px; height: 24px; background: ${isH?'#fef3c7':'white'};">${s[r][c]}</td>`;
+          const cell = isH ? '<span style="color:#9ca3af;">·</span>' : String(s[r][c]);
+          html += `<td style="border: ${thick} solid #1f2937; width: 24px; height: 24px; background: ${isH?'#fef3c7':'white'};">${cell}</td>`;
         } html += '</tr>'; }
         html += '</table>';
-        lines.push(`题 ${k+1}: ${html}`);
+        lines.push(`题 ${k+1}（挖 ${holes} 孔，「·」为待填）: ${html}`);
       });
       resultEl.innerHTML = lines.join(' ');
     };
