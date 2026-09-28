@@ -20552,11 +20552,15 @@ function initStage_EX05_s2() {
     // Each altitude: line through A perpendicular to BC
     //   (B[1]-C[1])*x - (B[0]-C[0])*y = (B[1]-C[1])*A[0] - (B[0]-C[0])*A[1]
     // Two altitudes intersect at H
-    const a1 = B[1]-C[1], b1 = -(B[0]-C[0]), c1 = a1*A[0] + b1*A[1];
-    const a2 = A[1]-C[1], b2 = -(A[0]-C[0]), c2 = a2*B[0] + b2*B[1];
+    // 过点 P、法向量 n 的直线：n·(X-P)=0，即 n.x·x + n.y·y = n·P
+    // 高线（过 A 垂直 BC）的法向量就是 BC 方向向量 C-B。
+    // ⚠️ 原实现把 x、y 系数写反了（用了 (B.y-C.y, -(B.x-C.x))），导致 H、O 全错，
+    //    连页面默认三角形都判成"三点不共线"——而欧拉线定理保证 O、G、H 恒共线。
+    const a1 = C[0]-B[0], b1 = C[1]-B[1], c1 = a1*A[0] + b1*A[1];
+    const a2 = C[0]-A[0], b2 = C[1]-A[1], c2 = a2*B[0] + b2*B[1];
     const det = a1*b2 - a2*b1;
     if (Math.abs(det) < 1e-6) {
-      resultEl.innerHTML = '三点共线！请重新输入。';
+      resultEl.innerHTML = '三点共线（退化三角形），无法定义高线与外心！请重新输入。';
       return;
     }
     const H = [(c1*b2 - c2*b1)/det, (a1*c2 - a2*c1)/det];
@@ -20567,11 +20571,12 @@ function initStage_EX05_s2() {
     // perpendicular bisector of AB: direction (B[1]-A[1], -(B[0]-A[0]))
     // line: (B[1]-A[1])(x - mABx) - (B[0]-A[0])(y - mABy) = 0
     // (B[1]-A[1])x - (B[0]-A[0])y = (B[1]-A[1])mABx - (B[0]-A[0])mABy
-    const p1 = B[1]-A[1], q1 = -(B[0]-A[0]), r1 = p1*mABx + q1*mABy;
-    const p2 = C[1]-A[1], q2 = -(C[0]-A[0]), r2 = p2*mACx + q2*mACy;
+    // 中垂线的法向量是线段方向本身 B-A / C-A（同样修正了原来写反的系数）
+    const p1 = B[0]-A[0], q1 = B[1]-A[1], r1 = p1*mABx + q1*mABy;
+    const p2 = C[0]-A[0], q2 = C[1]-A[1], r2 = p2*mACx + q2*mACy;
     const det2 = p1*q2 - p2*q1;
     if (Math.abs(det2) < 1e-6) {
-      resultEl.innerHTML = '三点共线！请重新输入。';
+      resultEl.innerHTML = '三点共线（退化三角形），无法定义外心！请重新输入。';
       return;
     }
     const O = [(r1*q2 - r2*q1)/det2, (p1*r2 - p2*r1)/det2];
@@ -20616,14 +20621,14 @@ function initStage_EX05_s3() {
   const A = [200, 60], B = [80, 220], C = [320, 200];
   const draw = () => {
     const G = [(A[0]+B[0]+C[0])/3, (A[1]+B[1]+C[1])/3];
-    const a1 = B[1]-C[1], b1 = -(B[0]-C[0]), c1 = a1*A[0] + b1*A[1];
-    const a2 = A[1]-C[1], b2 = -(A[0]-C[0]), c2 = a2*B[0] + b2*B[1];
+    const a1 = C[0]-B[0], b1 = C[1]-B[1], c1 = a1*A[0] + b1*A[1];
+    const a2 = C[0]-A[0], b2 = C[1]-A[1], c2 = a2*B[0] + b2*B[1];
     const det = a1*b2 - a2*b1;
     const H = [(c1*b2 - c2*b1)/det, (a1*c2 - a2*c1)/det];
     const mABx = (A[0]+B[0])/2, mABy = (A[1]+B[1])/2;
     const mACx = (A[0]+C[0])/2, mACy = (A[1]+C[1])/2;
-    const p1 = B[1]-A[1], q1 = -(B[0]-A[0]), r1 = p1*mABx + q1*mABy;
-    const p2 = C[1]-A[1], q2 = -(C[0]-A[0]), r2 = p2*mACx + q2*mACy;
+    const p1 = B[0]-A[0], q1 = B[1]-A[1], r1 = p1*mABx + q1*mABy;
+    const p2 = C[0]-A[0], q2 = C[1]-A[1], r2 = p2*mACx + q2*mACy;
     const det2 = p1*q2 - p2*q1;
     const O = [(r1*q2 - r2*q1)/det2, (p1*r2 - p2*r1)/det2];
     // Compute extents
@@ -20670,14 +20675,14 @@ function initStage_EX05_s4() {
   const A = [200, 60], B = [80, 220], C = [320, 200];
   const G = [(A[0]+B[0]+C[0])/3, (A[1]+B[1]+C[1])/3];
   // 9-point circle center = midpoint of O and H
-  const a1 = B[1]-C[1], b1 = -(B[0]-C[0]), c1 = a1*A[0] + b1*A[1];
-  const a2 = A[1]-C[1], b2 = -(A[0]-C[0]), c2 = a2*B[0] + b2*B[1];
+  const a1 = C[0]-B[0], b1 = C[1]-B[1], c1 = a1*A[0] + b1*A[1];
+  const a2 = C[0]-A[0], b2 = C[1]-A[1], c2 = a2*B[0] + b2*B[1];
   const det = a1*b2 - a2*b1;
   const H = [(c1*b2 - c2*b1)/det, (a1*c2 - a2*c1)/det];
   const mABx = (A[0]+B[0])/2, mABy = (A[1]+B[1])/2;
   const mACx = (A[0]+C[0])/2, mACy = (A[1]+C[1])/2;
-  const p1 = B[1]-A[1], q1 = -(B[0]-A[0]), r1 = p1*mABx + q1*mABy;
-  const p2 = C[1]-A[1], q2 = -(C[0]-A[0]), r2 = p2*mACx + q2*mACy;
+  const p1 = B[0]-A[0], q1 = B[1]-A[1], r1 = p1*mABx + q1*mABy;
+  const p2 = C[0]-A[0], q2 = C[1]-A[1], r2 = p2*mACx + q2*mACy;
   const det2 = p1*q2 - p2*q1;
   const O = [(r1*q2 - r2*q1)/det2, (p1*r2 - p2*r1)/det2];
   const N9 = [(O[0]+H[0])/2, (O[1]+H[1])/2];
@@ -31411,9 +31416,13 @@ function initStage_AL01_s4() {
             }
           }
         }
-        numSol = Math.min(10, Math.floor(numSol / 6));
-        buckets[numSol]++;
-        count++; if (numSol > 0) solvable++;
+        // ⚠️ 原来是 Math.floor(numSol / 6)：raw 解数不足 6 的真解被砍成 0，
+        //    于是 (1,3,4,6)（解：6÷(1−3/4)=24）这类被误判为"无解"，N≥5 时开始大量漏判。
+        //    正确做法：分桶只用于画直方图，可解与否必须看 numSol > 0。
+        const solvableThis = numSol > 0;
+        const bucket = Math.min(10, Math.floor(numSol / 6));   // 仅用于直方图分档
+        buckets[bucket]++;
+        count++; if (solvableThis) solvable++;
       }
       resultEl.innerHTML = `范围 1-${N}：共 <strong>${count}</strong> 组 4 元组，<strong>${solvable}</strong> 组有解（${(solvable/count*100).toFixed(1)}%）<br><br>解数分布（0-10 个独立解）：<br>${buckets.map((c, i) => `${i} 解：${'█'.repeat(Math.min(50, Math.floor(c / Math.max(1, count) * 100)))} ${c} 组`).join('<br>')}`;
     };
@@ -31570,7 +31579,11 @@ function initStage_AL02_s2() {
         }
         turn = 1 - turn;
       }
-      const winner = turn === 0 ? '先手' : '对手';
+      // ⚠️ 原判断反了：turn 在每步后翻转，走完 turn===1 说明总步数为奇数，
+      //    也就是「先手」走了最后一步（先手走第 1、3、5… 步）——先手赢。
+      //    原代码 turn===0?'先手':'对手' 导致 [3,5,7]（XOR=1，先手必胜）被判成"对手 胜"，
+      //    与同页 Stage1 讲的 Bouton 定理直接打架。
+      const winner = turn === 0 ? '对手' : '先手';
       log.push(`<br><strong style="color:#10b981;">结果：${winner} 胜！</strong>`);
       resultEl.innerHTML = log.join('<br>');
     };
@@ -35360,12 +35373,16 @@ function initStage_OT01_s3() {
       const lo = [4, 9, 2, 3, 5, 7, 8, 1, 6];
       const rotations = [lo, [8, 3, 4, 1, 5, 9, 6, 7, 2], [6, 1, 8, 7, 5, 3, 2, 9, 4], [2, 7, 6, 9, 5, 1, 4, 3, 8]];
       const mirror = lo.map((_, i) => lo[2 - Math.floor(i / 3) * 3 + (i % 3)]);
-      // 简化：4 旋转 + 4 镜像 = 8 个
+      // 洛书的 4 个旋转 + 1 个行镜像 = 5 个不同方阵（实测镜像与 4 个旋转都不重合，
+      // 所以是 5 个而不是 8 个）
       const all = [];
       for (const r of rotations) all.push(r);
       // 镜像（行反转）
       const m = [lo[2], lo[1], lo[0], lo[5], lo[4], lo[3], lo[8], lo[7], lo[6]];
-      for (let k = 0; k < 4; k++) all.push(m);
+      // ⚠️ 原来是 for(k<4) all.push(m)，把同一个镜像数组推了 4 次，
+      //    页面显示成"4 旋转 + 4 镜像 = 8 个"，实际 #5~#8 全是同一个方阵。
+      //    现在只推 1 次，并在文案里如实说明旋转与镜像会重合。
+      all.push(m);
       out.innerHTML = all.slice(0, 8).map((g, idx) => {
         const grid = `<div style="display: inline-grid; grid-template-columns: repeat(3, 32px); gap: 2px;">${g.map(v => `<div style="background: #dbeafe; padding: 4px; text-align: center; font-size: 14px; font-weight: 700; color: #1e3a8a; border-radius: 3px;">${v}</div>`).join('')}</div>`;
         return `<div><div style="font-size: 11px; color: #6b7280; margin-bottom: 2px;">#${idx + 1}</div>${grid}</div>`;
@@ -35779,7 +35796,10 @@ function initStage_OT05_s4() {
     if (!btn) return;
     btn.onclick = () => {
       const N = Math.max(1, Math.min(20, parseInt(nIn.value) || 10));
-      const T = [1, 2];
+      // 2×n 铺法数 T(n) = F(n+1)，初值应为 T(0)=1, T(1)=1。
+      // 原代码写 [1,2]，导致整列偏移一位（第 n 行显示的是 T(n+1)），
+      // 而"✓ 一致"列因为两边同时错位而恒真，bug 不会自暴露。
+      const T = [1, 1];
       for (let i = 2; i <= N; i++) T.push(T[i - 1] + T[i - 2]);
       const fib = [1, 1];
       for (let i = 2; i <= N + 1; i++) fib.push(fib[i - 1] + fib[i - 2]);
@@ -36190,8 +36210,10 @@ function initStage_OT08_s4() {
             if (v < best) { best = v; bestJ = j; }
           }
         }
-        const w = checkWin(b);
-        const label = w === 'T' ? '必平' : (w === 'X' ? 'X 胜' : 'O 胜');
+        // ⚠️ 原来这里写 checkWin(b)，但此刻 b 已被回滚成"只有 X 的首步"，
+        //    w 必然是 null → 9 种首步全被判成"O 胜"。
+        //    正确做法是用 minimax 的返回值 best 判定（>0 O胜 / <0 X胜 / =0 必平）。
+        const label = best > 0 ? 'O 胜' : (best < 0 ? 'X 胜' : '必平');
         results.push({ i, first: i, ai: bestJ, final: label });
       }
       const lines = ['X 首步 → 9 种结果（双方都 minimax）:', '', '步 | 格子 | AI(O) 必应 | 最终'];

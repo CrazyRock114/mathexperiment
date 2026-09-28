@@ -160,5 +160,22 @@ ck('全站已无「一定是一组本原勾股数」的过度断言（注释里�
 ck('PR07 时间线时序已纠正（梅纳德 600 在前、246 在后）', cnt(/year: '2013\.11', bound: '600'/) === 1 && cnt(/year: '2014\.4', bound: '246'/) === 1);
 ck('全站已无「2014 年 梅纳德 600」的时序错误', cnt(/2014 年 梅纳德 用新方法独立做到 600/) === 0);
 
+ck('EX05 垂心法向量已全部修正为 (C0-B0, C1-B1)（s2/s3/s4 三处）',
+   cnt(/const a1 = C\[0\]-B\[0\], b1 = C\[1\]-B\[1\]/) >= 3, cnt(/const a1 = C\[0\]-B\[0\], b1 = C\[1\]-B\[1\]/) + ' 处');
+ck('EX05 中垂线法向量已全部修正为 (B0-A0, B1-A1)（三处）',
+   cnt(/const p1 = B\[0\]-A\[0\], q1 = B\[1\]-A\[1\]/) >= 3, cnt(/const p1 = B\[0\]-A\[0\], q1 = B\[1\]-A\[1\]/) + ' 处');
+ck('全站已无 EX05 写反的垂心系数', cnt(/const a1 = B\[1\]-C\[1\], b1 = -\(B\[0\]-C\[0\]\)/) === 0);
+
+ck('OT08_s4 已改用 minimax 返回值判定胜负', cnt(/const label = best > 0 \? 'O 胜'/) === 1);
+ck('全站已无 OT08_s4 用 checkWin 判首步结果', cnt(/const w = checkWin\(b\);\n        const label/) === 0);
+
+ck('AL02_s2 胜负判定已修正（奇数步=先手赢）', cnt(/const winner = turn === 0 \? '对手' : '先手';/) === 1);
+ck('全站已无 AL02_s2 反向的 winner 判定', cnt(/const winner = turn === 0 \? '先手' : '对手';/) === 0);
+
+ck('AL01_s4 可解判定已与直方图分档解耦', cnt(/const solvableThis = numSol > 0;/) === 1);
+ck('全站已无 floor(numSol/6) 兼作可解判定', cnt(/numSol = Math\.min\(10, Math\.floor\(numSol \/ 6\)\);\n        buckets/) === 0);
+ck('OT05_s4 铺法数初值已修正为 [1,1]', cnt(/const T = \[1, 1\];\n      for \(let i = 2; i <= N; i\+\+\) T\.push/) === 1);
+ck('OT01_s3 不再把同一镜像推 4 次', cnt(/for \(let k = 0; k < 4; k\+\+\) all\.push\(m\)/) === 0);
+
 console.log('\n' + (fail === 0 ? `全部通过 ✅  (${pass} 项)` : `${fail} 项失败 ❌  (通过 ${pass})`));
 process.exit(fail === 0 ? 0 : 1);
