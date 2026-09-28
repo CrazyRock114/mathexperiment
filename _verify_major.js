@@ -259,5 +259,19 @@ ck('全站已无 OT08_s2 永远为假的 b.some\(x => x === undefined\)', cnt(/b
 ck('AL08_s2 非数字输入不再渲染 NaN', cnt(/请输入逗号分隔的整数，例如 5,2,8,1,9,3<\/span>/) === 1);
 ck('AL09_s2 非数字输入不再渲染 NaN', cnt(/请输入逗号分隔的整数，例如 5,2,8,1,9,3,7,4,6<\/span>/) === 1);
 
+// ---- v18.16：历史事实联网双源核实（7 项「待核」）----
+ck('Dobiński 公式年份已由 1938 订正为 1877（1938 是 Bell 撰文年，非公式发现年）',
+   cnt(/1877<\/strong> Dobiński 给出求和公式/) === 1);
+ck('全站已无「1938 年 Dobinski 发现公式」', cnt(/1938 年 Dobinski 发现公式/) === 0);
+ck('Bell numbers 的命名权已订正为 Becker & Riordan 1948（原写「1934 Bell 命名」）',
+   cnt(/1948<\/strong> Becker &amp; Riordan 才正式命名为 Bell numbers/) === 1);
+ck('全站已无「1934 Eric Temple Bell 命名」', cnt(/1934<\/strong> Eric Temple Bell 命名/) === 0);
+ck('BBP 论文已订正为 1997 年发在 Mathematical Intelligencer（原文 1995 / Mathematical Intelligence）',
+   cnt(/1997', text: '四人合著《The quest for pi》发表在《Mathematical Intelligencer》引发轰动/) === 1);
+// 注意：'Mathematical Intelligencer' 本身就以 'Mathematical Intelligence' 为前缀，必须用负向断言
+ck('全站已无刊名残缺的「Mathematical Intelligence》（-cer 后缀除外）', cnt(/Mathematical Intelligence(?!r)/) === 0);
+ck('完美数「近 5000 万位」经高精度复算确认正确，守卫其不被误改',
+   cnt(/近 5000 万位/) === 3);
+
 console.log('\n' + (fail === 0 ? `全部通过 ✅  (${pass} 项)` : `${fail} 项失败 ❌  (通过 ${pass})`));
 process.exit(fail === 0 ? 0 : 1);
