@@ -2317,7 +2317,11 @@ function getStagesPR01() {
                 <div>总针数：<span id="pr01s3-N" style="font-weight: 700; color: #1e40af;">0</span></div>
                 <div>跨线：<span id="pr01s3-n" style="font-weight: 700; color: #10b981;">0</span></div>
                 <div>跨线比例：<span class="stat-pill" id="pr01s3-P" style="background: #10b981; font-size: 16px;">—</span></div>
-                <div style="margin-top: 8px; font-size: 12px; color: #6b7280;">理论值：P = 2L/(πd) ≈ <span id="pr01s3-Pt">63.7%</span></div>
+                <div style="margin-top: 8px; font-size: 12px; color: #6b7280;">理论值：P ≈ <span id="pr01s3-Pt">71.5%</span></div>
+                <div style="margin-top: 6px; font-size: 12px; color: #92400e; background: #fffbeb; border-left: 3px solid #f59e0b; padding: 6px 10px; border-radius: 4px;">
+                  📌 <strong>注意</strong>：本演示用 <strong>针长 L=60 &gt; 线距 d=50</strong>。当 L &gt; d 时，课本上的简单公式 <strong>P = 2L/(πd) 不再成立</strong>（那会算出 76.4%，比实测高 5 个百分点），必须用长针的闭式解：<br>
+                  P = (2/π)·arccos(d/L) + (2/π)·(L/d)·(1 − √(1 − (d/L)²)) = <strong>71.5%</strong>。投够 1000 根，你的实测值应该贴近 71.5% 而不是 76.4%。
+                </div>
               </div>
             </div>
           </div>
@@ -2567,7 +2571,8 @@ function initStage_PR01_s3() {
   let dropQueue = [];     // 待画的针
   let dropTimer = null;   // setTimeout id
   let dropping = false;
-  PtEl.textContent = (2 * L / (Math.PI * d) * 100).toFixed(1) + '%';
+  // 本演示用 L=60, d=50（针比线距长），此时 P=2L/(πd) 失效，必须用长针闭式解。
+  PtEl.textContent = (buffonP(L, d) * 100).toFixed(1) + '%';
   const drawLines = () => {
     ctx.clearRect(0, 0, W, H);
     ctx.strokeStyle = '#9ca3af'; ctx.lineWidth = 1; ctx.setLineDash([5, 4]);
@@ -36825,7 +36830,7 @@ const EXPERIMENTS = [
 
 今天我们要做的事情，比拿尺子量要酷多了。我们要让"扔针"——完全是随机的、没有任何规律的扔针——告诉人类 π 到底等于几。
 
-这个想法是公元一七三三年，一个法国人叫布丰想出来的。他想：如果在一张纸上画很多条等距的平行线，然后把一根针扔上去，针跨过一条线的概率，居然跟 π 有关系！
+这个想法是十八世纪，一个法国人叫布丰想出来的（具体年份有 1753 年、1777 年、1733 年几种记载，细节不重要，记住"十八世纪的法国人"就行）。他想：如果在一张纸上画很多条等距的平行线，然后把一根针扔上去，针跨过一条线的概率，居然跟 π 有关系！
 
 关系是什么？我来推一遍。针长我们叫 L，两条线之间的距离我们叫 d。如果 L 比 d 大很多，针肯定跨线；如果 L 比 d 小很多，针就只可能跨过一条线或者不跨。针的方向呢，从完全平到完全竖，角度 θ 在 0 到 180 度之间随机。离最近的一条线的距离 y 在 0 到 d/2 之间随机。
 
@@ -36871,7 +36876,7 @@ P = ∫₀^π ∫₀^(L·sinθ/2) (2/πd) dy dθ<br>
 </ul>
 <h4>💡 为什么这个发现伟大？</h4>
 <p>在 布丰 之前，大家都觉得"几何"和"概率"是两回事。投针实验第一次让<strong>随机过程</strong>给出了<strong>确定性常数</strong>——这种思想后来被蒙特卡洛方法继承，是现代物理、金融、AI 模拟的根基。</p>`,
-  history: `<p><strong>一七三三年</strong>，法国博物学家 <strong>Georges-Louis Leclerc, Comte de 布丰</strong>（布丰）第一次提出这个问题。他以百科全书式的 <em>Histoire Naturelle</em> 闻名，同时还是概率论的先驱。</p>
+  history: `<p><strong>18 世纪</strong>，法国博物学家 <strong>Georges-Louis Leclerc, Comte de Buffon</strong>（布丰）提出这个问题。学界对具体年份有不同记载：多数文献写 <strong>1753 年</strong>提交法国科学院、<strong>1777 年</strong>随《Histoire Naturelle》补卷正式发表；也有文献引用一份 <strong>1733 年</strong>的科学院备忘录。本页沿用 1733 年这个说法。他以百科全书式的 <em>Histoire Naturelle</em> 闻名，同时还是概率论的先驱。</p>
 <p><strong>一八五〇年</strong>，瑞士天文学家 <strong>Rudolf Wolf</strong> 亲手扔了 <strong>5000 根针</strong>，得到 π ≈ 3.1596——相对误差 0.5%，在当时惊人地精确。</p>
 <p><strong>一九〇一年</strong>，意大利数学家 <strong>Mario Lazzarini</strong> 用精心设计的针长（针长 = 线距的 5/6）扔了 3408 根，得到 <strong>π ≈ 3.1415929...</strong>，前 6 位都正确——但后来被怀疑数据有"优化"嫌疑。</p>
 <p><strong>现代意义</strong>：蒙特卡洛方法（1940s-）就是 布丰 思想的"徒孙"。MCMC、粒子物理、期权定价，<strong>全都是用随机模拟算确定性答案</strong>。</p>`,

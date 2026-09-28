@@ -120,5 +120,11 @@ ck('全站已无 "包络是圆"', cnt(/包络是圆/) === 0);
 ck('Mavis 介绍卡计数已订正 119/9', cnt(/基础公理\/定理<\/strong>（119 个）/) === 1 && cnt(/尚未证明的猜想<\/strong>（9 个）/) === 1);
 ck('Mavis 卡已删虚构例 BSD', cnt(/BSD，数学家/) === 0);
 
+ck('PR01 Stage3 理论值已订正 71.5%', cnt(/id="pr01s3-Pt">71\.5%/) === 1);
+ck('PR01 Stage3 已改用 buffonP 长针解', cnt(/PtEl\.textContent = \(buffonP\(L, d\) \* 100\)/) === 1);
+ck('Stage3 元素已非 63.7%（63.7% 在 L=80,d=80 处是正确的，勿全站禁用）', cnt(/id="pr01s3-Pt">63\.7%/) === 0);
+ck('L=80,d=80 的 63.7% 仍保留（2/π=63.66% 正确）', cnt(/理论跨线率升到 <strong>63\.7%<\/strong>/) === 1);
+ck('PR01 Stage3 已加 L>d 教学说明', cnt(/本演示用 <strong>针长 L=60 &gt; 线距 d=50<\/strong>/) === 1);
+
 console.log('\n' + (fail === 0 ? `全部通过 ✅  (${pass} 项)` : `${fail} 项失败 ❌  (通过 ${pass})`));
 process.exit(fail === 0 ? 0 : 1);
