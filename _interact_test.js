@@ -43,8 +43,18 @@ for (const f of files) {
     const line = (fs.readFileSync(path.join(WORK, f), 'utf-8').split('\n')[n - 1] || '').trim();
     return line ? `  >> 行${n}: ${line.slice(0, 110)}` : `  >> 行${n}`;
   };
-  vc.on('jsdomError', e => errs.push('jsdomError: ' + (e.message || e).slice(0, 120) + srcOf(e.detail && e.detail.stack)));
-  vc.on('error', (...a) => errs.push(String(a.map(x => (x && x.stack) || x).join(' ')).slice(0, 160) + srcOf(a.find(x => x && x.stack))));
+  // jsdom 已知未实现能力：页面点「返回首页」等真实链接时必然报，不是站点缺陷。
+  // 与上面 scrollIntoView / toDataURL / Chart / getContext 同一类检测器缺口。
+  const JSDOM_KNOWN = /Not implemented: navigation|Not implemented: HTMLCanvasElement|getContext \(without installing/;
+  const known = [];
+  vc.on('jsdomError', e => {
+    const msg = 'jsdomError: ' + (e.message || e).slice(0, 120) + srcOf(e.detail && e.detail.stack);
+    if (JSDOM_KNOWN.test(msg)) known.push(msg); else errs.push(msg);
+  });
+  vc.on('error', (...a) => {
+    const msg = String(a.map(x => (x && x.stack) || x).join(' ')).slice(0, 160) + srcOf(a.find(x => x && x.stack));
+    if (JSDOM_KNOWN.test(msg)) known.push(msg); else errs.push(msg);
+  });
 
   let dom;
   try {

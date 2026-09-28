@@ -429,6 +429,36 @@ LifeWiki 被 Cloudflare 的**交互式** JS 验证挡住，`web_fetch` 与内置
 最终改用 **Wayback Machine** 快照拿到 LifeWiki infobox 里的原始 RLE，
 再用本地 RLE 解码 + 仿真独立验证——全程不依赖记忆或二手转述。
 
+## v18.17 交互体检深挖：一个"幽灵 bug"被定位并根治
+
+全量交互体检（148 页 / 2435 次点击 / 1499 次输入改写 / 740 个 stage 标签）报了两条，
+逐条追下来只有一条是真问题，而且**根因不在报错的那一页**。
+
+### 1. `AL02` 的 `TypeError: reading 'value'` —— 真 bug，但根因在 `AL07_s3`
+
+- **单页重跑复现不了**（0 问题），只有整包跑才偶发，说明是时序/负载相关。
+- 给 `_interact_test.js` 的错误记录补上**触发处源码行**后重跑，该错误**整体消失**。
+- 顺着补的守卫往回看，找到真凶：`initStage_AL07_s3`（二分查找动画）在 `init` 时就
+  **自动播一遍**，`setTimeout(render, 700)` 递归成链；而这段 JS 是**全站共享**的，
+  也就是说**每个页面打开时都会在后台跑这条动画链**。stage 一切换，DOM 被换掉，
+  链上后续的 `render` 就往已脱离文档的节点里写。
+- 报错随机落在 AL02 / AL07 等不同页上，正是"报错页 ≠ 出错代码所在页"的典型表现。
+- 修法：只在点按钮时才播；`update` 开头 `clearTimeout` 掉上一条链；
+  `render` 内检测 `document.body.contains(svgEl)`，脱离即停；并补齐 `tInput`/`svgEl` 的 null 守卫。
+- 顺带解决了一个体验问题：以前一打开 AL07 页面动画就自己动起来。
+
+### 2. `PR01` 的 `Not implemented: navigation` —— 误报
+
+点的是站点全局的「返回首页」链接 `<a href="../index.html" class="back-link">`。
+真实浏览器里这是正常跳转，**jsdom 不支持非 hash 导航**才报这个。
+与测试里已打的 `scrollIntoView` / `toDataURL` / `Chart` / `getContext` 补丁属同一类
+检测器缺口，已归入 `JSDOM_KNOWN` 白名单，不再污染结果。
+
+### 教训
+
+"整包跑偶发、单页复现不了"的报错，最有效的定位手段不是反复重跑，
+而是**先让测试能打印出错处的源码行**。本次正是靠这一步才把跨页的时序问题揪出来。
+
 ## 自动化守卫（可复跑）
 
 | 文件 | 作用 | 项数 |
